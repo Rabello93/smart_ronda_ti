@@ -1,0 +1,63 @@
+name: smart_ronda_ti
+description: Smart Ronda TI - Sistema de Governança e Auditoria de Ativos
+publish_to: 'none'
+
+version: 3.0.0+30
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.6
+
+  # Banco de dados local
+  sqflite: ^2.3.0
+  path: ^1.8.3
+
+  # CSV
+  csv: ^5.0.2
+
+  # Arquivos
+  path_provider: ^2.1.2
+  shared_preferences: ^2.2.2
+
+  # Compartilhar arquivos
+  share_plus: ^7.2.1
+
+  intl: ^0.19.0
+  qr_flutter: ^4.1.0
+  mobile_scanner: ^5.0.0
+  pdf: ^3.11.1
+  printing: ^5.13.2
+
+  # Firebase (Nuvem)
+  firebase_core: ^3.1.1
+  cloud_firestore: ^5.0.2
+  firebase_auth: ^5.1.2
+  firebase_messaging: ^15.0.3
+  flutter_local_notifications: ^17.2.1
+  # Removido flutter_app_badger por incompatibilidade com Android moderno
+  fl_chart: ^1.2.0
+  http: ^1.6.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  sqflite_common_ffi: ^2.3.0+2
+  flutter_lints: ^3.0.0
+  flutter_launcher_icons: ^0.13.1
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon.png"
+  adaptive_icon_background: "#2196F3"
+  adaptive_icon_foreground: "assets/icon.png"
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/

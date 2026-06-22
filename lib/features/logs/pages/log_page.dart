@@ -1,0 +1,61 @@
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:smart_ronda_ti/core/services/admin/admin_service.dart';
+import 'package:smart_ronda_ti/features/reports/services/pdf_service.dart';
+
+class LogPage extends StatelessWidget {
+  const LogPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final AdminService service = AdminService();
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Logs de Auditoria"),
+        backgroundColor: Colors.indigo.shade900,
+        foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.picture_as_pdf),
+            onPressed: () => PdfService.exportarLogsParaPDF(context),
+            tooltip: "Exportar logs para PDF",
+          )
+        ],
+      ),
+      body: StreamBuilder<List<Map<String, dynamic>>>(
+        stream: service.getLogs(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
+          if (snapshot.hasError) return Center(child: Text("Erro: ${snapshot.error}"));
+          
+          final logs = snapshot.data ?? [];
+
+          if (logs.isEmpty) return const Center(child: Text("Nenhum log registrado ainda."));
+
+          return ListView.builder(
+            itemCount: logs.length,
+            itemBuilder: (context, index) {
+              final log = logs[index];
+              final DateTime date = (log['timestamp'] != null) 
+                  ? (log['timestamp'] as dynamic).toDate() 
+                  : DateTime.now();
+              
+              final String dataFormatada = DateFormat('dd/MM/yyyy HH:mm').format(date);
+
+              return Card(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: ListTile(
+                  leading: const CircleAvatar(child: Icon(Icons.history_edu, size: 20)),
+                  title: Text("${log['acao']} - $dataFormatada", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                  subtitle: Text("Usuário: ${log['tecnico_nome']}\nDetalhes: ${log['detalhes']}", style: const TextStyle(fontSize: 12)),
+                  isThreeLine: true,
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
