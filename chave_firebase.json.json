@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "smart-ronda-ti",
+  "private_key_id": "78c9f983db6177a993439bf0358d0cd6ce342fbd",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQChZCnB0iHSajIU\nIAOP1o0ZOhJYffyUka+RN3wnq6CR5PstVjs/SSof/nRxlTrIKs+OqSxU1UmYNvdK\n6+u6u7V1oSwLub9sn/ZiX1ApJ3cxU09pYmomlW6PvjHZe/KcveGewJy6OaXdRzDA\nnSksVfJmRnxaiBqwTUUZYWxRbrJr7gNIwBXiFtwwpOpldtisNyP/3zeXvE6Lv9GZ\nktYXEdfHPfvr8K8IJlL7uTXY4FJL/Vy0OH3HS5pkAZclEXBST5vmfx87XDxRDos3\ndmfiRxqRXdwDDSi4BPazhzJTZRDs2A9N74KwIg716jT+x5iFJCCBrh08WglFs6dS\naUJK4mQdAgMBAAECggEABeos/5igZbI/pe4rGJU/3uSlHHoi4h0EEVnhDSEkmtmI\np7eJJ1TFRvPlN5kaVOYAwlU1NeIKjES4w8BUB31un+IpbOqV9zirknJfdoqm5cy2\n/yvnVlpT+XpPyw0treHlnWhTYMh7vtl852o7F+VfI1wXnZ0Zq/bA/rZL08uEnXZG\nNQ6TpHQ8FJHEbLkoLLpIUJKqjWduu5nx5SPjGvem3V4X7/pymjlxVbYu591Yc8fZ\nhZ3v+YHTZ5LO9+tQxlJfmbinuQLvzHwHZy0NLOrl6y7Sm4YP5hWhbZ5OgG7VBFoM\nASI0ONeYUBl0fsb/FO1qWNgNVf4kSSNWEkVFOn4HfwKBgQDRcCHBwFyBL5WeqM7Q\nxTM72v/Kc4Id7XMMcs6KCYLrQw1BwRHFjU9tO92fwxdfuEVpy7ozKM/PUQsj0LzH\ncyBNpF1J8qahpZM+sXj2aVKrGUiuICIo/uRIOvTaAp4xX3BU7eLlDswj+kS58fkJ\n21b92Ie8zdKz+KVvkbJbSf5VBwKBgQDFRYSw/++OPT5M8idJaU1yNIHd3Z2+ZBFQ\nTqKXCI6RmNrE7MeCCc0MvkHOiN7IElPQtzO1I6E7WsdINYzzl1kqnPyR3m1J3m4T\nmlEuik14Jaqm4IT8wjhFYw1LyLP1r0rgY52NMYL8p8nek2zHw/xuE+NVSe/PdBIM\n4FoDbwl4uwKBgQCU+znYFFj5QHsjGJu9oHmYe2l3fwEw/sbXNRe805VAezsD6i4V\nJDc60doOGn4XBgLChjxWxhJFPDY7bPHMwxVYhbIityxXUmvSrfYI+tTmhx7PVmZW\nWTLUOrQQHMqg/m3uzCWZoRQQB6g5yWnI3DEec5fi81qN0TMFkVOZYqI7owKBgQCl\neeEKkEWkbR8bcG0gGWLLj9v3/fRaRpp3YN7mDll5LF0mnu/j1tDYBagx1YH7FdSU\n2XhYU+DlZwqPOcxYcPZs1m7O9WN7eUegzeuXPJArXn09qkwjsc999M6saVj7l+UZ\nQLZiP8v+n8ioGcY/89iFhc1GN9Ufkd+qSW94PeYWDQKBgBGCkVH+MNO2z2WbSJzS\ngOi7Co+MF95mxv6O+wmp8c50T/ui2fl8zIvcFZWFcO5WfMCnCpFmwiM1GbLQiBO1\nKSuxOJDpa0XOSYcZZqBWkPk0ins4Qb3NsM/yjRF0WmhNEmskrnAhpcoWpYapCe72\nGbe48+isB6t8x+WBnHkS1DIm\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-fbsvc@smart-ronda-ti.iam.gserviceaccount.com",
+  "client_id": "104325804879187961909",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40smart-ronda-ti.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

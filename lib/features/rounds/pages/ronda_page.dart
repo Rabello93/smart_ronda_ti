@@ -7,11 +7,13 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter/rendering.dart';
+import 'package:smart_ronda_ti/core/services/auth/auth_service.dart';
 import 'package:smart_ronda_ti/core/services/rounds/ronda_service.dart';
 import 'package:smart_ronda_ti/core/services/inventory/inventory_service.dart';
 import 'package:smart_ronda_ti/core/services/admin/admin_service.dart';
 import 'package:smart_ronda_ti/core/models/ronda_model.dart';
 import 'package:smart_ronda_ti/core/models/ativo_model.dart';
+import 'package:smart_ronda_ti/core/models/usuario_model.dart';
 
 class RondaPage extends StatefulWidget {
   final String setor;
@@ -43,11 +45,15 @@ class _RondaPageState extends State<RondaPage> {
   final TextEditingController observacaoController = TextEditingController();
   final TextEditingController descricaoDefeitoController = TextEditingController();
   final TextEditingController motivoDivergenciaController = TextEditingController();
+  
+  final TextEditingController anoFabricacaoController = TextEditingController();
+  final TextEditingController anoEntradaController = TextEditingController();
 
   final TextEditingController patrimonioAntigoController = TextEditingController();
   final TextEditingController patrimonioNovoController = TextEditingController();
   final TextEditingController motivoTrocaController = TextEditingController();
 
+  final AuthService _authService = AuthService();
   final RondaService _rondaService = RondaService();
   final InventoryService _inventoryService = InventoryService();
   final AdminService _adminService = AdminService();
@@ -65,6 +71,7 @@ class _RondaPageState extends State<RondaPage> {
   String? locadoraSelecionada;
   bool houveTroca = false;
   bool buscandoInventario = false;
+  UsuarioModel? _usuarioLogado;
 
   List<AtivoModel> equipamentos = [];
   List<String> locadoras = [];
@@ -74,10 +81,17 @@ class _RondaPageState extends State<RondaPage> {
   @override
   void initState() {
     super.initState();
+    _carregarPerfil();
     if (widget.equipamentosIniciais != null) {
       equipamentos = widget.equipamentosIniciais!.map((e) => AtivoModel.fromMap(e, e['patrimonio'] ?? '')).toList();
     }
     _carregarLocadoras();
+  }
+
+  Future<void> _carregarPerfil() async {
+    _authService.getPerfilStream().listen((user) {
+      if (mounted) setState(() => _usuarioLogado = user);
+    });
   }
 
   Future<void> _carregarLocadoras() async {
@@ -96,7 +110,8 @@ class _RondaPageState extends State<RondaPage> {
     macController.dispose();
     observacaoController.dispose();
     descricaoDefeitoController.dispose();
-    motivoDivergenciaController.dispose();
+    anoFabricacaoController.dispose();
+    anoEntradaController.dispose();
     patrimonioAntigoController.dispose();
     patrimonioNovoController.dispose();
     motivoTrocaController.dispose();
@@ -159,6 +174,8 @@ class _RondaPageState extends State<RondaPage> {
         serieController.text = dados.serie;
         processadorController.text = dados.processador ?? "";
         macController.text = dados.macAddress ?? "";
+        anoFabricacaoController.text = dados.anoFabricacao?.toString() ?? "";
+        anoEntradaController.text = dados.anoEntradaUnidade?.toString() ?? "";
         isLocado = dados.isLocado;
         locadoraSelecionada = dados.locadora;
       });
@@ -384,6 +401,8 @@ class _RondaPageState extends State<RondaPage> {
         serie: serieController.text.trim(),
         processador: processadorController.text.trim(),
         macAddress: macController.text.trim(),
+        anoFabricacao: int.tryParse(anoFabricacaoController.text.trim()),
+        anoEntradaUnidade: int.tryParse(anoEntradaController.text.trim()),
         isLocado: isLocado,
         locadora: isLocado ? locadoraSelecionada : null,
         statusOperacional: statusOperacional,
@@ -403,6 +422,8 @@ class _RondaPageState extends State<RondaPage> {
       macController.clear();
       observacaoController.clear();
       descricaoDefeitoController.clear();
+      anoFabricacaoController.clear();
+      anoEntradaController.clear();
       carregador = false;
       mouse = false;
       teclado = false;
@@ -494,6 +515,8 @@ class _RondaPageState extends State<RondaPage> {
       serieController.text = item.serie;
       processadorController.text = item.processador ?? "";
       macController.text = item.macAddress ?? "";
+      anoFabricacaoController.text = item.anoFabricacao?.toString() ?? "";
+      anoEntradaController.text = item.anoEntradaUnidade?.toString() ?? "";
       descricaoDefeitoController.text = item.descricaoDefeito ?? "";
       defeito = item.temDefeito;
       isLocado = item.isLocado;
@@ -507,6 +530,8 @@ class _RondaPageState extends State<RondaPage> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isAdmin = _usuarioLogado?.isAdmin ?? false;
+
     return Scaffold(
       appBar: AppBar(title: Text(widget.rondaId != null ? 'Editando Ronda - ${widget.setor}' : 'Ronda - ${widget.setor}')),
       body: SingleChildScrollView(
@@ -614,6 +639,34 @@ class _RondaPageState extends State<RondaPage> {
               TextField(controller: processadorController, decoration: const InputDecoration(labelText: 'Processador (i5, i7, Ryzen...)', border: OutlineInputBorder())),
               const SizedBox(height: 10),
             ],
+
+            // CAMPOS DE ANO - VISÍVEIS APENAS PARA ADMIN/GERENTE
+            if (isAdmin) ...[
+              const Divider(height: 30),
+              const Text("Dados Administrativos (Ciclo de Vida)", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo)),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: anoFabricacaoController, 
+                      keyboardType: TextInputType.number, 
+                      decoration: const InputDecoration(labelText: 'Ano Fabricação', border: OutlineInputBorder(), hintText: "Ex: 2020")
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: TextField(
+                      controller: anoEntradaController, 
+                      keyboardType: TextInputType.number, 
+                      decoration: const InputDecoration(labelText: 'Ano Uso Unidade', border: OutlineInputBorder(), hintText: "Ex: 2022")
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 15),
+            ],
+
             Wrap(
               spacing: 10,
               children: [

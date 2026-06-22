@@ -66,15 +66,13 @@ class _LoginPageState extends State<LoginPage> {
             children: [
               Image.asset(
                 "assets/logo.png",
-                height: 120,
+                height: 180,
                 errorBuilder: (context, error, stackTrace) => const Icon(
                   Icons.checklist_rtl,
                   size: 80,
                   color: Colors.blue,
                 ),
               ),
-              const SizedBox(height: 10),
-              const Text("Smart Ronda TI", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
               const SizedBox(height: 30),
               TextField(controller: _emailController, decoration: const InputDecoration(labelText: 'E-mail', border: OutlineInputBorder())),
               const SizedBox(height: 10),

@@ -21,6 +21,8 @@ class AtivoModel {
   final bool temDefeito;
   final String? descricaoDefeito;
   final String status;
+  final int? anoFabricacao;
+  final int? anoEntradaUnidade;
 
   AtivoModel({
     required this.patrimonio,
@@ -43,6 +45,8 @@ class AtivoModel {
     this.temDefeito = false,
     this.descricaoDefeito,
     this.status = 'Ativo',
+    this.anoFabricacao,
+    this.anoEntradaUnidade,
   });
 
   factory AtivoModel.fromMap(Map<String, dynamic> map, String id) {
@@ -69,6 +73,8 @@ class AtivoModel {
       temDefeito: map['tem_defeito'] ?? false,
       descricaoDefeito: map['descricao_defeito'],
       status: map['status'] ?? 'Ativo',
+      anoFabricacao: map['ano_fabricacao'],
+      anoEntradaUnidade: map['ano_entrada_unidade'],
     );
   }
 
@@ -95,13 +101,13 @@ class AtivoModel {
       'tem_defeito': temDefeito,
       'descricao_defeito': descricaoDefeito,
       'status': status,
+      'ano_fabricacao': anoFabricacao,
+      'ano_entrada_unidade': anoEntradaUnidade,
     };
   }
 
-  // Atalho para saber se precisa de troca (obsolescência fictícia baseada em regra de negócio)
   bool get isObsoleto {
-    // Exemplo: se não tiver data, não sabemos. Se tiver, poderíamos calcular.
-    // Como no seu app você usa o ano_fabricacao, poderíamos adicionar esse campo aqui também.
-    return false; 
+    if (anoFabricacao == null) return false;
+    return (DateTime.now().year - anoFabricacao!) >= 5;
   }
 }
