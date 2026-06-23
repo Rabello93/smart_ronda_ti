@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../auth/models/user_model.dart';
+import '../../../system/auth/models/user_model.dart';
 import '../repositories/admin_repository.dart';
 
 class AdminController {

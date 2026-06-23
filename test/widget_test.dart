@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_ronda_ti/main.dart';
+import 'package:smart_ronda_ti/app/app.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {

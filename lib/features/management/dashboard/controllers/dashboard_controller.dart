@@ -1,4 +1,5 @@
-import '../../rounds/models/round_model.dart';
+import 'package:flutter/material.dart' show DateTimeRange;
+import '../../../operation/rounds/models/round_model.dart';
 
 class DashboardController {
   /// Filtra a lista de rondas baseada no período selecionado.
@@ -38,7 +39,3 @@ class DashboardController {
     return rounds.fold(0, (sum, r) => sum + r.defeitosTotal);
   }
 }
-
-// Mock DateTimeRange for the controller if not using flutter material here
-// In a real scenario, you'd import 'package:flutter/material.dart'
-import 'package:flutter/material.dart' show DateTimeRange;
