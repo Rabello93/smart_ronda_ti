@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:smart_ronda_ti/core/services/auth/auth_service.dart';
-import 'package:smart_ronda_ti/core/services/rounds/ronda_service.dart';
-import 'package:smart_ronda_ti/core/services/admin/admin_service.dart';
-import 'package:smart_ronda_ti/core/models/ronda_model.dart';
-import 'package:smart_ronda_ti/core/models/usuario_model.dart';
+import 'package:smart_ronda_ti/features/auth/controllers/auth_controller.dart';
+import 'package:smart_ronda_ti/features/rounds/controllers/round_controller.dart';
+import 'package:smart_ronda_ti/features/admin/controllers/admin_controller.dart';
+import 'package:smart_ronda_ti/features/rounds/models/round_model.dart';
+import 'package:smart_ronda_ti/features/auth/models/user_model.dart';
 import 'package:smart_ronda_ti/features/history/pages/ronda_details_page.dart';
 import 'package:smart_ronda_ti/features/rounds/pages/ronda_page.dart';
 
@@ -15,9 +15,9 @@ class HistoryPage extends StatefulWidget {
 }
 
 class _HistoryPageState extends State<HistoryPage> {
-  final AuthService _authService = AuthService();
-  final RondaService _rondaService = RondaService();
-  final AdminService _adminService = AdminService();
+  final AuthController _authController = AuthController();
+  final RoundController _roundController = RoundController();
+  final AdminController _adminController = AdminController();
   
   String filtroTexto = "";
   String? setorFiltro;
@@ -51,7 +51,7 @@ class _HistoryPageState extends State<HistoryPage> {
 
     if (confirmar == true) {
       try {
-        await _rondaService.excluirRonda(docId);
+        await _roundController.removeRound(docId);
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Ronda excluída com sucesso'), duration: Duration(seconds: 1))
@@ -63,7 +63,7 @@ class _HistoryPageState extends State<HistoryPage> {
     }
   }
 
-  Future<void> _abrirEdicao(RondaModel ronda) async {
+  Future<void> _abrirEdicao(RoundModel ronda) async {
     if (ronda.id == null) return;
     
     showDialog(
@@ -73,7 +73,7 @@ class _HistoryPageState extends State<HistoryPage> {
     );
 
     try {
-      final equipamentos = await _rondaService.getEquipamentosDaRonda(ronda.id!);
+      final equipamentos = await _roundController.getRoundAssets(ronda.id!);
       
       if (!mounted) return;
       Navigator.pop(context); 
@@ -96,12 +96,12 @@ class _HistoryPageState extends State<HistoryPage> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<UsuarioModel?>(
-      stream: _authService.getPerfilStream(),
+    return StreamBuilder<UserModel?>(
+      stream: _authController.profileStream,
       builder: (context, profileSnapshot) {
         final userData = profileSnapshot.data;
-        final String meuUid = _authService.currentUser?.uid ?? "";
-        final bool isManager = userData?.isAdmin ?? false;
+        final String meuUid = _authController.currentUser?.uid ?? "";
+        final bool isManager = userData?.nivelAcesso == 'master' || userData?.nivelAcesso == 'gerente';
 
         return Scaffold(
           appBar: AppBar(
@@ -124,7 +124,7 @@ class _HistoryPageState extends State<HistoryPage> {
                     ),
                     const SizedBox(height: 8),
                     StreamBuilder<List<Map<String, dynamic>>>(
-                      stream: _adminService.getSetores(),
+                      stream: _adminController.sectorsStream,
                       builder: (context, snap) {
                         final setores = snap.data ?? [];
                         return SingleChildScrollView(
@@ -150,8 +150,8 @@ class _HistoryPageState extends State<HistoryPage> {
               ),
             ),
           ),
-          body: StreamBuilder<List<RondaModel>>(
-            stream: _rondaService.getHistoricoRondas(),
+          body: StreamBuilder<List<RoundModel>>(
+            stream: _roundController.getHistoryStream(),
             builder: (context, snapshot) {
               if (snapshot.hasError) return Center(child: Text('Erro: ${snapshot.error}'));
               if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());

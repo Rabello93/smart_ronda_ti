@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:smart_ronda_ti/core/services/admin/admin_service.dart';
-import 'package:smart_ronda_ti/features/reports/services/pdf_service.dart';
+import 'package:smart_ronda_ti/features/admin/controllers/admin_controller.dart';
+import 'package:smart_ronda_ti/features/reports/repositories/pdf_repository.dart';
 
 class LogPage extends StatelessWidget {
   const LogPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final AdminService service = AdminService();
+    final AdminController controller = AdminController();
 
     return Scaffold(
       appBar: AppBar(
@@ -18,13 +18,13 @@ class LogPage extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.picture_as_pdf),
-            onPressed: () => PdfService.exportarLogsParaPDF(context),
+            onPressed: () => PdfRepository.exportarLogsParaPDF(context),
             tooltip: "Exportar logs para PDF",
           )
         ],
       ),
       body: StreamBuilder<List<Map<String, dynamic>>>(
-        stream: service.getLogs(),
+        stream: controller.logsStream,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
           if (snapshot.hasError) return Center(child: Text("Erro: ${snapshot.error}"));

@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class AtivoModel {
+class AssetModel {
   final String patrimonio;
   final String tipo;
   final String marca;
@@ -24,7 +24,7 @@ class AtivoModel {
   final int? anoFabricacao;
   final int? anoEntradaUnidade;
 
-  AtivoModel({
+  AssetModel({
     required this.patrimonio,
     required this.tipo,
     this.marca = '',
@@ -49,8 +49,8 @@ class AtivoModel {
     this.anoEntradaUnidade,
   });
 
-  factory AtivoModel.fromMap(Map<String, dynamic> map, String id) {
-    return AtivoModel(
+  factory AssetModel.fromMap(Map<String, dynamic> map, String id) {
+    return AssetModel(
       patrimonio: id,
       tipo: map['tipo'] ?? 'Outro',
       marca: map['marca'] ?? '',

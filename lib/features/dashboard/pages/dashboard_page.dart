@@ -1,12 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:smart_ronda_ti/core/services/auth/auth_service.dart';
-import 'package:smart_ronda_ti/core/services/admin/admin_service.dart';
-import 'package:smart_ronda_ti/core/services/rounds/ronda_service.dart';
-import 'package:smart_ronda_ti/core/services/inventory/inventory_service.dart';
-import 'package:smart_ronda_ti/core/models/ronda_model.dart';
-import 'package:smart_ronda_ti/core/models/ativo_model.dart';
+import 'package:smart_ronda_ti/features/auth/controllers/auth_controller.dart';
+import 'package:smart_ronda_ti/features/admin/controllers/admin_controller.dart';
+import 'package:smart_ronda_ti/features/rounds/controllers/round_controller.dart';
+import 'package:smart_ronda_ti/features/assets/controllers/asset_controller.dart';
+import 'package:smart_ronda_ti/features/rounds/models/round_model.dart';
+import 'package:smart_ronda_ti/features/assets/models/asset_model.dart';
 
 class DashboardPage extends StatefulWidget {
   final ThemeMode themeMode;
@@ -19,10 +19,10 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
-  final AdminService _adminService = AdminService();
-  final RondaService _rondaService = RondaService();
-  final InventoryService _inventoryService = InventoryService();
-  final AuthService _authService = AuthService();
+  final AdminController _adminController = AdminController();
+  final RoundController _roundController = RoundController();
+  final AssetController _assetController = AssetController();
+  final AuthController _authController = AuthController();
 
   String? setorFiltro;
   String? locadoraFiltro;
@@ -40,13 +40,11 @@ class _DashboardPageState extends State<DashboardPage> {
       backgroundColor: bgColor,
       appBar: AppBar(
         title: StreamBuilder<DocumentSnapshot>(
-          stream: _adminService.getConfigEmpresa(),
+          stream: _adminController.brandingStream,
           builder: (context, snapshot) {
-            String nomeEmpresa = "RONDA TI CORPORATIVA";
             String logoUrl = "";
             if (snapshot.hasData && snapshot.data!.exists) {
               final data = snapshot.data!.data() as Map<String, dynamic>;
-              nomeEmpresa = data['nome'] ?? nomeEmpresa;
               logoUrl = data['logo_url'] ?? "";
             }
 
@@ -55,21 +53,11 @@ class _DashboardPageState extends State<DashboardPage> {
               if (fileId != null) logoUrl = "https://docs.google.com/uc?export=download&id=$fileId";
             }
 
-            return Row(
-              children: [
-                if (logoUrl.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 10),
-                    child: Image.network(logoUrl, height: 30, errorBuilder: (_, __, ___) => Image.asset("assets/logo.png", height: 30)),
-                  )
-                else
-                  Padding(
-                    padding: const EdgeInsets.only(right: 10),
-                    child: Image.asset("assets/logo.png", height: 30, errorBuilder: (_, __, ___) => const Icon(Icons.business, size: 20)),
-                  ),
-                Expanded(child: Text(nomeEmpresa, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16))),
-              ],
-            );
+            if (logoUrl.isNotEmpty) {
+              return Image.network(logoUrl, height: 40, errorBuilder: (_, __, ___) => Image.asset("assets/logo.png", height: 40));
+            } else {
+              return Image.asset("assets/logo.png", height: 40, errorBuilder: (_, __, ___) => const Icon(Icons.business, size: 30));
+            }
           }
         ),
         backgroundColor: isDark ? Colors.black : Colors.indigo.shade900,
@@ -82,16 +70,16 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: () => _authService.logout(),
+            onPressed: () => _authController.logout(),
           ),
         ],
       ),
-      body: StreamBuilder<List<RondaModel>>(
-        stream: _rondaService.getHistoricoRondas(),
+      body: StreamBuilder<List<RoundModel>>(
+        stream: _roundController.getHistoryStream(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
           
-          List<RondaModel> rondas = snapshot.data ?? [];
+          List<RoundModel> rondas = snapshot.data ?? [];
           
           if (dataFiltro != null) {
             rondas = rondas.where((r) {
@@ -100,7 +88,7 @@ class _DashboardPageState extends State<DashboardPage> {
           }
 
           return DefaultTabController(
-            length: 4,
+            length: 5,
             child: Column(
               children: [
                 Container(
@@ -109,8 +97,10 @@ class _DashboardPageState extends State<DashboardPage> {
                     labelColor: Colors.blue,
                     unselectedLabelColor: Colors.grey,
                     indicatorColor: Colors.blue,
+                    isScrollable: true,
                     tabs: [
                       Tab(icon: Icon(Icons.dashboard), text: "Geral"),
+                      Tab(icon: Icon(Icons.person), text: "Técnicos"),
                       Tab(icon: Icon(Icons.warning_amber), text: "Defeitos"),
                       Tab(icon: Icon(Icons.business), text: "Locação"),
                       Tab(icon: Icon(Icons.analytics), text: "Status"),
@@ -121,6 +111,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   child: TabBarView(
                     children: [
                       _buildGeralTab(rondas, cardColor, textColor),
+                      _buildTecnicosTab(rondas, cardColor, textColor),
                       _buildDefeitosTab(context, rondas, cardColor, textColor),
                       _buildLocacaoTab(cardColor, textColor),
                       _buildStatusTab(cardColor, textColor),
@@ -139,9 +130,9 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _buildGeralTab(List<RondaModel> rondas, Color cardColor, Color textColor) {
-    int totalItens = rondas.fold(0, (accumulator, r) => accumulator + r.itensTotal);
-    int totalDefeitos = rondas.fold(0, (accumulator, r) => accumulator + r.defeitosTotal);
+  Widget _buildGeralTab(List<RoundModel> rondas, Color cardColor, Color textColor) {
+    int totalItens = rondas.fold(0, (accumulator, r) => accumulator + (r.itensTotal));
+    int totalDefeitos = rondas.fold(0, (accumulator, r) => accumulator + (r.defeitosTotal));
     
     Map<String, int> rondasPorSetor = {};
     for (var r in rondas) {
@@ -166,8 +157,8 @@ class _DashboardPageState extends State<DashboardPage> {
               _buildSummaryCard("RONDAS", rondas.length.toString(), Icons.assignment_turned_in, Colors.blue, cardColor, textColor),
               _buildSummaryCard("TOTAL ITENS", totalItens.toString(), Icons.inventory_2, Colors.orange, cardColor, textColor),
               _buildSummaryCard("DEFEITOS", totalDefeitos.toString(), Icons.error, Colors.red, cardColor, textColor),
-              StreamBuilder<List<AtivoModel>>(
-                stream: _inventoryService.getItensObsoletos(),
+              StreamBuilder<List<AssetModel>>(
+                stream: _assetController.getObsoleteStream(),
                 builder: (context, snapshot) {
                   final count = snapshot.data?.length ?? 0;
                   return Tooltip(message: "Equipamentos com mais de 5 anos", child: _buildSummaryCard("OBSOLETOS", count.toString(), Icons.history, Colors.deepPurple, cardColor, textColor));
@@ -257,9 +248,9 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _buildDefeitosTab(BuildContext context, List<RondaModel> rondas, Color cardColor, Color textColor) {
-    return StreamBuilder<List<AtivoModel>>(
-      stream: _inventoryService.getItensComDefeito(),
+  Widget _buildDefeitosTab(BuildContext context, List<RoundModel> rondas, Color cardColor, Color textColor) {
+    return StreamBuilder<List<AssetModel>>(
+      stream: _assetController.getDefectsStream(),
       builder: (context, snapshot) {
         final itens = snapshot.data ?? [];
         if (itens.isEmpty) return const Center(child: Text("Nenhum item com defeito no momento."));
@@ -286,7 +277,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
   Widget _buildLocacaoTab(Color cardColor, Color textColor) {
     return StreamBuilder<List<Map<String, dynamic>>>(
-      stream: FirebaseFirestore.instance.collection('inventario_mestre').where('is_locado', isEqualTo: true).snapshots().map((snap) => snap.docs.map((doc) => doc.data()).toList()),
+      stream: FirebaseFirestore.instance.collection('inventario_mestre').where('is_locado', isEqualTo: true).snapshots().map((snap) => snap.docs.map((doc) => doc.data() as Map<String, dynamic>).toList()),
       builder: (context, snapshot) {
         final itens = snapshot.data ?? [];
         if (itens.isEmpty) return const Center(child: Text("Nenhum item locado encontrado."));
@@ -341,11 +332,15 @@ class _DashboardPageState extends State<DashboardPage> {
             decoration: BoxDecoration(color: Colors.blue.shade100, borderRadius: BorderRadius.circular(10)),
             child: Text("${e.value.length}", style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue, fontSize: 12)),
           ),
-          children: e.value.map((item) => ListTile(
-            dense: true,
-            title: Text("Pat: ${item['patrimonio'] ?? 'S/P'}", style: const TextStyle(fontWeight: FontWeight.bold)),
-            subtitle: Text("Setor: ${item['setor'] ?? '---'} | Status: ${item['status_operacional'] ?? 'Em uso'}"),
-          )).toList(),
+          children: e.value.map((item) {
+            // Ajuste para pegar patrimônio corretamente tanto se for mapa quanto se for campo
+            final String pat = item['patrimonio'] ?? item['id'] ?? 'S/P';
+            return ListTile(
+              dense: true,
+              title: Text("Pat: $pat", style: const TextStyle(fontWeight: FontWeight.bold)),
+              subtitle: Text("Setor: ${item['setor'] ?? '---'} | Status: ${item['status_operacional'] ?? 'Em uso'}"),
+            );
+          }).toList(),
         ),
       );
     }).toList();
@@ -358,24 +353,24 @@ class _DashboardPageState extends State<DashboardPage> {
         children: [
           _buildSectionTitle("Indicadores de Saúde do Parque", textColor),
           const SizedBox(height: 20),
-          StreamBuilder<List<AtivoModel>>(
-            stream: _inventoryService.getItensEmManutencao(),
+          StreamBuilder<List<AssetModel>>(
+            stream: _assetController.getMaintenanceStream(),
             builder: (context, snapshot) {
               final itens = snapshot.data ?? [];
               return _buildStatusCard("EM MANUTENÇÃO", itens.length.toString(), Icons.build, Colors.orange, cardColor, textColor, () => _showItensList(context, "Itens em Manutenção", itens));
             }
           ),
           const SizedBox(height: 10),
-          StreamBuilder<List<AtivoModel>>(
-            stream: _inventoryService.getItensDivergentes(),
+          StreamBuilder<List<AssetModel>>(
+            stream: _assetController.getDivergenceStream(),
             builder: (context, snapshot) {
               final itens = snapshot.data ?? [];
               return _buildStatusCard("DIVERGÊNCIAS DE SETOR", itens.length.toString(), Icons.location_off, Colors.purple, cardColor, textColor, () => _showItensList(context, "Ativos em Setor Divergente", itens));
             }
           ),
           const SizedBox(height: 10),
-          StreamBuilder<List<AtivoModel>>(
-            stream: _inventoryService.getItensObsoletos(),
+          StreamBuilder<List<AssetModel>>(
+            stream: _assetController.getObsoleteStream(),
             builder: (context, snapshot) {
               final itens = snapshot.data ?? [];
               return _buildStatusCard("CICLO DE VIDA CRÍTICO", itens.length.toString(), Icons.timer_3, Colors.deepPurple, cardColor, textColor, () => _showItensList(context, "Ativos Obsoletos (+5 anos)", itens));
@@ -404,7 +399,63 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  void _showItensList(BuildContext context, String title, List<AtivoModel> itens) {
+  Widget _buildTecnicosTab(List<RoundModel> rondas, Color cardColor, Color textColor) {
+    Map<String, int> rondasPorTecnico = {};
+    for (var r in rondas) {
+      String t = r.tecnico;
+      rondasPorTecnico[t] = (rondasPorTecnico[t] ?? 0) + 1;
+    }
+
+    var sortedTecnicos = rondasPorTecnico.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          _buildFiltroData(),
+          const SizedBox(height: 20),
+          _buildSectionTitle("Ranking de Rondas por Técnico", textColor),
+          const SizedBox(height: 15),
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(color: cardColor, borderRadius: BorderRadius.circular(15), boxShadow: [BoxShadow(color: Colors.black.withAlpha(20), blurRadius: 10)]),
+            child: sortedTecnicos.isEmpty 
+              ? const Center(child: Text("Nenhuma ronda no período selecionado."))
+              : Column(
+                  children: sortedTecnicos.map((e) {
+                    double pct = sortedTecnicos.isNotEmpty && sortedTecnicos.first.value > 0 ? e.value / sortedTecnicos.first.value : 0;
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(e.key, style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
+                              Text("${e.value} rondas", style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                          const SizedBox(height: 5),
+                          LinearProgressIndicator(
+                            value: pct,
+                            backgroundColor: Colors.grey.withAlpha(30),
+                            color: Colors.green.shade400,
+                            minHeight: 8,
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showItensList(BuildContext context, String title, List<AssetModel> itens) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(

@@ -17,6 +17,15 @@ O app foi desenvolvido para otimizar as rondas técnicas em ambiente corporativo
 
 ## 🚀 Série Histórica (Evolução)
 
+### [3.0.1 Stable] - 2026-06-23
+- **Melhorias no Dashboard**: Remoção de textos redundantes na AppBar e foco total na marca.
+- **Auditoria de Locados**: Correção na exibição de patrimônios na aba de locação.
+- **Rankings Inteligentes**: Filtros de período agora aplicados estritamente aos rankings de setores.
+- **Novo Ranking**: Implementação do ranking de rondas por usuário (Técnicos).
+- **Controle de Acesso**: Reforço na regra de bloqueio para novos usuários pendentes de ativação.
+- **Ciclo de Vida (Castelo)**: Refatoração dos campos de ano, restritos agora a administradores, e remoção de campos obsoletos.
+- **Padronização**: Alinhamento do nome do aplicativo para **Smart Ronda TI** em toda a interface.
+
 ### [3.0.0 Alpha] - 2026-06-03
 - **Rebranding Oficial**: Transição para o nome **Smart Ronda TI**.
 - **Identidade Visual**: Implementação do novo ícone de smartphone e logotipo oficial via assets.

@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:smart_ronda_ti/core/services/auth/auth_service.dart';
-import 'package:smart_ronda_ti/core/services/admin/admin_service.dart';
-import 'package:smart_ronda_ti/core/models/usuario_model.dart';
+import 'package:smart_ronda_ti/features/auth/controllers/auth_controller.dart';
+import 'package:smart_ronda_ti/features/admin/controllers/admin_controller.dart';
+import 'package:smart_ronda_ti/features/auth/models/user_model.dart';
 import 'package:smart_ronda_ti/features/auth/pages/login_page.dart';
 import 'package:smart_ronda_ti/features/rounds/pages/home_page.dart';
 import 'package:smart_ronda_ti/features/dashboard/pages/dashboard_page.dart';
@@ -90,19 +90,19 @@ class AuthWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final AuthService authService = AuthService();
-    final AdminService adminService = AdminService();
+    final AuthController authController = AuthController();
+    final AdminController adminController = AdminController();
     
     return StreamBuilder(
-      stream: authService.authStateChanges,
+      stream: authController.authStateChanges,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(body: Center(child: CircularProgressIndicator()));
         }
         
         if (snapshot.hasData) {
-          return StreamBuilder<UsuarioModel?>(
-            stream: authService.getPerfilStream(),
+          return StreamBuilder<UserModel?>(
+            stream: authController.profileStream,
             builder: (context, profileSnap) {
               if (profileSnap.connectionState == ConnectionState.waiting) {
                 return const Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -114,10 +114,11 @@ class AuthWrapper extends StatelessWidget {
                 return const HomePage();
               }
               
-              if (!usuario.ativo) {
+              // REGRA DE BLOQUEIO: Se o usuário não estiver ativo, mostra tela de pendente
+              if (usuario.ativo == false) {
                 return Scaffold(
                   body: StreamBuilder<DocumentSnapshot>(
-                    stream: adminService.getConfigEmpresa(),
+                    stream: adminController.brandingStream,
                     builder: (context, configSnap) {
                       String logoUrl = "";
                       bool useLocalLogo = true;
@@ -164,7 +165,7 @@ class AuthWrapper extends StatelessWidget {
                             ),
                             const SizedBox(height: 40),
                             ElevatedButton(
-                              onPressed: () => authService.logout(),
+                              onPressed: () => authController.logout(),
                               style: ElevatedButton.styleFrom(
                                 minimumSize: const Size(200, 50),
                                 backgroundColor: Colors.blue.shade900,

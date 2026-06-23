@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../core/services/auth/auth_service.dart';
+import '../controllers/auth_controller.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -14,7 +14,7 @@ class _LoginPageState extends State<LoginPage> {
   
   bool _isLogin = true;
   bool _loading = false;
-  final _authService = AuthService();
+  final _authController = AuthController();
 
   @override
   void dispose() {
@@ -37,9 +37,9 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => _loading = true);
     try {
       if (_isLogin) {
-        await _authService.login(email, password);
+        await _authController.login(email, password);
       } else {
-        await _authService.cadastrarApenasAuth(
+        await _authController.registerSimple(
           email: email,
           password: password,
         );

@@ -5,7 +5,8 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter/rendering.dart';
-import 'package:smart_ronda_ti/core/services/rounds/ronda_service.dart';
+import 'package:smart_ronda_ti/features/rounds/controllers/round_controller.dart';
+import 'package:smart_ronda_ti/features/assets/models/asset_model.dart';
 
 class RondaDetailsPage extends StatelessWidget {
   final Map<String, dynamic> ronda;
@@ -17,7 +18,7 @@ class RondaDetailsPage extends StatelessWidget {
         ? ronda['data_inicio'].toString().substring(0, 16).replaceAll('T', ' ')
         : 'Sem data';
 
-    final RondaService rondaService = RondaService();
+    final RoundController roundController = RoundController();
 
     return Scaffold(
       appBar: AppBar(title: Text("Detalhes: ${ronda['setor']}")),
@@ -25,8 +26,8 @@ class RondaDetailsPage extends StatelessWidget {
         children: [
           _buildHeader(data),
           Expanded(
-            child: FutureBuilder<List<Map<String, dynamic>>>(
-              future: rondaService.getEquipamentosDaRonda(ronda['id_documento']),
+            child: FutureBuilder<List<AssetModel>>(
+              future: roundController.getRoundAssets(ronda['id_documento']),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
                 final equips = snapshot.data ?? [];
@@ -35,30 +36,20 @@ class RondaDetailsPage extends StatelessWidget {
                   itemCount: equips.length,
                   itemBuilder: (context, index) {
                     final e = equips[index];
-                    final bool isDefeito = e['status'] == 'Defeito' || e['tem_defeito'] == true;
-                    final bool isTroca = e['is_troca'] == true;
-
-                    if (isTroca) {
-                      return Card(
-                        color: Colors.orange.shade50,
-                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        child: ListTile(
-                          leading: const Icon(Icons.swap_horiz, color: Colors.orange),
-                          title: const Text("TROCA DE EQUIPAMENTO", style: TextStyle(fontWeight: FontWeight.bold)),
-                          subtitle: Text("Antigo: ${e['patrimonio_antigo']}\nNovo: ${e['patrimonio_novo']}\nMotivo: ${e['motivo']}"),
-                        ),
-                      );
-                    }
+                    final bool isDefeito = e.status == 'Defeito' || e.temDefeito == true;
+                    // Note: 'is_troca' doesn't exist in AtivoModel, but RondaService filters them out in getEquipamentosDaRonda.
+                    // If special handling for 'is_troca' is needed, getEquipamentosDaRonda would need to be changed back or AtivoModel updated.
+                    // Based on my previous change to RondaService, 'is_troca' items are FILTERED OUT.
 
                     return Card(
                       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                       child: ListTile(
                         leading: Icon(isDefeito ? Icons.error_outline : Icons.check_circle_outline, color: isDefeito ? Colors.red : Colors.green),
-                        title: Text("${e['tipo']} - ${e['patrimonio']}"),
-                        subtitle: Text("S/N: ${e['serie'] ?? '---'} | CPU: ${e['processador'] ?? '---'}"),
+                        title: Text("${e.tipo} - ${e.patrimonio}"),
+                        subtitle: Text("S/N: ${e.serie} | CPU: ${e.processador ?? '---'}"),
                         trailing: IconButton(
                           icon: const Icon(Icons.qr_code, color: Colors.blue),
-                          onPressed: () => _mostrarQRCode(context, e['patrimonio'] ?? "S/P"),
+                          onPressed: () => _mostrarQRCode(context, e.patrimonio),
                         ),
                       ),
                     );

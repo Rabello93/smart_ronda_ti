@@ -7,7 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-class PdfService {
+class PdfRepository {
   static Future<void> exportarLocacaoParaPDF(BuildContext context, List<Map<String, dynamic>> itens, String titulo) async {
     final messenger = (context.mounted) ? ScaffoldMessenger.of(context) : null;
     try {
@@ -46,7 +46,7 @@ class PdfService {
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     pw.Text(config['nome'] ?? "RONDA TI", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14)),
-                    pw.Text(titulo.toUpperCase(), style: const pw.TextStyle(fontSize: 10, color: PdfColors.blue900)),
+                    pw.Text(titulo.toUpperCase(), style: pw.TextStyle(fontSize: 10, color: PdfColors.blue900)),
                   ]
                 ),
                 if (logoImage != null) pw.Image(logoImage, height: 35),
@@ -58,7 +58,7 @@ class PdfService {
             pw.TableHelper.fromTextArray(
               headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 10),
               headerDecoration: const pw.BoxDecoration(color: PdfColors.indigo900),
-              headers: ['TIPO', 'PATRIMÔNIO', 'LOCADORA', 'SETOR ATUAL'],
+              headers: const ['TIPO', 'PATRIMÔNIO', 'LOCADORA', 'SETOR ATUAL'],
               data: itens.map((i) => [
                 i['tipo'] ?? '',
                 i['patrimonio'] ?? (i['serie'] ?? 'S/P'),
@@ -214,7 +214,7 @@ class PdfService {
               headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 8),
               cellStyle: const pw.TextStyle(fontSize: 7),
               headerDecoration: const pw.BoxDecoration(color: PdfColors.blueGrey900),
-              headers: ['DATA', 'SETOR', 'TIPO', 'PATRIMÔNIO', 'CPU', 'MAC', 'OBSOLETO', 'STATUS'],
+              headers: const ['DATA', 'SETOR', 'TIPO', 'PATRIMÔNIO', 'CPU', 'MAC', 'OBSOLETO', 'STATUS'],
               data: tableData,
             ),
           ],
@@ -240,7 +240,7 @@ class PdfService {
         pw.Header(level: 0, child: pw.Text("Auditoria - Logs do Sistema")),
         pw.SizedBox(height: 20),
         pw.TableHelper.fromTextArray(
-          headers: ['Data/Hora', 'Tecnico', 'Acao', 'Detalhes'],
+          headers: const ['Data/Hora', 'Tecnico', 'Acao', 'Detalhes'],
           data: logSnapshot.docs.map((doc) {
             final log = doc.data() as Map<String, dynamic>;
             final date = (log['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now();
@@ -262,7 +262,7 @@ class PdfService {
       pdf.addPage(pw.MultiPage(pageFormat: PdfPageFormat.a4, build: (pw.Context context) => [
         pw.Header(level: 0, child: pw.Text("MAPA DE ATIVOS - SETOR ${setor.toUpperCase()}")),
         pw.TableHelper.fromTextArray(
-          headers: ['TIPO', 'PATRIMÔNIO', 'STATUS OP.', 'LOCADO'],
+          headers: const ['TIPO', 'PATRIMÔNIO', 'STATUS OP.', 'LOCADO'],
           data: itens.map((i) => [i['tipo'] ?? '', i['patrimonio'] ?? 'S/P', i['status_operacional'] ?? 'Em uso', (i['is_locado'] ?? false) ? 'Sim' : 'Não']).toList(),
         ),
       ]));

@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class UsuarioModel {
+class UserModel {
   final String uid;
   final String nome;
   final String email;
@@ -12,7 +12,7 @@ class UsuarioModel {
   final bool ativo;
   final DateTime? criadoEm;
 
-  UsuarioModel({
+  UserModel({
     required this.uid,
     required this.nome,
     required this.email,
@@ -26,8 +26,8 @@ class UsuarioModel {
   });
 
   // Converte o Documento do Firebase para o Modelo
-  factory UsuarioModel.fromMap(Map<String, dynamic> map, String id) {
-    return UsuarioModel(
+  factory UserModel.fromMap(Map<String, dynamic> map, String id) {
+    return UserModel(
       uid: id,
       nome: map['nome'] ?? '',
       email: map['email'] ?? '',

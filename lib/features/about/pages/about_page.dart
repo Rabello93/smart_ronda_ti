@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../reports/services/pdf_service.dart';
+import 'package:smart_ronda_ti/features/reports/repositories/pdf_repository.dart';
 
 class AboutPage extends StatelessWidget {
   const AboutPage({super.key});
@@ -50,7 +50,7 @@ class AboutPage extends StatelessWidget {
             const SizedBox(height: 30),
             Center(
               child: ElevatedButton.icon(
-                onPressed: () => PdfService.exportarPropostaComercial(context),
+                onPressed: () => PdfRepository.exportarPropostaComercial(context),
                 icon: const Icon(Icons.picture_as_pdf, color: Colors.white),
                 label: const Text("GERAR APRESENTAÇÃO PARA VENDA"),
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.blue.shade800, foregroundColor: Colors.white),

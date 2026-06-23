@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:smart_ronda_ti/core/services/auth/auth_service.dart';
-import 'package:smart_ronda_ti/core/services/admin/admin_service.dart';
-import 'package:smart_ronda_ti/features/reports/services/export_service.dart';
+import 'package:smart_ronda_ti/features/auth/controllers/auth_controller.dart';
+import 'package:smart_ronda_ti/features/admin/controllers/admin_controller.dart';
+import 'package:smart_ronda_ti/features/reports/repositories/export_repository.dart';
 import 'package:smart_ronda_ti/features/history/pages/history_page.dart';
 import 'package:smart_ronda_ti/features/rounds/pages/ronda_page.dart';
 import 'package:smart_ronda_ti/core/utils/utils.dart';
 import 'package:smart_ronda_ti/main.dart';
 import 'package:smart_ronda_ti/features/admin/pages/admin_page.dart';
 import 'package:smart_ronda_ti/features/about/pages/about_page.dart';
-import 'package:smart_ronda_ti/features/reports/services/pdf_service.dart';
+import 'package:smart_ronda_ti/features/reports/repositories/pdf_repository.dart';
 import 'package:smart_ronda_ti/features/dashboard/pages/dashboard_page.dart';
-import 'package:smart_ronda_ti/core/models/usuario_model.dart';
+import 'package:smart_ronda_ti/features/auth/models/user_model.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -22,8 +22,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final TextEditingController setorController = TextEditingController();
-  final AuthService _authService = AuthService();
-  final AdminService _adminService = AdminService();
+  final AuthController _authController = AuthController();
+  final AdminController _adminController = AdminController();
   
   final _nomeController = TextEditingController();
   final _nascimentoController = TextEditingController();
@@ -47,10 +47,10 @@ class _HomePageState extends State<HomePage> {
     String nome = setorController.text.trim();
     if (nome.isEmpty) return;
     try {
-      await _adminService.adicionarSetor(nome);
-      await _adminService.registrarLog(
-        acao: "ADD SETOR",
-        detalhes: "Adicionou setor: $nome"
+      await _adminController.createSector(nome);
+      await _adminController.registerLog(
+        action: "ADD SETOR",
+        details: "Adicionou setor: $nome"
       );
       setorController.clear();
       if (mounted) {
@@ -84,9 +84,9 @@ class _HomePageState extends State<HomePage> {
     }
     setState(() => salvandoReparo = true);
     try {
-      final user = _authService.currentUser;
+      final user = _authController.currentUser;
       if (user != null) {
-        await _authService.atualizarPerfil(UsuarioModel(
+        await _authController.updateProfile(UserModel(
           uid: user.uid,
           nome: _nomeController.text.trim(),
           email: user.email ?? "",
@@ -114,8 +114,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<UsuarioModel?>(
-      stream: _authService.getPerfilStream(),
+    return StreamBuilder<UserModel?>(
+      stream: _authController.profileStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -126,7 +126,7 @@ class _HomePageState extends State<HomePage> {
         if (userData == null || userData.nome.isEmpty) {
           return Scaffold(
             appBar: AppBar(title: const Text("Completar Perfil"), actions: [
-              IconButton(icon: const Icon(Icons.logout), onPressed: () => _authService.logout())
+              IconButton(icon: const Icon(Icons.logout), onPressed: () => _authController.logout())
             ]),
             body: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
@@ -206,7 +206,7 @@ class _HomePageState extends State<HomePage> {
                 ListTile(
                   leading: const Icon(Icons.logout, color: Colors.red),
                   title: const Text("Sair da Conta"),
-                  onTap: () => _authService.logout(),
+                  onTap: () => _authController.logout(),
                 ),
                 const SizedBox(height: 20),
               ],
@@ -214,7 +214,7 @@ class _HomePageState extends State<HomePage> {
           ),
           appBar: AppBar(
             title: StreamBuilder<DocumentSnapshot>(
-              stream: _adminService.getConfigEmpresa(),
+              stream: _adminController.brandingStream,
               builder: (context, snapshot) {
                 String nomeEmpresa = "RONDA TI CORPORATIVA";
                 String logoUrl = "";
@@ -282,7 +282,7 @@ class _HomePageState extends State<HomePage> {
                 const Text("Iniciar Nova Ronda", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 15),
                 StreamBuilder<List<Map<String, dynamic>>>(
-                  stream: _adminService.getSetores(),
+                  stream: _adminController.sectorsStream,
                   builder: (context, snapshot) {
                     if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
                     final setores = snapshot.data!;
@@ -391,14 +391,14 @@ class _HomePageState extends State<HomePage> {
                 Text("Configurar Relatório ${tipo.toUpperCase()}", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 20),
                 
-                StreamBuilder<List<UsuarioModel>>(
-                  stream: _adminService.getAllTecnicos(),
+                StreamBuilder<List<UserModel>>(
+                  stream: _adminController.usersStream,
                   builder: (context, snapshot) {
-                    List<UsuarioModel> tecnicos = snapshot.data ?? [];
+                    List<UserModel> tecnicos = snapshot.data ?? [];
                     if (meuNivel == 'gerente') {
-                      tecnicos = tecnicos.where((t) => t.nivelAcesso == 'normal' || t.nivelAcesso == 'teste' || t.uid == _authService.currentUser?.uid).toList();
+                      tecnicos = tecnicos.where((t) => t.nivelAcesso == 'normal' || t.nivelAcesso == 'teste' || t.uid == _authController.currentUser?.uid).toList();
                     } else if (meuNivel == 'normal' || meuNivel == 'teste') {
-                      tecnicos = tecnicos.where((t) => t.uid == _authService.currentUser?.uid).toList();
+                      tecnicos = tecnicos.where((t) => t.uid == _authController.currentUser?.uid).toList();
                     }
                     return DropdownButtonFormField<String>(
                       initialValue: filtroTecnico,
@@ -414,7 +414,7 @@ class _HomePageState extends State<HomePage> {
                 const SizedBox(height: 10),
 
                 StreamBuilder<List<Map<String, dynamic>>>(
-                  stream: _adminService.getSetores(),
+                  stream: _adminController.sectorsStream,
                   builder: (context, snapshot) {
                     final setores = snapshot.data ?? [];
                     return DropdownButtonFormField<String>(
@@ -431,7 +431,7 @@ class _HomePageState extends State<HomePage> {
                 const SizedBox(height: 10),
 
                 StreamBuilder<List<String>>(
-                  stream: _adminService.getLocadoras(),
+                  stream: _adminController.leasingCompaniesStream,
                   builder: (context, snapshot) {
                     final locadoras = snapshot.data ?? [];
                     return DropdownButtonFormField<String>(
@@ -487,7 +487,7 @@ class _HomePageState extends State<HomePage> {
                   onPressed: () {
                     Navigator.pop(ctx);
                     if (tipo == 'csv') {
-                      ExportService.exportarRondasParaCSV(
+                      ExportRepository.exportarRondasParaCSV(
                         tecnicoId: filtroTecnico,
                         setor: filtroSetor,
                         locadora: filtroLocadora,
@@ -498,7 +498,7 @@ class _HomePageState extends State<HomePage> {
                         context: context
                       );
                     } else {
-                      PdfService.exportarRondasParaPDF(
+                      PdfRepository.exportarRondasParaPDF(
                         tecnicoId: filtroTecnico,
                         setor: filtroSetor,
                         locadora: filtroLocadora,

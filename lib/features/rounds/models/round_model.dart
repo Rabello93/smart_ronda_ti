@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class RondaModel {
+class RoundModel {
   final String? id;
   final DateTime dataInicio;
   final String setor;
@@ -12,7 +12,7 @@ class RondaModel {
   final int alugadosTotal;
   final bool validada;
 
-  RondaModel({
+  RoundModel({
     this.id,
     required this.dataInicio,
     required this.setor,
@@ -25,8 +25,8 @@ class RondaModel {
     this.validada = false,
   });
 
-  factory RondaModel.fromMap(Map<String, dynamic> map, String id) {
-    return RondaModel(
+  factory RoundModel.fromMap(Map<String, dynamic> map, String id) {
+    return RoundModel(
       id: id,
       dataInicio: map['data_inicio'] != null 
           ? DateTime.parse(map['data_inicio']) 

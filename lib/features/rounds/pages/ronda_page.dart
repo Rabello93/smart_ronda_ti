@@ -7,20 +7,20 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter/rendering.dart';
-import 'package:smart_ronda_ti/core/services/auth/auth_service.dart';
-import 'package:smart_ronda_ti/core/services/rounds/ronda_service.dart';
-import 'package:smart_ronda_ti/core/services/inventory/inventory_service.dart';
-import 'package:smart_ronda_ti/core/services/admin/admin_service.dart';
-import 'package:smart_ronda_ti/core/models/ronda_model.dart';
-import 'package:smart_ronda_ti/core/models/ativo_model.dart';
-import 'package:smart_ronda_ti/core/models/usuario_model.dart';
+import 'package:smart_ronda_ti/features/auth/controllers/auth_controller.dart';
+import 'package:smart_ronda_ti/features/rounds/controllers/round_controller.dart';
+import 'package:smart_ronda_ti/features/assets/controllers/asset_controller.dart';
+import 'package:smart_ronda_ti/features/admin/controllers/admin_controller.dart';
+import 'package:smart_ronda_ti/features/rounds/models/round_model.dart';
+import 'package:smart_ronda_ti/features/assets/models/asset_model.dart';
+import 'package:smart_ronda_ti/features/auth/models/user_model.dart';
 
 class RondaPage extends StatefulWidget {
   final String setor;
   final String tecnico;
   final String tecnicoId;
   final String? rondaId;
-  final List<Map<String, dynamic>>? equipamentosIniciais;
+  final List<AssetModel>? equipamentosIniciais;
 
   const RondaPage({
     super.key,
@@ -47,16 +47,15 @@ class _RondaPageState extends State<RondaPage> {
   final TextEditingController motivoDivergenciaController = TextEditingController();
   
   final TextEditingController anoFabricacaoController = TextEditingController();
-  final TextEditingController anoEntradaController = TextEditingController();
 
   final TextEditingController patrimonioAntigoController = TextEditingController();
   final TextEditingController patrimonioNovoController = TextEditingController();
   final TextEditingController motivoTrocaController = TextEditingController();
 
-  final AuthService _authService = AuthService();
-  final RondaService _rondaService = RondaService();
-  final InventoryService _inventoryService = InventoryService();
-  final AdminService _adminService = AdminService();
+  final AuthController _authController = AuthController();
+  final RoundController _roundController = RoundController();
+  final AssetController _assetController = AssetController();
+  final AdminController _adminController = AdminController();
 
   String tipoEquipamento = 'Notebook';
   String statusOperacional = 'Em uso';
@@ -71,9 +70,9 @@ class _RondaPageState extends State<RondaPage> {
   String? locadoraSelecionada;
   bool houveTroca = false;
   bool buscandoInventario = false;
-  UsuarioModel? _usuarioLogado;
+  UserModel? _usuarioLogado;
 
-  List<AtivoModel> equipamentos = [];
+  List<AssetModel> equipamentos = [];
   List<String> locadoras = [];
   DateTime horaRetirada = DateTime.now();
   DateTime horaInstalacao = DateTime.now();
@@ -83,19 +82,19 @@ class _RondaPageState extends State<RondaPage> {
     super.initState();
     _carregarPerfil();
     if (widget.equipamentosIniciais != null) {
-      equipamentos = widget.equipamentosIniciais!.map((e) => AtivoModel.fromMap(e, e['patrimonio'] ?? '')).toList();
+      equipamentos = List.from(widget.equipamentosIniciais!);
     }
     _carregarLocadoras();
   }
 
   Future<void> _carregarPerfil() async {
-    _authService.getPerfilStream().listen((user) {
+    _authController.profileStream.listen((user) {
       if (mounted) setState(() => _usuarioLogado = user);
     });
   }
 
   Future<void> _carregarLocadoras() async {
-    _adminService.getLocadoras().listen((lista) {
+    _adminController.leasingCompaniesStream.listen((lista) {
       if (mounted) setState(() => locadoras = lista);
     });
   }
@@ -111,7 +110,6 @@ class _RondaPageState extends State<RondaPage> {
     observacaoController.dispose();
     descricaoDefeitoController.dispose();
     anoFabricacaoController.dispose();
-    anoEntradaController.dispose();
     patrimonioAntigoController.dispose();
     patrimonioNovoController.dispose();
     motivoTrocaController.dispose();
@@ -122,7 +120,7 @@ class _RondaPageState extends State<RondaPage> {
     if (valor.length < 3) return;
 
     setState(() => buscandoInventario = true);
-    final AtivoModel? dados = await _inventoryService.buscarNoInventario(valor);
+    final AssetModel? dados = await _assetController.searchAsset(valor);
     setState(() => buscandoInventario = false);
 
     if (dados != null) {
@@ -175,7 +173,6 @@ class _RondaPageState extends State<RondaPage> {
         processadorController.text = dados.processador ?? "";
         macController.text = dados.macAddress ?? "";
         anoFabricacaoController.text = dados.anoFabricacao?.toString() ?? "";
-        anoEntradaController.text = dados.anoEntradaUnidade?.toString() ?? "";
         isLocado = dados.isLocado;
         locadoraSelecionada = dados.locadora;
       });
@@ -393,7 +390,7 @@ class _RondaPageState extends State<RondaPage> {
     }
 
     setState(() {
-      equipamentos.insert(0, AtivoModel(
+      equipamentos.insert(0, AssetModel(
         tipo: tipoEquipamento,
         patrimonio: possuiPatrimonio ? patrimonioController.text.trim() : "SEM PATRIMÔNIO",
         marca: marcaController.text.trim(),
@@ -402,7 +399,6 @@ class _RondaPageState extends State<RondaPage> {
         processador: processadorController.text.trim(),
         macAddress: macController.text.trim(),
         anoFabricacao: int.tryParse(anoFabricacaoController.text.trim()),
-        anoEntradaUnidade: int.tryParse(anoEntradaController.text.trim()),
         isLocado: isLocado,
         locadora: isLocado ? locadoraSelecionada : null,
         statusOperacional: statusOperacional,
@@ -423,7 +419,6 @@ class _RondaPageState extends State<RondaPage> {
       observacaoController.clear();
       descricaoDefeitoController.clear();
       anoFabricacaoController.clear();
-      anoEntradaController.clear();
       carregador = false;
       mouse = false;
       teclado = false;
@@ -472,9 +467,9 @@ class _RondaPageState extends State<RondaPage> {
         };
       }
 
-      await _rondaService.salvarRondaCompleta(
-        rondaExistenteId: widget.rondaId,
-        ronda: RondaModel(
+      await _roundController.finalizeRound(
+        existingRoundId: widget.rondaId,
+        round: RoundModel(
           dataInicio: DateTime.now(),
           setor: widget.setor,
           tecnico: widget.tecnico,
@@ -484,11 +479,11 @@ class _RondaPageState extends State<RondaPage> {
           defeitosTotal: defeitos,
           alugadosTotal: alugados,
         ),
-        equipamentos: equipamentos,
-        dadosTroca: dadosTroca,
+        assets: equipamentos,
+        exchangeData: dadosTroca,
       );
 
-      await _adminService.registrarLog(acao: widget.rondaId != null ? "ATUALIZAR RONDA" : "FINALIZAR RONDA", detalhes: "Salvou ronda no setor ${widget.setor}. Itens: ${equipamentos.length}, Defeitos: $defeitos");
+      await _adminController.registerLog(action: widget.rondaId != null ? "ATUALIZAR RONDA" : "FINALIZAR RONDA", details: "Salvou ronda no setor ${widget.setor}. Itens: ${equipamentos.length}, Defeitos: $defeitos");
 
       if (!mounted) return;
       Navigator.pop(context);
@@ -516,7 +511,6 @@ class _RondaPageState extends State<RondaPage> {
       processadorController.text = item.processador ?? "";
       macController.text = item.macAddress ?? "";
       anoFabricacaoController.text = item.anoFabricacao?.toString() ?? "";
-      anoEntradaController.text = item.anoEntradaUnidade?.toString() ?? "";
       descricaoDefeitoController.text = item.descricaoDefeito ?? "";
       defeito = item.temDefeito;
       isLocado = item.isLocado;
@@ -530,7 +524,7 @@ class _RondaPageState extends State<RondaPage> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isAdmin = _usuarioLogado?.isAdmin ?? false;
+    final bool isAdmin = _usuarioLogado?.nivelAcesso == 'master' || _usuarioLogado?.nivelAcesso == 'gerente';
 
     return Scaffold(
       appBar: AppBar(title: Text(widget.rondaId != null ? 'Editando Ronda - ${widget.setor}' : 'Ronda - ${widget.setor}')),
@@ -645,24 +639,10 @@ class _RondaPageState extends State<RondaPage> {
               const Divider(height: 30),
               const Text("Dados Administrativos (Ciclo de Vida)", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo)),
               const SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: anoFabricacaoController, 
-                      keyboardType: TextInputType.number, 
-                      decoration: const InputDecoration(labelText: 'Ano Fabricação', border: OutlineInputBorder(), hintText: "Ex: 2020")
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: TextField(
-                      controller: anoEntradaController, 
-                      keyboardType: TextInputType.number, 
-                      decoration: const InputDecoration(labelText: 'Ano Uso Unidade', border: OutlineInputBorder(), hintText: "Ex: 2022")
-                    ),
-                  ),
-                ],
+              TextField(
+                controller: anoFabricacaoController, 
+                keyboardType: TextInputType.number, 
+                decoration: const InputDecoration(labelText: 'Ano Fabricação', border: OutlineInputBorder(), hintText: "Ex: 2020")
               ),
               const SizedBox(height: 15),
             ],
