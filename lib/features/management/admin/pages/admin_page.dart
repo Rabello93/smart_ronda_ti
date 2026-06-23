@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:smart_ronda_ti/features/auth/controllers/auth_controller.dart';
-import 'package:smart_ronda_ti/features/admin/controllers/admin_controller.dart';
-import 'package:smart_ronda_ti/features/assets/controllers/asset_controller.dart';
-import 'package:smart_ronda_ti/features/auth/models/user_model.dart';
-import 'package:smart_ronda_ti/features/assets/models/asset_model.dart';
-import 'package:smart_ronda_ti/features/logs/pages/log_page.dart';
-import 'package:smart_ronda_ti/features/reports/repositories/pdf_repository.dart';
+import 'package:smart_ronda_ti/features/system/auth/controllers/auth_controller.dart';
+import 'package:smart_ronda_ti/features/management/admin/controllers/admin_controller.dart';
+import 'package:smart_ronda_ti/features/operation/assets/controllers/asset_controller.dart';
+import 'package:smart_ronda_ti/features/system/auth/models/user_model.dart';
+import 'package:smart_ronda_ti/features/operation/assets/models/asset_model.dart';
+import 'package:smart_ronda_ti/features/management/admin/pages/log_page.dart';
+import 'package:smart_ronda_ti/features/management/reports/repositories/pdf_repository.dart';
 
 class AdminPage extends StatefulWidget {
   const AdminPage({super.key});

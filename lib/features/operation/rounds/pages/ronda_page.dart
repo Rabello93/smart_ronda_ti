@@ -7,13 +7,13 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter/rendering.dart';
-import 'package:smart_ronda_ti/features/auth/controllers/auth_controller.dart';
-import 'package:smart_ronda_ti/features/rounds/controllers/round_controller.dart';
-import 'package:smart_ronda_ti/features/assets/controllers/asset_controller.dart';
-import 'package:smart_ronda_ti/features/admin/controllers/admin_controller.dart';
-import 'package:smart_ronda_ti/features/rounds/models/round_model.dart';
-import 'package:smart_ronda_ti/features/assets/models/asset_model.dart';
-import 'package:smart_ronda_ti/features/auth/models/user_model.dart';
+import 'package:smart_ronda_ti/features/system/auth/controllers/auth_controller.dart';
+import 'package:smart_ronda_ti/features/operation/rounds/controllers/round_controller.dart';
+import 'package:smart_ronda_ti/features/operation/assets/controllers/asset_controller.dart';
+import 'package:smart_ronda_ti/features/management/admin/controllers/admin_controller.dart';
+import 'package:smart_ronda_ti/features/operation/rounds/models/round_model.dart';
+import 'package:smart_ronda_ti/features/operation/assets/models/asset_model.dart';
+import 'package:smart_ronda_ti/features/system/auth/models/user_model.dart';
 
 class RondaPage extends StatefulWidget {
   final String setor;

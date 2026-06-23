@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:smart_ronda_ti/features/auth/controllers/auth_controller.dart';
-import 'package:smart_ronda_ti/features/admin/controllers/admin_controller.dart';
-import 'package:smart_ronda_ti/features/reports/repositories/export_repository.dart';
-import 'package:smart_ronda_ti/features/history/pages/history_page.dart';
-import 'package:smart_ronda_ti/features/rounds/pages/ronda_page.dart';
+import 'package:smart_ronda_ti/features/system/auth/controllers/auth_controller.dart';
+import 'package:smart_ronda_ti/features/management/admin/controllers/admin_controller.dart';
+import 'package:smart_ronda_ti/features/management/reports/repositories/export_repository.dart';
+import 'package:smart_ronda_ti/features/operation/rounds/history/history_page.dart';
+import 'package:smart_ronda_ti/features/operation/rounds/pages/ronda_page.dart';
 import 'package:smart_ronda_ti/core/utils/utils.dart';
-import 'package:smart_ronda_ti/main.dart';
-import 'package:smart_ronda_ti/features/admin/pages/admin_page.dart';
-import 'package:smart_ronda_ti/features/about/pages/about_page.dart';
-import 'package:smart_ronda_ti/features/reports/repositories/pdf_repository.dart';
-import 'package:smart_ronda_ti/features/dashboard/pages/dashboard_page.dart';
-import 'package:smart_ronda_ti/features/auth/models/user_model.dart';
+import 'package:smart_ronda_ti/app/app.dart';
+import 'package:smart_ronda_ti/features/management/admin/pages/admin_page.dart';
+import 'package:smart_ronda_ti/features/system/about/pages/about_page.dart';
+import 'package:smart_ronda_ti/features/management/reports/repositories/pdf_repository.dart';
+import 'package:smart_ronda_ti/features/management/dashboard/pages/dashboard_page.dart';
+import 'package:smart_ronda_ti/features/system/auth/models/user_model.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

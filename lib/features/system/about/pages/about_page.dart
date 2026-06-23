@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:smart_ronda_ti/features/reports/repositories/pdf_repository.dart';
+import 'package:smart_ronda_ti/features/management/reports/repositories/pdf_repository.dart';
 
 class AboutPage extends StatelessWidget {
   const AboutPage({super.key});

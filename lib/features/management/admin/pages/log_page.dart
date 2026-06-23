@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:smart_ronda_ti/features/admin/controllers/admin_controller.dart';
-import 'package:smart_ronda_ti/features/reports/repositories/pdf_repository.dart';
+import 'package:smart_ronda_ti/features/management/admin/controllers/admin_controller.dart';
+import 'package:smart_ronda_ti/features/management/reports/repositories/pdf_repository.dart';
 
 class LogPage extends StatelessWidget {
   const LogPage({super.key});

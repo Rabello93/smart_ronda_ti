@@ -5,8 +5,8 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter/rendering.dart';
-import 'package:smart_ronda_ti/features/rounds/controllers/round_controller.dart';
-import 'package:smart_ronda_ti/features/assets/models/asset_model.dart';
+import 'package:smart_ronda_ti/features/operation/rounds/controllers/round_controller.dart';
+import 'package:smart_ronda_ti/features/operation/assets/models/asset_model.dart';
 
 class RondaDetailsPage extends StatelessWidget {
   final Map<String, dynamic> ronda;

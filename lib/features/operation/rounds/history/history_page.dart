@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:smart_ronda_ti/features/auth/controllers/auth_controller.dart';
-import 'package:smart_ronda_ti/features/rounds/controllers/round_controller.dart';
-import 'package:smart_ronda_ti/features/admin/controllers/admin_controller.dart';
-import 'package:smart_ronda_ti/features/rounds/models/round_model.dart';
-import 'package:smart_ronda_ti/features/auth/models/user_model.dart';
-import 'package:smart_ronda_ti/features/history/pages/ronda_details_page.dart';
-import 'package:smart_ronda_ti/features/rounds/pages/ronda_page.dart';
+import 'package:smart_ronda_ti/features/system/auth/controllers/auth_controller.dart';
+import 'package:smart_ronda_ti/features/operation/rounds/controllers/round_controller.dart';
+import 'package:smart_ronda_ti/features/management/admin/controllers/admin_controller.dart';
+import 'package:smart_ronda_ti/features/operation/rounds/models/round_model.dart';
+import 'package:smart_ronda_ti/features/system/auth/models/user_model.dart';
+import 'package:smart_ronda_ti/features/operation/rounds/history/ronda_details_page.dart';
+import 'package:smart_ronda_ti/features/operation/rounds/pages/ronda_page.dart';
 
 class HistoryPage extends StatefulWidget {
   const HistoryPage({super.key});
