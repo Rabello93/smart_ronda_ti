@@ -143,7 +143,7 @@ class _DashboardPageState extends State<DashboardPage> {
       child: Center(
         child: Text(
           'Smart Ronda TI - Versão 3.0.0', 
-          style: TextStyle(color: textColor.withOpacity(0.5), fontSize: 10),
+          style: TextStyle(color: textColor.withValues(alpha: 0.5), fontSize: 10),
         ),
       ),
     );
@@ -239,7 +239,7 @@ class _DashboardPageState extends State<DashboardPage> {
         color: isDark ? Colors.black54 : Colors.white, 
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10),
         ],
       ),
       child: data.isEmpty 
@@ -344,7 +344,7 @@ class _DashboardPageState extends State<DashboardPage> {
           title: Text(e.key, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
           trailing: Chip(
             label: Text("${e.value.length}", style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.blue)),
-            backgroundColor: Colors.blue.withOpacity(0.1),
+            backgroundColor: Colors.blue.withValues(alpha: 0.1),
             padding: EdgeInsets.zero,
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),

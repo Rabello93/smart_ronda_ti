@@ -46,7 +46,7 @@ class PdfRepository {
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     pw.Text(config['nome'] ?? "RONDA TI", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14)),
-                    pw.Text(titulo.toUpperCase(), style: pw.TextStyle(fontSize: 10, color: PdfColors.blue900)),
+                    pw.Text(titulo.toUpperCase(), style: const pw.TextStyle(fontSize: 10, color: PdfColors.blue900)),
                   ]
                 ),
                 if (logoImage != null) pw.Image(logoImage, height: 35),
