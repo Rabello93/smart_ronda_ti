@@ -36,9 +36,10 @@ android {
     }
 
     applicationVariants.all {
-        outputs.all {
-            val output = this as com.android.build.gradle.internal.api.ApkVariantOutputImpl
-            output.outputFileName = "smart_ronda_ti_v${versionName}.apk"
+        val variant = this
+        variant.outputs.forEach { output ->
+            val outputImpl = output as com.android.build.gradle.internal.api.ApkVariantOutputImpl
+            outputImpl.outputFileName = "smart_ronda_ti_v${variant.versionName}.apk"
         }
     }
 }
