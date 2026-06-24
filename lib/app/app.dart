@@ -69,11 +69,7 @@ class AuthWrapper extends StatelessWidget {
               
               final usuario = profileSnap.data;
               
-              if (usuario == null) {
-                return const HomePage();
-              }
-              
-              if (usuario.ativo == false) {
+              if (usuario == null || usuario.ativo == false) {
                 return _buildPendingAccessScreen(adminController);
               }
 

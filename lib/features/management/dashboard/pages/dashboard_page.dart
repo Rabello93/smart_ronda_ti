@@ -138,11 +138,12 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget _buildFooter(Color textColor) {
+    const String version = String.fromEnvironment('APP_VERSION', defaultValue: '3.0.1+Local');
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Center(
         child: Text(
-          'Smart Ronda TI - Versão 3.0.0', 
+          'Smart Ronda TI - Versão $version',
           style: TextStyle(color: textColor.withValues(alpha: 0.5), fontSize: 10),
         ),
       ),
@@ -296,7 +297,7 @@ class _DashboardPageState extends State<DashboardPage> {
           .collection('inventario_mestre')
           .where('is_locado', isEqualTo: true)
           .snapshots()
-          .map((snap) => snap.docs.map((doc) => doc.data() as Map<String, dynamic>).toList()),
+          .map((snap) => snap.docs.map((doc) => doc.data()).toList()),
       builder: (context, snapshot) {
         final itens = snapshot.data ?? [];
         if (itens.isEmpty) return const Center(child: Text("Nenhum item locado encontrado."));

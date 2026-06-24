@@ -45,7 +45,7 @@ class PdfRepository {
                 pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    pw.Text(config['nome'] ?? "RONDA TI", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14)),
+                    pw.Text(config['nome'] ?? "RONDA TI", style: const pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14)),
                     pw.Text(titulo.toUpperCase(), style: const pw.TextStyle(fontSize: 10, color: PdfColors.blue900)),
                   ]
                 ),
@@ -56,7 +56,7 @@ class PdfRepository {
           build: (pw.Context context) => [
             pw.SizedBox(height: 10),
             pw.TableHelper.fromTextArray(
-              headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 10),
+              headerStyle: const pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 10),
               headerDecoration: const pw.BoxDecoration(color: PdfColors.indigo900),
               headers: const ['TIPO', 'PATRIMÔNIO', 'LOCADORA', 'SETOR ATUAL'],
               data: itens.map((i) => [
@@ -198,7 +198,7 @@ class PdfRepository {
                 pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    pw.Text(config['nome'] ?? "RONDA TI", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14)),
+                    pw.Text(config['nome'] ?? "RONDA TI", style: const pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14)),
                     pw.Text("RELATÓRIO TÉCNICO", style: const pw.TextStyle(fontSize: 10, color: PdfColors.blue900)),
                   ]
                 ),
@@ -211,7 +211,7 @@ class PdfRepository {
             pw.Center(child: pw.Text(apenasObsoletos == true ? "RELATÓRIO DE OBSOLESCÊNCIA (+5 ANOS)" : "AUDITORIA DE RONDAS", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 16))),
             pw.SizedBox(height: 20),
             pw.TableHelper.fromTextArray(
-              headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 8),
+              headerStyle: const pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 8),
               cellStyle: const pw.TextStyle(fontSize: 7),
               headerDecoration: const pw.BoxDecoration(color: PdfColors.blueGrey900),
               headers: const ['DATA', 'SETOR', 'TIPO', 'PATRIMÔNIO', 'CPU', 'MAC', 'OBSOLETO', 'STATUS'],

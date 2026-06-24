@@ -17,7 +17,10 @@ O app foi desenvolvido para otimizar as rondas técnicas em ambiente corporativo
 
 ## 🚀 Série Histórica (Evolução)
 
-### [3.0.1 Stable] - 2026-06-23
+### [3.0.1 Stable] - 2024-06-24
+- **Deploy Automatizado**: Configuração de CI/CD via GitHub Actions com versionamento dinâmico.
+- **Reset de Infraestrutura**: Migração completa para um novo projeto Firebase limpo e otimizado.
+- **Segurança**: Fluxo de aprovação de novos usuários via tela de "Acesso Pendente" funcional.
 - **Melhorias no Dashboard**: Remoção de textos redundantes na AppBar e foco total na marca.
 - **Auditoria de Locados**: Correção na exibição de patrimônios na aba de locação.
 - **Rankings Inteligentes**: Filtros de período agora aplicados estritamente aos rankings de setores.

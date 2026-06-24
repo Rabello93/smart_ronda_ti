@@ -23,7 +23,7 @@ class AssetRepository {
     
     if (querySerial.docs.isNotEmpty) {
       return AssetModel.fromMap(
-        querySerial.docs.first.data() as Map<String, dynamic>, 
+        querySerial.docs.first.data() as Map<String, dynamic>,
         querySerial.docs.first.id
       );
     }
@@ -45,28 +45,28 @@ class AssetRepository {
     return _firestore.collection('inventario_mestre')
         .where('status_operacional', isEqualTo: 'Em manutenção')
         .snapshots()
-        .map((snap) => snap.docs.map((doc) => AssetModel.fromMap(doc.data() as Map<String, dynamic>, doc.id)).toList());
+        .map((snap) => snap.docs.map((doc) => AssetModel.fromMap(doc.data(), doc.id)).toList());
   }
 
   Stream<List<AssetModel>> getAssetsBySector(String sector) {
     return _firestore.collection('inventario_mestre')
         .where('setor', isEqualTo: sector)
         .snapshots()
-        .map((snap) => snap.docs.map((doc) => AssetModel.fromMap(doc.data() as Map<String, dynamic>, doc.id)).toList());
+        .map((snap) => snap.docs.map((doc) => AssetModel.fromMap(doc.data(), doc.id)).toList());
   }
 
   Stream<List<AssetModel>> getAssetsWithDivergence() {
     return _firestore.collection('inventario_mestre')
         .where('setor_divergente', isEqualTo: true)
         .snapshots()
-        .map((snap) => snap.docs.map((doc) => AssetModel.fromMap(doc.data() as Map<String, dynamic>, doc.id)).toList());
+        .map((snap) => snap.docs.map((doc) => AssetModel.fromMap(doc.data(), doc.id)).toList());
   }
 
   Stream<List<AssetModel>> getAssetsWithDefects() {
     return _firestore.collection('inventario_mestre')
         .where('tem_defeito', isEqualTo: true)
         .snapshots()
-        .map((snap) => snap.docs.map((doc) => AssetModel.fromMap(doc.data() as Map<String, dynamic>, doc.id)).toList());
+        .map((snap) => snap.docs.map((doc) => AssetModel.fromMap(doc.data(), doc.id)).toList());
   }
 
   Stream<List<AssetModel>> getObsoleteAssets() {
@@ -74,6 +74,6 @@ class AssetRepository {
     return _firestore.collection('inventario_mestre')
         .where('ano_fabricacao', isLessThanOrEqualTo: limitYear)
         .snapshots()
-        .map((snap) => snap.docs.map((doc) => AssetModel.fromMap(doc.data() as Map<String, dynamic>, doc.id)).toList());
+        .map((snap) => snap.docs.map((doc) => AssetModel.fromMap(doc.data(), doc.id)).toList());
   }
 }

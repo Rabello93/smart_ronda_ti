@@ -9,20 +9,21 @@ class AuthController {
   User? get currentUser => _repository.currentUser;
 
   Future<void> login(String email, String password) async {
-    final res = await _repository.signIn(email, password);
-    final userDoc = await _repository.getUserDoc(res.user!.uid);
-    
-    if (userDoc.exists) {
-      final ativo = userDoc.get('ativo') ?? true;
-      if (!ativo) {
-        await _repository.signOut();
-        throw Exception("Sua conta está desativada. Contate o administrador.");
-      }
-    }
+    await _repository.signIn(email, password);
   }
 
-  Future<void> registerSimple({required String email, required String password}) {
-    return _repository.signUp(email, password);
+  Future<void> registerSimple({required String email, required String password}) async {
+    final res = await _repository.signUp(email, password);
+    final user = UserModel(
+      uid: res.user!.uid,
+      nome: email.split('@')[0],
+      email: email,
+      dataNascimento: '',
+      funcao: 'Técnico',
+      localTrabalho: '',
+      ativo: false,
+    );
+    await _repository.saveUser(user);
   }
 
   Future<void> registerFull(UserModel user, String password) async {

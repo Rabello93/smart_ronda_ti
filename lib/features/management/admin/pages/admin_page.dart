@@ -16,7 +16,6 @@ class AdminPage extends StatefulWidget {
 }
 
 class _AdminPageState extends State<AdminPage> {
-  final AssetController _assetController = AssetController();
   final AuthController _authController = AuthController();
 
   void _confirmarResetInventario(BuildContext context) {
@@ -394,7 +393,7 @@ class _CasteloTabState extends State<_CasteloTab> {
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("CANCELAR")),
           ElevatedButton(onPressed: () async {
             await _controller.removeAsset(pat);
-            if (mounted) Navigator.pop(ctx);
+            if (context.mounted) Navigator.pop(ctx);
           }, style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white), child: const Text("EXCLUIR")),
         ],
       ),
@@ -564,7 +563,7 @@ class _EmpresaTabState extends State<_EmpresaTab> {
                   'contato': contatoController.text,
                 });
                 await _controller.registerLog(action: "CONFIG EMPRESA", details: "Alterou dados da empresa");
-                if (!mounted) return;
+                if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Salvo com sucesso!")));
               },
               child: const Text("SALVAR BRANDING"),

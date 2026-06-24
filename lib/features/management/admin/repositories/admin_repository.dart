@@ -42,14 +42,14 @@ class AdminRepository {
 
   Stream<List<Map<String, dynamic>>> getLogsStream() {
     return _firestore.collection('logs').orderBy('timestamp', descending: true).limit(100).snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
+      return snapshot.docs.map((doc) => doc.data()).toList();
     });
   }
 
   // --- TEAM MANAGEMENT ---
   Stream<List<UserModel>> getUsersStream() {
     return _firestore.collection('tecnicos').snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) => UserModel.fromMap(doc.data() as Map<String, dynamic>, doc.id)).toList();
+      return snapshot.docs.map((doc) => UserModel.fromMap(doc.data(), doc.id)).toList();
     });
   }
 

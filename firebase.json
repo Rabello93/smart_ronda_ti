@@ -1,6 +1,28 @@
 {
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "smart-ronda-ti-a0d83",
+          "appId": "1:531885174144:android:f41029d86e589cb1a52565",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "smart-ronda-ti-a0d83",
+          "configurations": {
+            "android": "1:531885174144:android:f41029d86e589cb1a52565",
+            "ios": "1:531885174144:ios:c21d6bfc3772e18ea52565",
+            "macos": "1:531885174144:ios:c21d6bfc3772e18ea52565",
+            "web": "1:531885174144:web:d6f5f91142d2e786a52565",
+            "windows": "1:531885174144:web:3eb58fc339368eaaa52565"
+          }
+        }
+      }
+    }
+  },
   "hosting": {
-    "site": "smart-ronda-ti",
     "public": "build/web",
     "ignore": [
       "firebase.json",
