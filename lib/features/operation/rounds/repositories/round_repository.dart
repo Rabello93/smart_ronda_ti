@@ -64,7 +64,7 @@ class RoundRepository {
     return _firestore.collection('rondas')
         .orderBy('timestamp', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) => RoundModel.fromMap(doc.data(), doc.id)).toList());
+        .map((snapshot) => snapshot.docs.map((doc) => RoundModel.fromMap(doc.data() as Map<String, dynamic>, doc.id)).toList());
   }
 
   Future<List<AssetModel>> getAssetsOfRound(String roundId) async {
@@ -76,7 +76,7 @@ class RoundRepository {
     
     return snapshot.docs
         .where((doc) => doc.data()['is_troca'] != true)
-        .map((doc) => AssetModel.fromMap(doc.data(), doc.id))
+        .map((doc) => AssetModel.fromMap(doc.data() as Map<String, dynamic>, doc.id))
         .toList();
   }
 

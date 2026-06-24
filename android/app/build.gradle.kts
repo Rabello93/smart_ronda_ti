@@ -23,8 +23,8 @@ android {
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = 36
-        versionCode = 30
-        versionName = "3.0.0"
+        versionCode = 31
+        versionName = "3.0.1"
     }
 
     buildTypes {
@@ -38,7 +38,7 @@ android {
     applicationVariants.all {
         outputs.all {
             val output = this as com.android.build.gradle.internal.api.ApkVariantOutputImpl
-            output.outputFileName = "smart_ronda_ti_v3.0.0.apk"
+            output.outputFileName = "smart_ronda_ti_v${versionName}.apk"
         }
     }
 }
