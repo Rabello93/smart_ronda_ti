@@ -23,6 +23,7 @@ class AssetModel {
   final String status;
   final int? anoFabricacao;
   final int? anoEntradaUnidade;
+  final Map<String, bool> acessorios;
 
   AssetModel({
     required this.patrimonio,
@@ -47,6 +48,7 @@ class AssetModel {
     this.status = 'Ativo',
     this.anoFabricacao,
     this.anoEntradaUnidade,
+    this.acessorios = const {},
   });
 
   factory AssetModel.fromMap(Map<String, dynamic> map, String id) {
@@ -75,6 +77,7 @@ class AssetModel {
       status: map['status'] ?? 'Ativo',
       anoFabricacao: map['ano_fabricacao'],
       anoEntradaUnidade: map['ano_entrada_unidade'],
+      acessorios: Map<String, bool>.from(map['acessorios'] ?? {}),
     );
   }
 
@@ -103,6 +106,7 @@ class AssetModel {
       'status': status,
       'ano_fabricacao': anoFabricacao,
       'ano_entrada_unidade': anoEntradaUnidade,
+      'acessorios': acessorios,
     };
   }
 

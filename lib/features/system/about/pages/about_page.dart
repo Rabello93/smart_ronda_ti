@@ -37,7 +37,7 @@ class AboutPage extends StatelessWidget {
             _sectionTitle("🚀 Log de Atualizações"),
             _buildUpdate(
               "3.0.2 (Atual)",
-              "• RELATÓRIOS: Nova Central de Relatórios com filtros de obsolescência, defeitos e divergências.\n• FORMATOS: Suporte a exportação em XML para integração de dados.\n• SEGURANÇA: Blindagem de perfis Master contra alterações por Gerentes.",
+              "• CATEGORIAS: Acessórios dinâmicos que mudam conforme o tipo de item (Notebook, Impressora, etc).\n• MANUTENÇÃO: Itens em manutenção são vinculados automaticamente ao TI com motivo obrigatório.\n• DIVERGÊNCIA: Seleção de setor atual e justificativa para itens fora do local original.\n• RELATÓRIOS: Central com filtros de obsolescência, defeitos e exportação XML/PDF.\n• SEGURANÇA: Blindagem de perfis Master e melhorias na busca de patrimônio.",
             ),
             _buildUpdate(
               "3.0.1",

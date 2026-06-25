@@ -60,22 +60,40 @@ class _RondaPageState extends State<RondaPage> {
   String tipoEquipamento = 'Notebook';
   String statusOperacional = 'Em uso';
   bool possuiPatrimonio = true;
-  bool carregador = false;
-  bool mouse = false;
-  bool teclado = false;
-  bool monitor = false;
   bool defeito = false;
   bool isLocado = false;
   bool setorDivergente = false;
   String? locadoraSelecionada;
+  String? setorDivergenteSelecionado;
   bool houveTroca = false;
   bool buscandoInventario = false;
   UserModel? _usuarioLogado;
 
+  Map<String, bool> acessoriosSelecionados = {};
+
   List<AssetModel> equipamentos = [];
   List<String> locadoras = [];
+  List<String> listaSetores = [];
   DateTime horaRetirada = DateTime.now();
   DateTime horaInstalacao = DateTime.now();
+
+  Map<String, List<String>> get mapaAcessorios => {
+    'Notebook': ['Carregador', 'Mouse', 'Teclado', 'Monitor Externo'],
+    'Desktop': ['Mouse', 'Teclado', 'Monitor', 'Estabilizador'],
+    'Telefone': ['Fonte de Alimentação', 'Cabo de Rede', 'Headset'],
+    'Smartphone': ['Carregador', 'Cabo USB', 'Capinha', 'Película'],
+    'Impressora': ['Cabo de Rede', 'WiFi', 'Cabo USB', 'Toner/Cartucho'],
+    'TV': ['Controle Remoto', 'Suporte Parede', 'Cabo HDMI'],
+    'No-Break': ['Bateria Interna', 'Bateria Externa'],
+    'Switch': ['Abas p/ Rack', 'Cabo Console', 'Fibra (SFP)'],
+    'Roteador': ['Fonte', 'Antenas', 'Cabo Console'],
+    'Access Point': ['Fonte', 'Suporte', 'PoE'],
+    'Tablet': ['Carregador', 'Capa Teclado', 'Caneta'],
+    'Leitor': ['Cabo USB', 'Suporte', 'Wireless'],
+    'Outro': ['Fonte', 'Cabo de Dados'],
+  };
+
+  List<String> get acessoriosAtuais => mapaAcessorios[tipoEquipamento] ?? [];
 
   @override
   void initState() {
@@ -85,6 +103,7 @@ class _RondaPageState extends State<RondaPage> {
       equipamentos = List.from(widget.equipamentosIniciais!);
     }
     _carregarLocadoras();
+    _carregarSetores();
   }
 
   Future<void> _carregarPerfil() async {
@@ -96,6 +115,16 @@ class _RondaPageState extends State<RondaPage> {
   Future<void> _carregarLocadoras() async {
     _adminController.leasingCompaniesStream.listen((lista) {
       if (mounted) setState(() => locadoras = lista);
+    });
+  }
+
+  Future<void> _carregarSetores() async {
+    _adminController.sectorsStream.listen((lista) {
+      if (mounted) {
+        setState(() {
+          listaSetores = lista.map((e) => e['nome'].toString()).toList();
+        });
+      }
     });
   }
 
@@ -389,6 +418,31 @@ class _RondaPageState extends State<RondaPage> {
       return;
     }
 
+    if (setorDivergente && (setorDivergenteSelecionado == null || motivoDivergenciaController.text.trim().isEmpty)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Erro: Informe o setor atual e o motivo da divergência'), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
+      );
+      return;
+    }
+
+    if (statusOperacional == 'Em manutenção' && descricaoDefeitoController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Erro: Informe o motivo da manutenção'), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
+      );
+      return;
+    }
+
+    // Lógica de Setor: 
+    // Se em manutenção -> VAI PARA TI
+    // Se divergente -> VAI PARA O SETOR SELECIONADO
+    // Senão -> SETOR DA RONDA ATUAL
+    String setorDestino = widget.setor;
+    if (statusOperacional == 'Em manutenção') {
+      setorDestino = 'TI';
+    } else if (setorDivergente && setorDivergenteSelecionado != null) {
+      setorDestino = setorDivergenteSelecionado!;
+    }
+
     setState(() {
       equipamentos.insert(0, AssetModel(
         tipo: tipoEquipamento,
@@ -404,10 +458,11 @@ class _RondaPageState extends State<RondaPage> {
         statusOperacional: statusOperacional,
         setorDivergente: setorDivergente,
         motivoDivergencia: setorDivergente ? motivoDivergenciaController.text.trim() : null,
-        temDefeito: defeito,
-        descricaoDefeito: defeito ? descricaoDefeitoController.text.trim() : null,
-        setor: widget.setor,
-        status: 'Ativo'
+        temDefeito: defeito || statusOperacional == 'Em manutenção',
+        descricaoDefeito: (defeito || statusOperacional == 'Em manutenção') ? descricaoDefeitoController.text.trim() : null,
+        setor: setorDestino,
+        status: 'Ativo',
+        acessorios: Map<String, bool>.from(acessoriosSelecionados),
       ));
 
       patrimonioController.clear();
@@ -419,14 +474,12 @@ class _RondaPageState extends State<RondaPage> {
       observacaoController.clear();
       descricaoDefeitoController.clear();
       anoFabricacaoController.clear();
-      carregador = false;
-      mouse = false;
-      teclado = false;
-      monitor = false;
+      acessoriosSelecionados.clear();
       defeito = false;
       isLocado = false;
       possuiPatrimonio = true;
       setorDivergente = false;
+      setorDivergenteSelecionado = null;
       locadoraSelecionada = null;
       statusOperacional = 'Em uso';
       motivoDivergenciaController.clear();
@@ -513,6 +566,7 @@ class _RondaPageState extends State<RondaPage> {
       anoFabricacaoController.text = item.anoFabricacao?.toString() ?? "";
       descricaoDefeitoController.text = item.descricaoDefeito ?? "";
       defeito = item.temDefeito;
+      acessoriosSelecionados = Map<String, bool>.from(item.acessorios);
       isLocado = item.isLocado;
       locadoraSelecionada = item.locadora;
       setorDivergente = item.setorDivergente;
@@ -542,7 +596,10 @@ class _RondaPageState extends State<RondaPage> {
                     initialValue: tipoEquipamento,
                     decoration: const InputDecoration(labelText: 'Tipo', border: OutlineInputBorder()),
                     items: const ['Notebook', 'Desktop', 'Telefone', 'Smartphone', 'Impressora', 'TV', 'No-Break', 'Switch', 'Tablet', 'Leitor', 'Roteador', 'Access Point', 'Outro'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
-                    onChanged: (v) => setState(() => tipoEquipamento = v!),
+                    onChanged: (v) => setState(() {
+                      tipoEquipamento = v!;
+                      acessoriosSelecionados.clear(); // Limpa acessórios ao mudar o tipo para evitar confusão
+                    }),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -598,20 +655,21 @@ class _RondaPageState extends State<RondaPage> {
                     suffixIcon: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        IconButton(icon: Icon(buscandoInventario ? Icons.hourglass_empty : Icons.search), onPressed: _abrirBuscaInventario),
+                        IconButton(icon: Icon(buscandoInventario ? Icons.hourglass_empty : Icons.search), onPressed: _abrirBuscaInventario, tooltip: "Busca Rápida"),
                         IconButton(
-                          icon: const Icon(Icons.check),
+                          icon: const Icon(Icons.check_circle, color: Colors.green, size: 28),
                           onPressed: () {
                             patrimonioController.text = ctrl.text;
                             _verificarInventario(ctrl.text);
                           },
+                          tooltip: "Confirmar e carregar dados",
                         ),
                       ],
                     ),
                   ),
                   onChanged: (v) {
                     patrimonioController.text = v;
-                    if (possuiPatrimonio && v.length >= 3) _verificarInventario(v);
+                    // Removida a busca automática para evitar confusão durante a digitação
                   },
                 );
               },
@@ -650,17 +708,45 @@ class _RondaPageState extends State<RondaPage> {
             Wrap(
               spacing: 10,
               children: [
-                FilterChip(label: const Text('Carregador'), selected: carregador, onSelected: (v) => setState(() => carregador = v)),
-                FilterChip(label: const Text('Mouse'), selected: mouse, onSelected: (v) => setState(() => mouse = v)),
-                FilterChip(label: const Text('Teclado'), selected: teclado, onSelected: (v) => setState(() => teclado = v)),
-                FilterChip(label: const Text('Monitor'), selected: monitor, onSelected: (v) => setState(() => monitor = v)),
+                // ACESSÓRIOS DINÂMICOS
+                ...acessoriosAtuais.map((acc) => FilterChip(
+                  label: Text(acc),
+                  selected: acessoriosSelecionados[acc] ?? false,
+                  onSelected: (v) => setState(() => acessoriosSelecionados[acc] = v),
+                )),
+                
+                // STATUS FIXOS (AUDITORIA)
                 FilterChip(label: const Text('Defeito'), selected: defeito, selectedColor: Colors.red.withAlpha(80), onSelected: (v) => setState(() => defeito = v)),
                 FilterChip(label: const Text('Locado?'), selected: isLocado, selectedColor: Colors.orange.withAlpha(80), onSelected: (v) => setState(() => isLocado = v)),
                 FilterChip(label: const Text('Em outro setor?'), selected: setorDivergente, selectedColor: Colors.purple.withAlpha(80), onSelected: (v) => setState(() => setorDivergente = v)),
               ],
             ),
-            if (setorDivergente) ...[const SizedBox(height: 10), TextField(controller: motivoDivergenciaController, decoration: const InputDecoration(labelText: 'Motivo/Setor Atual *', border: OutlineInputBorder(), hintText: 'Ex: Emprestado para a Recepção...'))],
-            if (defeito) ...[const SizedBox(height: 10), TextField(controller: descricaoDefeitoController, decoration: const InputDecoration(labelText: 'Descrição do Defeito *', border: OutlineInputBorder(), hintText: 'Ex: Tela quebrada, não liga...'))],
+            if (setorDivergente) ...[
+              const SizedBox(height: 10),
+              DropdownButtonFormField<String>(
+                value: setorDivergenteSelecionado,
+                decoration: const InputDecoration(labelText: 'Setor Atual (Onde o item está) *', border: OutlineInputBorder()),
+                items: listaSetores.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
+                onChanged: (v) => setState(() => setorDivergenteSelecionado = v),
+              ),
+              const SizedBox(height: 10),
+              TextField(controller: motivoDivergenciaController, decoration: const InputDecoration(labelText: 'Motivo da Divergência *', border: OutlineInputBorder(), hintText: 'Ex: Emprestado para a Recepção...')),
+            ],
+            if (defeito || statusOperacional == 'Em manutenção') ...[
+              const SizedBox(height: 10), 
+              TextField(
+                controller: descricaoDefeitoController, 
+                decoration: InputDecoration(
+                  labelText: statusOperacional == 'Em manutenção' ? 'Motivo da Manutenção *' : 'Descrição do Defeito *', 
+                  border: const OutlineInputBorder(), 
+                  hintText: statusOperacional == 'Em manutenção' ? 'Ex: Formatação, troca de peça...' : 'Ex: Tela quebrada, não liga...'
+                )
+              )
+            ],
+            if (statusOperacional == 'Em manutenção') ...[
+              const SizedBox(height: 8),
+              const Text("ℹ️ Este item será automaticamente vinculado ao setor TI.", style: TextStyle(fontSize: 12, color: Colors.blueGrey, fontStyle: FontStyle.italic)),
+            ],
             if (isLocado) ...[
               const SizedBox(height: 10),
               DropdownButtonFormField<String>(

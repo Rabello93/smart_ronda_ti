@@ -18,11 +18,15 @@ O app foi desenvolvido para otimizar as rondas técnicas em ambiente corporativo
 ## 🚀 Série Histórica (Evolução)
 
 ### [3.0.2 Stable] - 2024-06-25
-- **Central de Relatórios**: Nova página administrativa para geração de relatórios com filtros avançados.
-- **Filtros de Auditoria**: Exportação de PDFs e XMLs para itens obsoletos, com defeito, em manutenção, divergentes ou reservados.
-- **Segurança Hierárquica**: Proteção de perfis Master contra visualização e edição por níveis Gerente.
-- **Relatórios por Setor**: Permissão de geração de relatórios expandida para o nível Gerente.
-- **Branding**: Fix na conversão dinâmica de logotipos via Google Drive.
+- **Inteligência por Categoria**: Formulário de ronda dinâmico que adapta acessórios conforme o tipo de equipamento (Ex: Impressora mostra WiFi/Rede, Notebook mostra Carregador/Mouse).
+- **Rastreabilidade de Manutenção**: Vínculo automático de itens em manutenção ao setor TI e exigência de descrição do motivo.
+- **Divergência de Setor**: Seleção assistida de setor de destino e justificativa obrigatória para itens fora de local.
+- **Central de Relatórios**: Nova página administrativa com filtros avançados para itens obsoletos, defeitos e divergências.
+- **Formatos de Saída**: Implementação de exportação em XML para integração de dados, além do PDF.
+- **Segurança Master**: Blindagem de perfis Master contra visualização ou edição por usuários de nível Gerente.
+- **UX no Patrimônio**: Busca manual de patrimônio por confirmação (Check) para evitar preenchimento involuntário durante a digitação.
+- **Branding**: Correção definitiva na conversão de logotipos hospedados no Google Drive para exibição no APK.
+- **Dashboard no APK**: Botão de acesso direto aos indicadores analíticos para Master e Gerente.
 
 ### [3.0.1 Stable] - 2024-06-24
 - **Deploy Automatizado**: Configuração de CI/CD via GitHub Actions com versionamento dinâmico.
