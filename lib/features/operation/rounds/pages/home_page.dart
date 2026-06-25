@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:smart_ronda_ti/app/app.dart';
+import 'package:smart_ronda_ti/features/management/dashboard/pages/dashboard_page.dart';
 import 'package:smart_ronda_ti/features/system/auth/controllers/auth_controller.dart';
 import 'package:smart_ronda_ti/features/operation/rounds/pages/ronda_page.dart';
 import 'package:smart_ronda_ti/features/operation/rounds/history/history_page.dart';
@@ -105,7 +107,7 @@ class _HomePageState extends State<HomePage> {
           persistentFooterButtons: [
             Center(
               child: Text(
-                "Smart Ronda TI - v${const String.fromEnvironment('APP_VERSION', defaultValue: '3.0.1').split('+')[0]}",
+                "Smart Ronda TI - v${const String.fromEnvironment('APP_VERSION', defaultValue: '3.0.2').split('+')[0]}",
                 style: const TextStyle(fontSize: 10, color: Colors.grey),
               ),
             ),
@@ -135,6 +137,27 @@ class _HomePageState extends State<HomePage> {
                   textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ),
+              if (isAdmin) ...[
+                const SizedBox(height: 20),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    final appState = RondaTIApp.of(context);
+                    Navigator.push(context, MaterialPageRoute(
+                      builder: (_) => DashboardPage(
+                        themeMode: appState.themeMode, 
+                        onChangeTheme: appState.changeTheme
+                      ),
+                    ));
+                  },
+                  icon: const Icon(Icons.analytics),
+                  label: const Text("DASHBOARD ANALÍTICO"),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(250, 50),
+                    side: BorderSide(color: Colors.blue.shade900, width: 2),
+                    foregroundColor: Colors.blue.shade900,
+                  ),
+                ),
+              ],
             ],
           ),
         );

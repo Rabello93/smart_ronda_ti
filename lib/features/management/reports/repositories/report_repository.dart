@@ -7,7 +7,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-class PdfRepository {
+class ReportRepository {
+  // --- PDF EXPORTS ---
+
   static Future<void> exportarLocacaoParaPDF(BuildContext context, List<Map<String, dynamic>> itens, String titulo) async {
     final messenger = (context.mounted) ? ScaffoldMessenger.of(context) : null;
     try {
@@ -22,7 +24,7 @@ class PdfRepository {
         try {
           String url = config['logo_url'];
           if (url.contains("drive.google.com")) {
-            final fileId = RegExp(r"d/(.+)/").firstMatch(url)?.group(1) ?? RegExp(r"id=(.+)").firstMatch(url)?.group(1);
+            final fileId = RegExp(r"d/([^/]+)").firstMatch(url)?.group(1) ?? RegExp(r"id=([^&]+)").firstMatch(url)?.group(1);
             if (fileId != null) url = "https://docs.google.com/uc?export=download&id=$fileId";
           }
           final response = await http.get(Uri.parse(url));
@@ -45,7 +47,7 @@ class PdfRepository {
                 pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    pw.Text(config['nome'] ?? "RONDA TI", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14)),
+                    pw.Text(config['nome'] ?? "RONDA TI", style: const pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14)),
                     pw.Text(titulo.toUpperCase(), style: const pw.TextStyle(fontSize: 10, color: PdfColors.blue900)),
                   ]
                 ),
@@ -56,7 +58,7 @@ class PdfRepository {
           build: (pw.Context context) => [
             pw.SizedBox(height: 10),
             pw.TableHelper.fromTextArray(
-              headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 10),
+              headerStyle: const pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 10),
               headerDecoration: const pw.BoxDecoration(color: PdfColors.indigo900),
               headers: const ['TIPO', 'PATRIMÔNIO', 'LOCADORA', 'SETOR ATUAL'],
               data: itens.map((i) => [
@@ -96,7 +98,6 @@ class PdfRepository {
       final pdf = pw.Document();
       final firestore = FirebaseFirestore.instance;
 
-      // Buscar Branding
       DocumentSnapshot configDoc = await firestore.collection('config').doc('empresa').get();
       Map<String, dynamic> config = configDoc.exists ? (configDoc.data() as Map<String, dynamic>) : {};
       
@@ -105,7 +106,7 @@ class PdfRepository {
         try {
           String url = config['logo_url'];
           if (url.contains("drive.google.com")) {
-            final fileId = RegExp(r"d/(.+)/").firstMatch(url)?.group(1) ?? RegExp(r"id=(.+)").firstMatch(url)?.group(1);
+            final fileId = RegExp(r"d/([^/]+)").firstMatch(url)?.group(1) ?? RegExp(r"id=([^&]+)").firstMatch(url)?.group(1);
             if (fileId != null) url = "https://docs.google.com/uc?export=download&id=$fileId";
           }
           final response = await http.get(Uri.parse(url));
@@ -198,7 +199,7 @@ class PdfRepository {
                 pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    pw.Text(config['nome'] ?? "RONDA TI", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14)),
+                    pw.Text(config['nome'] ?? "RONDA TI", style: const pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14)),
                     pw.Text("RELATÓRIO TÉCNICO", style: const pw.TextStyle(fontSize: 10, color: PdfColors.blue900)),
                   ]
                 ),
@@ -211,7 +212,7 @@ class PdfRepository {
             pw.Center(child: pw.Text(apenasObsoletos == true ? "RELATÓRIO DE OBSOLESCÊNCIA (+5 ANOS)" : "AUDITORIA DE RONDAS", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 16))),
             pw.SizedBox(height: 20),
             pw.TableHelper.fromTextArray(
-              headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 8),
+              headerStyle: const pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 8),
               cellStyle: const pw.TextStyle(fontSize: 7),
               headerDecoration: const pw.BoxDecoration(color: PdfColors.blueGrey900),
               headers: const ['DATA', 'SETOR', 'TIPO', 'PATRIMÔNIO', 'CPU', 'MAC', 'OBSOLETO', 'STATUS'],
@@ -229,6 +230,102 @@ class PdfRepository {
       messenger?.showSnackBar(SnackBar(content: Text("Erro PDF: $e"), backgroundColor: Colors.red));
     }
   }
+
+  static Future<void> exportarMapaAtivosSetor({required String setor, required List<Map<String, dynamic>> itens, required BuildContext context}) async {
+    final messenger = (context.mounted) ? ScaffoldMessenger.of(context) : null;
+    try {
+      final pdf = pw.Document();
+      pdf.addPage(pw.MultiPage(pageFormat: PdfPageFormat.a4, build: (pw.Context context) => [
+        pw.Header(level: 0, child: pw.Text("MAPA DE ATIVOS - SETOR ${setor.toUpperCase()}")),
+        pw.TableHelper.fromTextArray(
+          headers: const ['TIPO', 'PATRIMÔNIO', 'STATUS OP.', 'LOCADO'],
+          data: itens.map((i) => [i['tipo'] ?? '', i['patrimonio'] ?? 'S/P', i['status_operacional'] ?? 'Em uso', (i['is_locado'] ?? false) ? 'Sim' : 'Não']).toList(),
+        ),
+      ]));
+      final output = await getTemporaryDirectory();
+      final file = File("${output.path}/Mapa_$setor.pdf");
+      await file.writeAsBytes(await pdf.save());
+      await Share.shareXFiles([XFile(file.path)], text: 'Mapa de Ativos');
+    } catch (e) { messenger?.showSnackBar(SnackBar(content: Text("Erro: $e"), backgroundColor: Colors.red)); }
+  }
+
+  // --- XML EXPORTS ---
+
+  static Future<void> exportarRondasParaXML({
+    String? tecnicoId, 
+    String? setor,
+    BuildContext? context
+  }) async {
+    final messenger = (context != null && context.mounted) ? ScaffoldMessenger.of(context) : null;
+    try {
+      final firestore = FirebaseFirestore.instance;
+      QuerySnapshot rondasSnapshot = await firestore.collection('rondas').orderBy('timestamp', descending: true).get();
+
+      StringBuffer xml = StringBuffer();
+      xml.writeln('<?xml version="1.0" encoding="UTF-8"?>');
+      xml.writeln('<RelatorioRondas>');
+
+      for (var doc in rondasSnapshot.docs) {
+        final ronda = doc.data() as Map<String, dynamic>;
+        if (tecnicoId != null && ronda['tecnico_id'] != tecnicoId) continue;
+        if (setor != null && ronda['setor'] != setor) continue;
+
+        xml.writeln('  <Ronda id="${doc.id}">');
+        xml.writeln('    <Data>${ronda['data_inicio']}</Data>');
+        xml.writeln('    <Setor>${ronda['setor']}</Setor>');
+        xml.writeln('    <Tecnico>${ronda['tecnico']}</Tecnico>');
+        xml.writeln('    <Equipamentos>');
+
+        QuerySnapshot equipSnapshot = await firestore.collection('rondas').doc(doc.id).collection('equipamentos').get();
+        for (var equipDoc in equipSnapshot.docs) {
+          final equip = equipDoc.data() as Map<String, dynamic>;
+          xml.writeln('      <Equipamento>');
+          xml.writeln('        <Tipo>${equip['tipo']}</Tipo>');
+          xml.writeln('        <Patrimonio>${equip['patrimonio'] ?? 'S/P'}</Patrimonio>');
+          xml.writeln('        <Status>${equip['status']}</Status>');
+          xml.writeln('        <Série>${equip['serie'] ?? ''}</Série>');
+          xml.writeln('      </Equipamento>');
+        }
+
+        xml.writeln('    </Equipamentos>');
+        xml.writeln('  </Ronda>');
+      }
+
+      xml.writeln('</RelatorioRondas>');
+
+      final output = await getTemporaryDirectory();
+      final file = File("${output.path}/Relatorio_${DateTime.now().millisecondsSinceEpoch}.xml");
+      await file.writeAsString(xml.toString());
+      await Share.shareXFiles([XFile(file.path)], text: 'Relatório XML');
+    } catch (e) {
+      messenger?.showSnackBar(SnackBar(content: Text("Erro XML: $e"), backgroundColor: Colors.red));
+    }
+  }
+
+  static Future<void> exportarMapaAtivosSetorXML({required String setor, required List<Map<String, dynamic>> itens, required BuildContext context}) async {
+    final messenger = (context.mounted) ? ScaffoldMessenger.of(context) : null;
+    try {
+      StringBuffer xml = StringBuffer();
+      xml.writeln('<?xml version="1.0" encoding="UTF-8"?>');
+      xml.writeln('<MapaAtivos setor="${setor.toUpperCase()}">');
+      for (var i in itens) {
+        xml.writeln('  <Ativo>');
+        xml.writeln('    <Tipo>${i['tipo'] ?? ''}</Tipo>');
+        xml.writeln('    <Patrimonio>${i['patrimonio'] ?? 'S/P'}</Patrimonio>');
+        xml.writeln('    <Status>${i['status_operacional'] ?? ''}</Status>');
+        xml.writeln('    <Locado>${(i['is_locado'] ?? false) ? 'Sim' : 'Não'}</Locado>');
+        xml.writeln('  </Ativo>');
+      }
+      xml.writeln('</MapaAtivos>');
+
+      final output = await getTemporaryDirectory();
+      final file = File("${output.path}/Mapa_$setor.xml");
+      await file.writeAsString(xml.toString());
+      await Share.shareXFiles([XFile(file.path)], text: 'Mapa de Ativos XML');
+    } catch (e) { messenger?.showSnackBar(SnackBar(content: Text("Erro: $e"), backgroundColor: Colors.red)); }
+  }
+
+  // --- OTHERS ---
 
   static Future<void> exportarLogsParaPDF(BuildContext context) async {
     final messenger = context.mounted ? ScaffoldMessenger.of(context) : null;
@@ -252,24 +349,6 @@ class PdfRepository {
       final file = File("${output.path}/Logs_${DateTime.now().millisecondsSinceEpoch}.pdf");
       await file.writeAsBytes(await pdf.save());
       await Share.shareXFiles([XFile(file.path)], text: 'Logs de Auditoria');
-    } catch (e) { messenger?.showSnackBar(SnackBar(content: Text("Erro: $e"), backgroundColor: Colors.red)); }
-  }
-
-  static Future<void> exportarMapaAtivosSetor({required String setor, required List<Map<String, dynamic>> itens, required BuildContext context}) async {
-    final messenger = context.mounted ? ScaffoldMessenger.of(context) : null;
-    try {
-      final pdf = pw.Document();
-      pdf.addPage(pw.MultiPage(pageFormat: PdfPageFormat.a4, build: (pw.Context context) => [
-        pw.Header(level: 0, child: pw.Text("MAPA DE ATIVOS - SETOR ${setor.toUpperCase()}")),
-        pw.TableHelper.fromTextArray(
-          headers: const ['TIPO', 'PATRIMÔNIO', 'STATUS OP.', 'LOCADO'],
-          data: itens.map((i) => [i['tipo'] ?? '', i['patrimonio'] ?? 'S/P', i['status_operacional'] ?? 'Em uso', (i['is_locado'] ?? false) ? 'Sim' : 'Não']).toList(),
-        ),
-      ]));
-      final output = await getTemporaryDirectory();
-      final file = File("${output.path}/Mapa_$setor.pdf");
-      await file.writeAsBytes(await pdf.save());
-      await Share.shareXFiles([XFile(file.path)], text: 'Mapa de Ativos');
     } catch (e) { messenger?.showSnackBar(SnackBar(content: Text("Erro: $e"), backgroundColor: Colors.red)); }
   }
 

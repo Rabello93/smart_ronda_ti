@@ -6,7 +6,11 @@ import 'package:smart_ronda_ti/features/operation/assets/controllers/asset_contr
 import 'package:smart_ronda_ti/features/system/auth/models/user_model.dart';
 import 'package:smart_ronda_ti/features/operation/assets/models/asset_model.dart';
 import 'package:smart_ronda_ti/features/management/admin/pages/log_page.dart';
-import 'package:smart_ronda_ti/features/management/reports/repositories/pdf_repository.dart';
+import 'package:smart_ronda_ti/features/management/reports/repositories/report_repository.dart';
+
+import 'package:smart_ronda_ti/shared/helpers/url_helper.dart';
+
+import 'package:smart_ronda_ti/features/management/reports/pages/reports_page.dart';
 
 class AdminPage extends StatefulWidget {
   const AdminPage({super.key});
@@ -79,6 +83,11 @@ class _AdminPageState extends State<AdminPage> {
                     onPressed: () => _confirmarResetInventario(context),
                     tooltip: "Resetar Inventário Mestre",
                   ),
+                IconButton(
+                  icon: const Icon(Icons.description, color: Colors.white),
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ReportsPage())),
+                  tooltip: "Central de Relatórios",
+                ),
                 IconButton(
                   icon: const Icon(Icons.receipt_long),
                   onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LogPage())),
@@ -239,12 +248,21 @@ class _EquipeTab extends StatelessWidget {
         return StreamBuilder<UserModel?>(
           stream: authController.profileStream,
           builder: (context, mySnap) {
-            final meuNivel = mySnap.data?.nivelAcesso ?? 'normal';
+            final meuPerfil = mySnap.data;
+            final meuNivel = meuPerfil?.nivelAcesso ?? 'normal';
+            final minhaUid = meuPerfil?.uid ?? '';
+
             return ListView.builder(
               itemCount: users.length,
               itemBuilder: (context, index) {
                 final t = users[index];
                 final bool isAtivo = t.ativo;
+                
+                // REGRA: Gerente não pode ver/editar Master
+                if (meuNivel == 'gerente' && t.nivelAcesso == 'master') {
+                  return const SizedBox.shrink();
+                }
+
                 return Card(
                   margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                   child: ListTile(
@@ -257,12 +275,18 @@ class _EquipeTab extends StatelessWidget {
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        IconButton(
-                          icon: const Icon(Icons.edit, color: Colors.blue),
-                          onPressed: () => _alterarUsuario(context, t),
-                          tooltip: "Alterar Nível",
-                        ),
-                        IconButton(icon: const Icon(Icons.person_off, color: Colors.red), onPressed: () => _mostrarExclusao(context, t, meuNivel == 'master'), tooltip: "Gerenciar Acesso"),
+                        if (meuNivel == 'master' || meuNivel == 'gerente')
+                          IconButton(
+                            icon: const Icon(Icons.edit, color: Colors.blue),
+                            onPressed: () => _alterarUsuario(context, t),
+                            tooltip: "Alterar Nível",
+                          ),
+                        if (meuNivel == 'master' || (meuNivel == 'gerente' && t.uid != minhaUid))
+                          IconButton(
+                            icon: const Icon(Icons.person_off, color: Colors.red), 
+                            onPressed: () => _mostrarExclusao(context, t, meuNivel == 'master'), 
+                            tooltip: "Gerenciar Acesso"
+                          ),
                       ],
                     ),
                   ),
@@ -279,7 +303,7 @@ class _EquipeTab extends StatelessWidget {
 class _SetoresTab extends StatelessWidget {
   const _SetoresTab();
 
-  void _abrirHistoricoSetor(BuildContext context, String setor) {
+  void _abrirHistoricoSetor(BuildContext context, String setor, bool isAuthorized) {
     final AssetController controller = AssetController();
     showDialog(
       context: context,
@@ -308,16 +332,31 @@ class _SetoresTab extends StatelessWidget {
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text("FECHAR")),
-          ElevatedButton.icon(
-            onPressed: () async {
-              final itensSnapshot = await controller.getSectorStream(setor).first;
-              // Converte AssetModel de volta para Map para o serviço de PDF legacy
-              final itensMap = itensSnapshot.map((e) => e.toMap()..['patrimonio'] = e.patrimonio).toList();
-              if (context.mounted) PdfRepository.exportarMapaAtivosSetor(setor: setor, itens: itensMap, context: context);
-            },
-            icon: const Icon(Icons.picture_as_pdf),
-            label: const Text("GERAR PDF"),
-          )
+          if (isAuthorized)
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    final itensSnapshot = await controller.getSectorStream(setor).first;
+                    final itensMap = itensSnapshot.map((e) => e.toMap()..['patrimonio'] = e.patrimonio).toList();
+                    if (context.mounted) ReportRepository.exportarMapaAtivosSetor(setor: setor, itens: itensMap, context: context);
+                  },
+                  icon: const Icon(Icons.picture_as_pdf),
+                  label: const Text("PDF"),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    final itensSnapshot = await controller.getSectorStream(setor).first;
+                    final itensMap = itensSnapshot.map((e) => e.toMap()..['patrimonio'] = e.patrimonio).toList();
+                    if (context.mounted) ReportRepository.exportarMapaAtivosSetorXML(setor: setor, itens: itensMap, context: context);
+                  },
+                  icon: const Icon(Icons.code),
+                  label: const Text("XML"),
+                ),
+              ],
+            )
         ],
       ),
     );
@@ -326,49 +365,96 @@ class _SetoresTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AdminController controller = AdminController();
-    return StreamBuilder<List<Map<String, dynamic>>>(
-      stream: controller.sectorsStream,
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-        final setores = snapshot.data!;
-        return ListView.builder(
-          itemCount: setores.length,
-          itemBuilder: (context, index) {
-            final s = setores[index];
-            return Card(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              child: ListTile(
-                leading: const Icon(Icons.location_on, color: Colors.blue),
-                title: Text(s['nome'], style: const TextStyle(fontWeight: FontWeight.bold)),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
+    final AuthController authController = AuthController();
+    final TextEditingController setorController = TextEditingController();
+
+    return StreamBuilder<UserModel?>(
+      stream: authController.profileStream,
+      builder: (context, profSnap) {
+        final meuNivel = profSnap.data?.nivelAcesso ?? 'normal';
+        final bool canCreate = meuNivel == 'master' || meuNivel == 'gerente';
+        final bool isAuthorized = meuNivel == 'master' || meuNivel == 'gerente';
+
+        return Column(
+          children: [
+            if (canCreate)
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
                   children: [
-                    IconButton(icon: const Icon(Icons.history, color: Colors.blue), onPressed: () => _abrirHistoricoSetor(context, s['nome']), tooltip: "Mapa do Setor"),
-                    IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red), 
+                    Expanded(
+                      child: TextField(
+                        controller: setorController,
+                        decoration: const InputDecoration(labelText: "Novo Setor", border: OutlineInputBorder()),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    ElevatedButton(
                       onPressed: () async {
-                        final confirmar = await showDialog<bool>(
-                          context: context,
-                          builder: (ctx) => AlertDialog(
-                            title: const Text("Excluir Setor"),
-                            content: Text("Confirma a exclusão do setor '${s['nome']}'?"),
-                            actions: [
-                              TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text("CANCELAR")),
-                              TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text("EXCLUIR", style: TextStyle(color: Colors.red))),
-                            ],
-                          )
-                        );
-                        if (confirmar == true) await controller.removeSector(s['id']);
-                      }, 
-                      tooltip: "Excluir Setor"
+                        if (setorController.text.trim().isEmpty) return;
+                        await controller.createSector(setorController.text.trim());
+                        await controller.registerLog(action: "ADD SETOR", details: "Criou setor: ${setorController.text}");
+                        setorController.clear();
+                      },
+                      child: const Icon(Icons.add),
                     ),
                   ],
                 ),
               ),
-            );
-          },
+            Expanded(
+              child: StreamBuilder<List<Map<String, dynamic>>>(
+                stream: controller.sectorsStream,
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+                  final setores = snapshot.data!;
+                  return ListView.builder(
+                    itemCount: setores.length,
+                    itemBuilder: (context, index) {
+                      final s = setores[index];
+                      return Card(
+                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                        child: ListTile(
+                          leading: const Icon(Icons.location_on, color: Colors.blue),
+                          title: Text(s['nome'], style: const TextStyle(fontWeight: FontWeight.bold)),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.history, color: Colors.blue), 
+                                onPressed: () => _abrirHistoricoSetor(context, s['nome'], isAuthorized),
+                                tooltip: "Mapa do Setor"
+                              ),
+                              if (canCreate)
+                                IconButton(
+                                  icon: const Icon(Icons.delete, color: Colors.red), 
+                                  onPressed: () async {
+                                    final confirmar = await showDialog<bool>(
+                                      context: context,
+                                      builder: (ctx) => AlertDialog(
+                                        title: const Text("Excluir Setor"),
+                                        content: Text("Confirma a exclusão do setor '${s['nome']}'?"),
+                                        actions: [
+                                          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text("CANCELAR")),
+                                          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text("EXCLUIR", style: TextStyle(color: Colors.red))),
+                                        ],
+                                      )
+                                    );
+                                    if (confirmar == true) await controller.removeSector(s['id']);
+                                  }, 
+                                  tooltip: "Excluir Setor"
+                                ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
         );
-      },
+      }
     );
   }
 }
@@ -531,11 +617,7 @@ class _EmpresaTabState extends State<_EmpresaTab> {
 
   @override
   Widget build(BuildContext context) {
-    String logoVisual = logoController.text;
-    if (logoVisual.contains("drive.google.com")) {
-      final fileId = RegExp(r"d/(.+)/").firstMatch(logoVisual)?.group(1) ?? RegExp(r"id=(.+)").firstMatch(logoVisual)?.group(1);
-      if (fileId != null) logoVisual = "https://docs.google.com/uc?export=download&id=$fileId";
-    }
+    String logoVisual = UrlHelper.convertDriveUrl(logoController.text) ?? "";
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),

@@ -7,6 +7,8 @@ import 'package:smart_ronda_ti/features/system/auth/models/user_model.dart';
 import 'package:smart_ronda_ti/features/operation/rounds/history/ronda_details_page.dart';
 import 'package:smart_ronda_ti/features/operation/rounds/pages/ronda_page.dart';
 
+import 'package:smart_ronda_ti/features/management/reports/repositories/report_repository.dart';
+
 class HistoryPage extends StatefulWidget {
   const HistoryPage({super.key});
 
@@ -106,6 +108,26 @@ class _HistoryPageState extends State<HistoryPage> {
         return Scaffold(
           appBar: AppBar(
             title: const Text('Histórico de Rondas'),
+            actions: [
+              if (isManager) ...[
+                IconButton(
+                  icon: const Icon(Icons.picture_as_pdf),
+                  onPressed: () => ReportRepository.exportarRondasParaPDF(
+                    setor: setorFiltro,
+                    context: context,
+                  ),
+                  tooltip: "Exportar PDF",
+                ),
+                IconButton(
+                  icon: const Icon(Icons.code),
+                  onPressed: () => ReportRepository.exportarRondasParaXML(
+                    setor: setorFiltro,
+                    context: context,
+                  ),
+                  tooltip: "Exportar XML",
+                ),
+              ]
+            ],
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(110),
               child: Padding(

@@ -4,11 +4,15 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'pdf_repository.dart';
+import 'report_repository.dart';
 
 class ExportRepository {
   static Future<void> exportarPDFGenerico(BuildContext context, List<Map<String, dynamic>> itens, String titulo) async {
-    await PdfRepository.exportarLocacaoParaPDF(context, itens, titulo);
+    await ReportRepository.exportarLocacaoParaPDF(context, itens, titulo);
+  }
+
+  static Future<void> exportarXMLGenerico(BuildContext context, List<Map<String, dynamic>> itens, String setor) async {
+    await ReportRepository.exportarMapaAtivosSetorXML(setor: setor, itens: itens, context: context);
   }
 
   static Future<void> exportarRondasParaCSV({

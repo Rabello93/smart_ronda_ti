@@ -3,8 +3,8 @@ class UrlHelper {
   static String? convertDriveUrl(String url) {
     if (!url.contains("drive.google.com")) return url;
 
-    final fileId = RegExp(r"d/(.+)/").firstMatch(url)?.group(1) ??
-        RegExp(r"id=(.+)").firstMatch(url)?.group(1);
+    final fileId = RegExp(r"d/([^/]+)").firstMatch(url)?.group(1) ??
+        RegExp(r"id=([^&]+)").firstMatch(url)?.group(1);
 
     if (fileId != null) {
       return "https://docs.google.com/uc?export=download&id=$fileId";

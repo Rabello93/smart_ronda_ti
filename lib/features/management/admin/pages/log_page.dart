@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:smart_ronda_ti/features/management/admin/controllers/admin_controller.dart';
-import 'package:smart_ronda_ti/features/management/reports/repositories/pdf_repository.dart';
+import 'package:smart_ronda_ti/features/management/reports/repositories/report_repository.dart';
 
 class LogPage extends StatelessWidget {
   const LogPage({super.key});
@@ -18,7 +18,7 @@ class LogPage extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.picture_as_pdf),
-            onPressed: () => PdfRepository.exportarLogsParaPDF(context),
+            onPressed: () => ReportRepository.exportarLogsParaPDF(context),
             tooltip: "Exportar logs para PDF",
           )
         ],

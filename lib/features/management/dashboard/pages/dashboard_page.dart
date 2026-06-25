@@ -138,7 +138,7 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget _buildFooter(Color textColor) {
-    const String fullVersion = String.fromEnvironment('APP_VERSION', defaultValue: '3.0.1+Local');
+    const String fullVersion = String.fromEnvironment('APP_VERSION', defaultValue: '3.0.2+Local');
     final String version = fullVersion.split('+')[0];
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8),

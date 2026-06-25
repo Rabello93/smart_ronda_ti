@@ -17,6 +17,13 @@ O app foi desenvolvido para otimizar as rondas técnicas em ambiente corporativo
 
 ## 🚀 Série Histórica (Evolução)
 
+### [3.0.2 Stable] - 2024-06-25
+- **Central de Relatórios**: Nova página administrativa para geração de relatórios com filtros avançados.
+- **Filtros de Auditoria**: Exportação de PDFs e XMLs para itens obsoletos, com defeito, em manutenção, divergentes ou reservados.
+- **Segurança Hierárquica**: Proteção de perfis Master contra visualização e edição por níveis Gerente.
+- **Relatórios por Setor**: Permissão de geração de relatórios expandida para o nível Gerente.
+- **Branding**: Fix na conversão dinâmica de logotipos via Google Drive.
+
 ### [3.0.1 Stable] - 2024-06-24
 - **Deploy Automatizado**: Configuração de CI/CD via GitHub Actions com versionamento dinâmico.
 - **Reset de Infraestrutura**: Migração completa para um novo projeto Firebase limpo e otimizado.

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:smart_ronda_ti/features/management/reports/repositories/pdf_repository.dart';
+import 'package:smart_ronda_ti/features/management/reports/repositories/report_repository.dart';
 
 class AboutPage extends StatelessWidget {
   const AboutPage({super.key});
@@ -23,7 +23,7 @@ class AboutPage extends StatelessWidget {
                   Icon(Icons.checklist_rtl, size: 80, color: Colors.blue),
                   SizedBox(height: 10),
                   Text("Smart Ronda TI", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                  Text("Versão 3.0.1", style: TextStyle(color: Colors.grey)),
+                  Text("Versão 3.0.2", style: TextStyle(color: Colors.grey)),
                 ],
               ),
             ),
@@ -36,12 +36,12 @@ class AboutPage extends StatelessWidget {
             const SizedBox(height: 20),
             _sectionTitle("🚀 Log de Atualizações"),
             _buildUpdate(
-              "3.0.1 (Atual)",
-              "• DASHBOARD: Refatoração completa com novos cards de indicadores e rankings de técnicos.\n• REBRANDING: Consolidação da marca Smart Ronda TI e nova identidade visual.\n• CASTELO: Refatoração do ciclo de vida de ativos e restrição de campos críticos para administradores.\n• AUDITORIA: Ajustes nos filtros de locação e períodos dinâmicos nos rankings.",
+              "3.0.2 (Atual)",
+              "• RELATÓRIOS: Nova Central de Relatórios com filtros de obsolescência, defeitos e divergências.\n• FORMATOS: Suporte a exportação em XML para integração de dados.\n• SEGURANÇA: Blindagem de perfis Master contra alterações por Gerentes.",
             ),
             _buildUpdate(
-              "3.0.0 Alpha",
-              "• REBRANDING: Transição oficial para Smart Ronda TI.\n• ARQUITETURA: Nova estrutura modular para maior escalabilidade.",
+              "3.0.1",
+              "• DASHBOARD: Refatoração completa com novos cards de indicadores e rankings de técnicos.\n• REBRANDING: Consolidação da marca Smart Ronda TI e nova identidade visual.",
             ),
             _buildUpdate(
               "2.1.11",
@@ -50,7 +50,7 @@ class AboutPage extends StatelessWidget {
             const SizedBox(height: 30),
             Center(
               child: ElevatedButton.icon(
-                onPressed: () => PdfRepository.exportarPropostaComercial(context),
+                onPressed: () => ReportRepository.exportarPropostaComercial(context),
                 icon: const Icon(Icons.picture_as_pdf, color: Colors.white),
                 label: const Text("GERAR APRESENTAÇÃO PARA VENDA"),
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.blue.shade800, foregroundColor: Colors.white),
