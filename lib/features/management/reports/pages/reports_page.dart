@@ -96,7 +96,7 @@ class _ReportsPageState extends State<ReportsPage> {
               builder: (context, snapshot) {
                 final setores = snapshot.data ?? [];
                 return DropdownButtonFormField<String>(
-                  value: _setorSelecionado,
+                  initialValue: _setorSelecionado,
                   decoration: const InputDecoration(labelText: "Filtrar por Setor (Opcional)", border: OutlineInputBorder()),
                   items: [
                     const DropdownMenuItem(value: null, child: Text("Todos os Setores")),

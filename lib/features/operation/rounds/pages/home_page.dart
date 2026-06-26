@@ -3,7 +3,7 @@ import 'package:smart_ronda_ti/app/app.dart';
 import 'package:smart_ronda_ti/features/management/dashboard/pages/dashboard_page.dart';
 import 'package:smart_ronda_ti/features/system/auth/controllers/auth_controller.dart';
 import 'package:smart_ronda_ti/features/operation/rounds/pages/ronda_page.dart';
-import 'package:smart_ronda_ti/features/operation/rounds/history/history_page.dart';
+import 'package:smart_ronda_ti/features/operation/rounds/pages/history/history_page.dart';
 import 'package:smart_ronda_ti/features/system/about/pages/about_page.dart';
 import 'package:smart_ronda_ti/features/management/admin/pages/admin_page.dart';
 import 'package:smart_ronda_ti/features/management/admin/controllers/admin_controller.dart';
@@ -107,7 +107,7 @@ class _HomePageState extends State<HomePage> {
           persistentFooterButtons: [
             Center(
               child: Text(
-                "Smart Ronda TI - v${const String.fromEnvironment('APP_VERSION', defaultValue: '3.0.2').split('+')[0]}",
+                "Smart Ronda TI - v${const String.fromEnvironment('APP_VERSION', defaultValue: '3.1.0').split('+')[0]}",
                 style: const TextStyle(fontSize: 10, color: Colors.grey),
               ),
             ),

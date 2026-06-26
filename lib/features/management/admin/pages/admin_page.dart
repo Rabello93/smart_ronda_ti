@@ -5,7 +5,7 @@ import 'package:smart_ronda_ti/features/management/admin/controllers/admin_contr
 import 'package:smart_ronda_ti/features/operation/assets/controllers/asset_controller.dart';
 import 'package:smart_ronda_ti/features/system/auth/models/user_model.dart';
 import 'package:smart_ronda_ti/features/operation/assets/models/asset_model.dart';
-import 'package:smart_ronda_ti/features/management/admin/pages/log_page.dart';
+import 'package:smart_ronda_ti/features/system/audit/pages/log_page.dart';
 import 'package:smart_ronda_ti/features/management/reports/repositories/report_repository.dart';
 
 import 'package:smart_ronda_ti/shared/helpers/url_helper.dart';

@@ -23,7 +23,7 @@ class AboutPage extends StatelessWidget {
                   Icon(Icons.checklist_rtl, size: 80, color: Colors.blue),
                   SizedBox(height: 10),
                   Text("Smart Ronda TI", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                  Text("Versão 3.0.2", style: TextStyle(color: Colors.grey)),
+                  Text("Versão 3.1.0", style: TextStyle(color: Colors.grey)),
                 ],
               ),
             ),
@@ -36,12 +36,12 @@ class AboutPage extends StatelessWidget {
             const SizedBox(height: 20),
             _sectionTitle("🚀 Log de Atualizações"),
             _buildUpdate(
-              "3.0.2 (Atual)",
-              "• CATEGORIAS: Acessórios dinâmicos que mudam conforme o tipo de item (Notebook, Impressora, etc).\n• MANUTENÇÃO: Itens em manutenção são vinculados automaticamente ao TI com motivo obrigatório.\n• DIVERGÊNCIA: Seleção de setor atual e justificativa para itens fora do local original.\n• RELATÓRIOS: Central com filtros de obsolescência, defeitos e exportação XML/PDF.\n• SEGURANÇA: Blindagem de perfis Master e melhorias na busca de patrimônio.",
+              "3.1.0 (Atual)",
+              "• ARQUITETURA: Reestruturação completa para escalabilidade futurista (Capex, Intelligence, Audit).\n• STATUS: Aba Status do Dashboard com análise dinâmica de equipamentos em manutenção.\n• MANUTENÇÃO: Correção no campo de relato de problemas/defeitos.\n• ROADMAP: Preparação do sistema para inteligência preditiva e gestão financeira.",
             ),
             _buildUpdate(
-              "3.0.1",
-              "• DASHBOARD: Refatoração completa com novos cards de indicadores e rankings de técnicos.\n• REBRANDING: Consolidação da marca Smart Ronda TI e nova identidade visual.",
+              "3.0.2",
+              "• CATEGORIAS: Acessórios dinâmicos que mudam conforme o tipo de item (Notebook, Impressora, etc).\n• MANUTENÇÃO: Itens em manutenção são vinculados automaticamente ao TI com motivo obrigatório.\n• DIVERGÊNCIA: Seleção de setor atual e justificativa para itens fora do local original.",
             ),
             _buildUpdate(
               "2.1.11",

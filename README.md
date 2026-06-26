@@ -17,16 +17,20 @@ O app foi desenvolvido para otimizar as rondas técnicas em ambiente corporativo
 
 ## 🚀 Série Histórica (Evolução)
 
+### [3.1.0 Stable] - 2024-06-25
+- **Estrutura Futurista**: Reestruturação completa do sistema de pastas para suportar módulos de Capex, Inteligência Preditiva e Auditoria Avançada.
+- **Análise Dinâmica**: Aba Status do Dashboard agora detalha o mix de equipamentos em manutenção e indicadores de saúde.
+- **Correção de Fluxo**: Campo de descrição de defeito agora visível tanto em status de Manutenção quanto em alerta de Defeito.
+
 ### [3.0.2 Stable] - 2024-06-25
-- **Inteligência por Categoria**: Formulário de ronda dinâmico que adapta acessórios conforme o tipo de equipamento (Ex: Impressora mostra WiFi/Rede, Notebook mostra Carregador/Mouse).
-- **Rastreabilidade de Manutenção**: Vínculo automático de itens em manutenção ao setor TI e exigência de descrição do motivo.
-- **Divergência de Setor**: Seleção assistida de setor de destino e justificativa obrigatória para itens fora de local.
-- **Central de Relatórios**: Nova página administrativa com filtros avançados para itens obsoletos, defeitos e divergências.
-- **Formatos de Saída**: Implementação de exportação em XML para integração de dados, além do PDF.
-- **Segurança Master**: Blindagem de perfis Master contra visualização ou edição por usuários de nível Gerente.
-- **UX no Patrimônio**: Busca manual de patrimônio por confirmação (Check) para evitar preenchimento involuntário durante a digitação.
-- **Branding**: Correção definitiva na conversão de logotipos hospedados no Google Drive para exibição no APK.
-- **Dashboard no APK**: Botão de acesso direto aos indicadores analíticos para Master e Gerente.
+- **Inteligência por Categoria**: Formulário de ronda dinâmico que adapta acessórios conforme o tipo de equipamento.
+- **Central de Relatórios**: Nova página administrativa para geração de relatórios com filtros avançados.
+
+## 🚀 Roadmap & Future Releases
+- **Módulo Intelligence**: Implementação de tendências de falha e previsão de troca de ativos.
+- **Módulo Capex**: Gestão financeira de ativos e planejamento de investimentos.
+- **Auditoria 360**: Expansão dos logs de sistema para um módulo completo de rastreabilidade.
+- **Dashboards Especializados**: Visões customizadas para os níveis Operacional, Auditor e Executivo.
 
 ### [3.0.1 Stable] - 2024-06-24
 - **Deploy Automatizado**: Configuração de CI/CD via GitHub Actions com versionamento dinâmico.

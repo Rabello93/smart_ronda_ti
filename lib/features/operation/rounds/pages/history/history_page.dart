@@ -4,7 +4,7 @@ import 'package:smart_ronda_ti/features/operation/rounds/controllers/round_contr
 import 'package:smart_ronda_ti/features/management/admin/controllers/admin_controller.dart';
 import 'package:smart_ronda_ti/features/operation/rounds/models/round_model.dart';
 import 'package:smart_ronda_ti/features/system/auth/models/user_model.dart';
-import 'package:smart_ronda_ti/features/operation/rounds/history/ronda_details_page.dart';
+import 'package:smart_ronda_ti/features/operation/rounds/pages/history/ronda_details_page.dart';
 import 'package:smart_ronda_ti/features/operation/rounds/pages/ronda_page.dart';
 
 import 'package:smart_ronda_ti/features/management/reports/repositories/report_repository.dart';
