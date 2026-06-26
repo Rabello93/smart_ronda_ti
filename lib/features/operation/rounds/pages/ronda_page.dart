@@ -736,12 +736,15 @@ class _RondaPageState extends State<RondaPage> {
               const SizedBox(height: 10), 
               TextField(
                 controller: descricaoDefeitoController, 
+                maxLines: 2,
                 decoration: InputDecoration(
-                  labelText: statusOperacional == 'Em manutenção' ? 'Motivo da Manutenção *' : 'Descrição do Defeito *', 
+                  labelText: 'Detalhes Técnicos / Motivo da Manutenção *', 
+                  alignLabelWithHint: true,
                   border: const OutlineInputBorder(), 
-                  hintText: statusOperacional == 'Em manutenção' ? 'Ex: Formatação, troca de peça...' : 'Ex: Tela quebrada, não liga...'
+                  hintText: statusOperacional == 'Em manutenção' ? 'Descreva o que será feito ou o problema encontrado...' : 'Descreva o defeito do equipamento...'
                 )
-              )
+              ),
+              const SizedBox(height: 10),
             ],
             if (statusOperacional == 'Em manutenção') ...[
               const SizedBox(height: 8),

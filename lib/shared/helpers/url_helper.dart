@@ -7,11 +7,13 @@ class UrlHelper {
 
     // Caso Google Drive
     if (url.contains("drive.google.com")) {
+      // Captura o ID de links /file/d/ID/view ou ?id=ID
       final fileId = RegExp(r"d/([^/]+)").firstMatch(url)?.group(1) ??
           RegExp(r"id=([^&]+)").firstMatch(url)?.group(1);
 
       if (fileId != null) {
-        return "https://docs.google.com/uc?export=download&id=$fileId";
+        // Link direto de download burlado para exibir como imagem direta
+        return "https://lh3.googleusercontent.com/u/0/d/$fileId";
       }
     }
     

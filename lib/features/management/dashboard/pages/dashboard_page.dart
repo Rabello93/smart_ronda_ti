@@ -368,28 +368,52 @@ class _DashboardPageState extends State<DashboardPage> {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          const SectionTitle(title: "Saúde do Parque Tecnológico"),
+          const SectionTitle(title: "Análise de Saúde do Parque"),
           const SizedBox(height: 20),
+          
           StreamBuilder<List<AssetModel>>(
             stream: _assetController.getMaintenanceStream(),
             builder: (context, snapshot) {
-              final count = snapshot.data?.length ?? 0;
-              return StatusIndicatorCard(
-                title: "EM MANUTENÇÃO", 
-                count: count.toString(), 
-                icon: Icons.build_circle_outlined, 
-                color: Colors.orange, 
-                onTap: () => _showItensList(context, "Itens em Manutenção", snapshot.data ?? []),
+              final itens = snapshot.data ?? [];
+              final count = itens.length;
+              
+              // Pequeno resumo por tipo
+              Map<String, int> porTipo = {};
+              for (var i in itens) {
+                porTipo[i.tipo] = (porTipo[i.tipo] ?? 0) + 1;
+              }
+              String resumo = porTipo.entries.map((e) => "${e.value} ${e.key}(s)").join(", ");
+              if (resumo.isEmpty) resumo = "Tudo operando normalmente";
+
+              return Column(
+                children: [
+                  StatusIndicatorCard(
+                    title: "EM MANUTENÇÃO", 
+                    count: count.toString(), 
+                    icon: Icons.build_circle_outlined, 
+                    color: Colors.orange, 
+                    onTap: () => _showItensList(context, "Itens em Manutenção", itens),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+                    child: Text(
+                      resumo, 
+                      style: const TextStyle(fontSize: 11, color: Colors.blueGrey, fontStyle: FontStyle.italic),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ],
               );
             }
           ),
+          
           const SizedBox(height: 12),
           StreamBuilder<List<AssetModel>>(
             stream: _assetController.getDivergenceStream(),
             builder: (context, snapshot) {
               final count = snapshot.data?.length ?? 0;
               return StatusIndicatorCard(
-                title: "DIVERGÊNCIAS DE SETOR", 
+                title: "DIVERGÊNCIAS DE LOCAL", 
                 count: count.toString(), 
                 icon: Icons.wrong_location_outlined, 
                 color: Colors.purple, 
@@ -397,19 +421,28 @@ class _DashboardPageState extends State<DashboardPage> {
               );
             }
           ),
+          
           const SizedBox(height: 12),
           StreamBuilder<List<AssetModel>>(
             stream: _assetController.getObsoleteStream(),
             builder: (context, snapshot) {
               final count = snapshot.data?.length ?? 0;
               return StatusIndicatorCard(
-                title: "CICLO DE VIDA CRÍTICO", 
+                title: "EQUIPAMENTOS ANTIGOS (+5 ANOS)", 
                 count: count.toString(), 
                 icon: Icons.timer_outlined, 
                 color: Colors.deepPurple, 
-                onTap: () => _showItensList(context, "Ativos Obsoletos (+5 anos)", snapshot.data ?? []),
+                onTap: () => _showItensList(context, "Ativos Obsoletos", snapshot.data ?? []),
               );
             }
+          ),
+          
+          const SizedBox(height: 30),
+          const Divider(),
+          const SizedBox(height: 10),
+          const Text(
+            "ℹ️ Itens em manutenção são vinculados automaticamente ao TI.",
+            style: TextStyle(fontSize: 11, color: Colors.grey),
           ),
         ],
       ),
