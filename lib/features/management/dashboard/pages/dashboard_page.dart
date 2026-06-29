@@ -29,6 +29,8 @@ class _DashboardPageState extends State<DashboardPage> {
   final DashboardController _dashboardController = DashboardController();
 
   DateTimeRange? dataFiltro;
+  int _selectedIndex = 0;
+  bool _isRailExpanded = false;
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +41,7 @@ class _DashboardPageState extends State<DashboardPage> {
     return Scaffold(
       backgroundColor: bgColor,
       appBar: AppBar(
-        toolbarHeight: 100,
+        toolbarHeight: 125,
         title: _buildCompanyLogo(),
         backgroundColor: isDark ? Colors.black : Colors.indigo.shade900,
         foregroundColor: Colors.white,
@@ -65,30 +67,63 @@ class _DashboardPageState extends State<DashboardPage> {
           final allRondas = snapshot.data ?? [];
           final rondas = _dashboardController.filterRoundsByDateRange(allRondas, dataFiltro);
 
-          return DefaultTabController(
-            length: 6,
-            child: Column(
-              children: [
-                _buildTabBar(isDark),
-                Expanded(
-                  child: TabBarView(
-                    children: [
-                      _buildGeralTab(rondas, allRondas, textColor),
-                      _buildMetasTab(allRondas, textColor),
-                      _buildTecnicosTab(rondas, textColor),
-                      _buildDefeitosTab(textColor),
-                      _buildLocacaoTab(textColor),
-                      _buildStatusTab(textColor),
-                    ],
-                  ),
+          return Row(
+            children: [
+              _buildSideNavigation(isDark),
+              const VerticalDivider(thickness: 1, width: 1),
+              Expanded(
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: _buildCurrentTab(rondas, allRondas, textColor),
+                    ),
+                    _buildFooter(textColor),
+                  ],
                 ),
-                _buildFooter(textColor),
-              ],
-            ),
+              ),
+            ],
           );
         },
       ),
     );
+  }
+
+  Widget _buildSideNavigation(bool isDark) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isRailExpanded = true),
+      onExit: (_) => setState(() => _isRailExpanded = false),
+      child: NavigationRail(
+        extended: _isRailExpanded,
+        backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        selectedIndex: _selectedIndex,
+        onDestinationSelected: (index) => setState(() => _selectedIndex = index),
+        labelType: _isRailExpanded ? NavigationRailLabelType.none : NavigationRailLabelType.selected,
+        unselectedIconTheme: IconThemeData(color: isDark ? Colors.white54 : Colors.grey.shade600),
+        selectedIconTheme: const IconThemeData(color: Colors.blue),
+        selectedLabelTextStyle: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 12),
+        unselectedLabelTextStyle: TextStyle(color: isDark ? Colors.white54 : Colors.grey.shade600, fontSize: 11),
+        destinations: const [
+          NavigationRailDestination(icon: Icon(Icons.dashboard), label: Text("Geral")),
+          NavigationRailDestination(icon: Icon(Icons.stars), label: Text("Metas")),
+          NavigationRailDestination(icon: Icon(Icons.person), label: Text("Técnicos")),
+          NavigationRailDestination(icon: Icon(Icons.warning_amber), label: Text("Defeitos")),
+          NavigationRailDestination(icon: Icon(Icons.business), label: Text("Locação")),
+          NavigationRailDestination(icon: Icon(Icons.analytics), label: Text("Status")),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCurrentTab(List<RoundModel> rondas, List<RoundModel> allRondas, Color textColor) {
+    switch (_selectedIndex) {
+      case 0: return _buildGeralTab(rondas, allRondas, textColor);
+      case 1: return _buildMetasTab(allRondas, textColor);
+      case 2: return _buildTecnicosTab(rondas, textColor);
+      case 3: return _buildDefeitosTab(textColor);
+      case 4: return _buildLocacaoTab(textColor);
+      case 5: return _buildStatusTab(textColor);
+      default: return _buildGeralTab(rondas, allRondas, textColor);
+    }
   }
 
   Widget _buildCompanyLogo() {
@@ -111,23 +146,23 @@ class _DashboardPageState extends State<DashboardPage> {
               Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                padding: const EdgeInsets.all(4),
+                padding: const EdgeInsets.all(6),
                 child: Image.network(
                   displayUrl, 
-                  height: 80, 
+                  height: 100, 
                   fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => Image.asset("assets/logo.png", height: 80),
+                  errorBuilder: (_, __, ___) => Image.asset("assets/logo.png", height: 100),
                 ),
               )
             else
               Image.asset(
                 "assets/logo.png", 
-                height: 80, 
-                errorBuilder: (_, __, ___) => const Icon(Icons.business, size: 60),
+                height: 100, 
+                errorBuilder: (_, __, ___) => const Icon(Icons.business, size: 80),
               ),
-            const SizedBox(width: 15),
+            const SizedBox(width: 20),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -136,19 +171,19 @@ class _DashboardPageState extends State<DashboardPage> {
                   Text(
                     companyName.toUpperCase(),
                     style: const TextStyle(
-                      fontSize: 18,
+                      fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      letterSpacing: 1.2,
+                      letterSpacing: 1.5,
                       color: Colors.white,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
                   const Text(
-                    "DASHBOARD OPERACIONAL",
+                    "SISTEMA DE GESTÃO E RONDAS",
                     style: TextStyle(
-                      fontSize: 10,
+                      fontSize: 11,
                       color: Colors.white70,
-                      letterSpacing: 1.5,
+                      letterSpacing: 2.0,
                     ),
                   ),
                 ],
@@ -185,7 +220,7 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget _buildFooter(Color textColor) {
-    const String version = '3.1.1';
+    const String version = '3.1.2';
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Center(
