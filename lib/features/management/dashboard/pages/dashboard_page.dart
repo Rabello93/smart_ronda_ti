@@ -72,7 +72,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 Expanded(
                   child: TabBarView(
                     children: [
-                      _buildGeralTab(rondas, textColor),
+                      _buildGeralTab(rondas, allRondas, textColor),
                       _buildTecnicosTab(rondas, textColor),
                       _buildDefeitosTab(textColor),
                       _buildLocacaoTab(textColor),
@@ -121,12 +121,12 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget _buildTabBar(bool isDark) {
     return Container(
       color: isDark ? Colors.black87 : Colors.white,
-      child: const TabBar(
+      child: TabBar(
         labelColor: Colors.blue,
-        unselectedLabelColor: Colors.grey,
+        unselectedLabelColor: isDark ? Colors.grey : Colors.grey.shade600,
         indicatorColor: Colors.blue,
         isScrollable: true,
-        tabs: [
+        tabs: const [
           Tab(icon: Icon(Icons.dashboard), text: "Geral"),
           Tab(icon: Icon(Icons.person), text: "Técnicos"),
           Tab(icon: Icon(Icons.warning_amber), text: "Defeitos"),
@@ -151,72 +151,186 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _buildGeralTab(List<RoundModel> rondas, Color textColor) {
-    final rankingSetores = _dashboardController.getRankingPorSetor(rondas);
-    final topSetores = rankingSetores.take(5).toList();
+  Widget _buildGeralTab(List<RoundModel> filteredRondas, List<RoundModel> allRondas, Color textColor) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    // Filtro para hoje (Atividade do dia vigente)
+    final today = DateTime.now();
+    final hojeRondas = allRondas.where((r) => 
+      r.dataInicio.day == today.day && 
+      r.dataInicio.month == today.month && 
+      r.dataInicio.year == today.year
+    ).toList();
+    
+    final rankingSetoresHoje = _dashboardController.getRankingPorSetor(hojeRondas);
+    final trendData = _dashboardController.getRoundsTrend(allRondas);
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          _buildFiltroData(),
-          const SizedBox(height: 24),
-          Wrap(
-            spacing: 16,
-            runSpacing: 16,
-            alignment: WrapAlignment.center,
+    return StreamBuilder<List<AssetModel>>(
+      stream: _assetController.getAllAssetsStream(),
+      builder: (context, assetSnapshot) {
+        final allAssets = assetSnapshot.data ?? [];
+        final alerts = _dashboardController.getCriticalAlerts(allRondas, allAssets);
+        final coverage = _dashboardController.getInventoryCoverage(allAssets, allRondas);
+        final categories = _dashboardController.getAssetCategorySummary(allAssets);
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SummaryCard(
-                title: "Rondas", 
-                value: rondas.length.toString(), 
-                icon: Icons.assignment_turned_in, 
-                color: Colors.blue,
+              if (alerts.isNotEmpty) CriticalAlertBanner(alerts: alerts),
+              
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const SectionTitle(title: "Resumo Operacional"),
+                  _buildFiltroData(),
+                ],
               ),
-              SummaryCard(
-                title: "Itens", 
-                value: _dashboardController.getTotalItens(rondas).toString(), 
-                icon: Icons.inventory_2, 
-                color: Colors.orange,
+              const SizedBox(height: 16),
+              
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    SummaryCard(
+                      title: "Rondas (Período)", 
+                      value: filteredRondas.length.toString(), 
+                      icon: Icons.assignment_turned_in, 
+                      color: Colors.blue,
+                    ),
+                    const SizedBox(width: 12),
+                    SummaryCard(
+                      title: "Itens Vistos", 
+                      value: _dashboardController.getTotalItens(filteredRondas).toString(), 
+                      icon: Icons.inventory_2, 
+                      color: Colors.orange,
+                    ),
+                    const SizedBox(width: 12),
+                    SummaryCard(
+                      title: "Defeitos", 
+                      value: _dashboardController.getTotalDefeitos(filteredRondas).toString(), 
+                      icon: Icons.error, 
+                      color: Colors.red,
+                    ),
+                    const SizedBox(width: 12),
+                    SummaryCard(
+                      title: "Hoje", 
+                      value: hojeRondas.length.toString(), 
+                      icon: Icons.today, 
+                      color: Colors.green,
+                    ),
+                  ],
+                ),
               ),
-              SummaryCard(
-                title: "Defeitos", 
-                value: _dashboardController.getTotalDefeitos(rondas).toString(), 
-                icon: Icons.error, 
-                color: Colors.red,
+              
+              const SizedBox(height: 32),
+              const SectionTitle(title: "Tendência de Rondas (7 dias)"),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.black54 : Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)],
+                ),
+                child: TrendChart(data: trendData, color: Colors.blue),
               ),
-              StreamBuilder<List<AssetModel>>(
-                stream: _assetController.getObsoleteStream(),
-                builder: (context, snapshot) {
-                  final count = snapshot.data?.length ?? 0;
-                  return SummaryCard(
-                    title: "Obsoletos", 
-                    value: count.toString(), 
-                    icon: Icons.history, 
-                    color: Colors.deepPurple,
-                  );
-                }
+
+              const SizedBox(height: 32),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SectionTitle(title: "Saúde do Patrimônio"),
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: isDark ? Colors.black54 : Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: CoverageChart(
+                            auditado: coverage['auditado'] ?? 0, 
+                            pendente: coverage['pendente'] ?? 0,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    flex: 3,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SectionTitle(title: "Categorias"),
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: isDark ? Colors.black54 : Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Column(
+                            children: categories.take(4).map((e) => Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(e.key, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+                                  Text(e.value.toString(), style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
+                                ],
+                              ),
+                            )).toList(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
+
+              const SizedBox(height: 32),
+              const SectionTitle(title: "Atividade por Setor (Hoje)"),
+              const SizedBox(height: 16),
+              _buildRankingCard(
+                rankingSetoresHoje.take(5).toList(), 
+                rankingSetoresHoje.isNotEmpty ? rankingSetoresHoje.first.value : 0,
+                Colors.indigo,
+              ),
+              
+              if (filteredRondas.length != hojeRondas.length) ...[
+                const SizedBox(height: 32),
+                const SectionTitle(title: "Top Setores (Período Selecionado)"),
+                const SizedBox(height: 16),
+                _buildRankingCard(
+                  _dashboardController.getRankingPorSetor(filteredRondas).take(5).toList(),
+                  _dashboardController.getRankingPorSetor(filteredRondas).isNotEmpty 
+                    ? _dashboardController.getRankingPorSetor(filteredRondas).first.value 
+                    : 0,
+                  Colors.blue,
+                ),
+              ],
             ],
           ),
-          const SizedBox(height: 32),
-          const SectionTitle(title: "Atividade por Setor"),
-          const SizedBox(height: 16),
-          _buildRankingCard(
-            topSetores, 
-            rankingSetores.isNotEmpty ? rankingSetores.first.value : 0,
-            Colors.blue,
-          ),
-        ],
-      ),
+        );
+      }
     );
   }
 
   Widget _buildTecnicosTab(List<RoundModel> rondas, Color textColor) {
     final rankingTecnicos = _dashboardController.getRankingPorTecnico(rondas);
+    final ultimasAtividades = rondas.toList()..sort((a, b) => b.dataInicio.compareTo(a.dataInicio));
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildFiltroData(),
           const SizedBox(height: 24),
@@ -226,6 +340,26 @@ class _DashboardPageState extends State<DashboardPage> {
             rankingTecnicos, 
             rankingTecnicos.isNotEmpty ? rankingTecnicos.first.value : 0,
             Colors.green,
+          ),
+          const SizedBox(height: 32),
+          const SectionTitle(title: "Quem fez o quê (Recentes)", color: Colors.orange),
+          const SizedBox(height: 16),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: ultimasAtividades.take(10).length,
+            itemBuilder: (context, index) {
+              final r = ultimasAtividades[index];
+              return Card(
+                margin: const EdgeInsets.only(bottom: 8),
+                child: ListTile(
+                  dense: true,
+                  leading: const CircleAvatar(child: Icon(Icons.person_outline, size: 16)),
+                  title: Text("${r.tecnico} no setor ${r.setor}", style: const TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: Text("${DateFormat('dd/MM HH:mm').format(r.dataInicio)} | ${r.itensTotal} itens | ${r.defeitosTotal} defeitos"),
+                ),
+              );
+            },
           ),
         ],
       ),
