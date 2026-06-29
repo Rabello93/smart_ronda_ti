@@ -57,7 +57,7 @@ class _AdminPageState extends State<AdminPage> {
         final bool isMaster = userData.nivelAcesso == 'master';
 
         return DefaultTabController(
-          length: 5,
+          length: 6,
           child: Scaffold(
             appBar: AppBar(
               title: const Text("Administração Corporativa"),
@@ -69,6 +69,7 @@ class _AdminPageState extends State<AdminPage> {
                   Tab(icon: Icon(Icons.people), text: "Equipe"),
                   Tab(icon: Icon(Icons.castle), text: "O Castelo"),
                   Tab(icon: Icon(Icons.location_on), text: "Setores"),
+                  Tab(icon: Icon(Icons.stars), text: "Metas"),
                   Tab(icon: Icon(Icons.business), text: "Empresa"),
                   Tab(icon: Icon(Icons.swap_horiz), text: "Locadoras"),
                 ],
@@ -100,6 +101,7 @@ class _AdminPageState extends State<AdminPage> {
                 _EquipeTab(),
                 _CasteloTab(),
                 _SetoresTab(),
+                _MetasAdminTab(),
                 _EmpresaTab(),
                 _LocadorasTab(),
               ],
@@ -710,6 +712,90 @@ class _LocadorasTab extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _MetasAdminTab extends StatefulWidget {
+  const _MetasAdminTab();
+  @override
+  State<_MetasAdminTab> createState() => _MetasAdminTabState();
+}
+
+class _MetasAdminTabState extends State<_MetasAdminTab> {
+  final AdminController _controller = AdminController();
+  final TextEditingController rondasController = TextEditingController();
+  final TextEditingController itensController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.goalsStream.listen((doc) {
+      if (doc.exists && mounted) {
+        final data = doc.data() as Map<String, dynamic>;
+        setState(() {
+          rondasController.text = (data['rondas_mensal'] ?? 100).toString();
+          itensController.text = (data['itens_mensal'] ?? 500).toString();
+        });
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text("Definição de Metas Estratégicas", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const Text("Estes valores servem de base para os indicadores do Dashboard.", style: TextStyle(fontSize: 12, color: Colors.grey)),
+          const SizedBox(height: 24),
+          TextField(
+            controller: rondasController,
+            decoration: const InputDecoration(labelText: "Meta de Rondas por Mês", border: OutlineInputBorder(), prefixIcon: Icon(Icons.assignment_turned_in)),
+            keyboardType: TextInputType.number,
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: itensController,
+            decoration: const InputDecoration(labelText: "Meta de Itens Auditados por Mês", border: OutlineInputBorder(), prefixIcon: Icon(Icons.inventory_2)),
+            keyboardType: TextInputType.number,
+          ),
+          const SizedBox(height: 32),
+          SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: ElevatedButton.icon(
+              onPressed: () async {
+                await _controller.updateGoals({
+                  'rondas_mensal': int.tryParse(rondasController.text.trim()) ?? 100,
+                  'itens_mensal': int.tryParse(itensController.text.trim()) ?? 500,
+                  'atualizado_por': 'Admin',
+                  'timestamp': FieldValue.serverTimestamp(),
+                });
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Metas salvas com sucesso!"), backgroundColor: Colors.green));
+                }
+              },
+              icon: const Icon(Icons.save),
+              label: const Text("ATUALIZAR DIRETRIZES"),
+            ),
+          ),
+          const SizedBox(height: 40),
+          const Divider(),
+          const SizedBox(height: 20),
+          const Text("Relatórios de Metas", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 12),
+          ListTile(
+            leading: const Icon(Icons.assessment, color: Colors.purple),
+            title: const Text("Relatório de Performance Mensal"),
+            subtitle: const Text("Exporta o atingimento das metas em PDF."),
+            onTap: () => ReportRepository.exportarRelatorioMetas(context),
+            trailing: const Icon(Icons.chevron_right),
+          ),
+        ],
+      ),
     );
   }
 }

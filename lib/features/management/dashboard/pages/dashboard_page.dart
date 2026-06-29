@@ -140,8 +140,7 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget _buildFooter(Color textColor) {
-    const String fullVersion = String.fromEnvironment('APP_VERSION', defaultValue: '3.1.1+Local');
-    final String version = fullVersion.split('+')[0];
+    const String version = '3.1.1';
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Center(
@@ -449,12 +448,30 @@ class _DashboardPageState extends State<DashboardPage> {
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancelar")),
           ElevatedButton(
-            onPressed: () {
-              _adminController.updateGoals({
-                'rondas_mensal': int.tryParse(rondasController.text) ?? 100,
-                'itens_mensal': int.tryParse(itensController.text) ?? 500,
-              });
-              Navigator.pop(context);
+            onPressed: () async {
+              try {
+                final int r = int.tryParse(rondasController.text.trim()) ?? 100;
+                final int i = int.tryParse(itensController.text.trim()) ?? 500;
+                
+                await _adminController.updateGoals({
+                  'rondas_mensal': r,
+                  'itens_mensal': i,
+                  'ultima_atualizacao': FieldValue.serverTimestamp(),
+                });
+                
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("✅ Metas atualizadas com sucesso!"), backgroundColor: Colors.green),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("❌ Erro ao salvar: $e"), backgroundColor: Colors.red),
+                  );
+                }
+              }
             },
             child: const Text("Salvar"),
           ),

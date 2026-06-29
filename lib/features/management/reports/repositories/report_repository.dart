@@ -362,4 +362,51 @@ class ReportRepository {
       await Share.shareXFiles([XFile(file.path)]);
     } catch (e) { debugPrint("Erro: $e"); }
   }
+
+  static Future<void> exportarRelatorioMetas(BuildContext context) async {
+    final messenger = (context.mounted) ? ScaffoldMessenger.of(context) : null;
+    try {
+      final pdf = pw.Document();
+      final firestore = FirebaseFirestore.instance;
+
+      DocumentSnapshot goalsDoc = await firestore.collection('config').doc('metas').get();
+      Map<String, dynamic> goals = goalsDoc.exists ? (goalsDoc.data() as Map<String, dynamic>) : {'rondas_mensal': 100, 'itens_mensal': 500};
+
+      final now = DateTime.now();
+      QuerySnapshot roundsSnap = await firestore.collection('rondas')
+          .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(DateTime(now.year, now.month, 1)))
+          .get();
+
+      int rondasRealizadas = roundsSnap.docs.length;
+      int itensVistos = 0;
+      for (var doc in roundsSnap.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        itensVistos += (data['itens_total'] as int? ?? 0);
+      }
+
+      pdf.addPage(pw.Page(
+        build: (pw.Context context) => pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Header(level: 0, child: pw.Text("RELATÓRIO DE PERFORMANCE E METAS")),
+            pw.SizedBox(height: 20),
+            pw.Text("Período: ${now.month}/${now.year}"),
+            pw.SizedBox(height: 30),
+            pw.TableHelper.fromTextArray(
+              headers: const ['INDICADOR', 'META', 'REALIZADO', 'ATINGIMENTO'],
+              data: [
+                ['RONDAS', '${goals['rondas_mensal']}', '$rondasRealizadas', '${(rondasRealizadas / goals['rondas_mensal'] * 100).toStringAsFixed(1)}%'],
+                ['ITENS AUDITADOS', '${goals['itens_mensal']}', '$itensVistos', '${(itensVistos / goals['itens_mensal'] * 100).toStringAsFixed(1)}%'],
+              ],
+            ),
+          ],
+        ),
+      ));
+
+      final output = await getTemporaryDirectory();
+      final file = File("${output.path}/Relatorio_Metas_${now.month}_${now.year}.pdf");
+      await file.writeAsBytes(await pdf.save());
+      await Share.shareXFiles([XFile(file.path)], text: 'Relatório de Metas');
+    } catch (e) { messenger?.showSnackBar(SnackBar(content: Text("Erro: $e"), backgroundColor: Colors.red)); }
+  }
 }

@@ -19,6 +19,8 @@ O app foi desenvolvido para otimizar as rondas técnicas em ambiente corporativo
 
 ### [3.1.1 Stable] - 2024-06-25
 - **Inteligência de Metas**: Nova aba de Metas com indicadores de performance (KPIs) para Rondas e Auditoria.
+- **Painel Estratégico**: Configuração de metas dinâmicas diretamente pelo módulo Admin.
+- **Relatórios Avançados**: Exportação de Relatório de Performance Mensal em PDF.
 - **Gráficos de BI**: Integração com `fl_chart` para visualização de tendências dos últimos 7 dias e comparativo semestral.
 - **Saúde do Patrimônio**: Gráfico de rosca para cobertura de inventário e resumo de Capex por categoria de ativos.
 - **Alertas Estratégicos**: Banner de alertas críticos para novos defeitos e excesso de pendências técnicas.
