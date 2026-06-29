@@ -18,10 +18,12 @@ O app foi desenvolvido para otimizar as rondas técnicas em ambiente corporativo
 ## 🚀 Série Histórica (Evolução)
 
 ### [3.1.2 Stable] - 2024-06-25
-- **Modernização de UI/UX**: Substituição das abas superiores por uma **Sidebar Interativa** (NavigationRail) com expansão automática (Hover).
-- **Branding Premium**: Logo da empresa expandido para **100px** no Dashboard, com header reformulado e container de alto contraste.
-- **Correção de Legibilidade**: Ajuste global de contraste no modo claro, corrigindo títulos e textos que ficavam brancos sobre fundo claro.
-- **Otimização de Tela**: Liberação de espaço vertical para gráficos e KPIs através da navegação lateral.
+- **Geração de Valor**: Implementação de rodapé corporativo automático em todos os PDFs (Nome, CNPJ, Contato e Data/Hora).
+- **Padronização Visual**: Unificação de cabeçalhos com logo dinâmico em todos os relatórios, incluindo o Mapa de Ativos por Setor.
+- **Responsividade Mobile**: Ajuste dinâmico do cabeçalho do Dashboard para evitar transbordamento de texto em telas pequenas.
+- **Sidebar Inteligente**: Transição para barra lateral com controle manual (puxador), eliminando travamentos de interface.
+- **Branding Premium**: Logo da empresa de **100px** no Dashboard com container de alto contraste.
+- **Correção de Legibilidade**: Ajuste global de contraste no modo claro para títulos e cards.
 
 ### [3.1.1 Stable] - 2024-06-25
 - **Inteligência de Metas**: Aba de Metas com KPIs, gráficos de tendência e comparativos.

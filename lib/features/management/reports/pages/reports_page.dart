@@ -137,22 +137,27 @@ class _ReportsPageState extends State<ReportsPage> {
             
             const Divider(height: 40),
             const Text("Formato de Saída", style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 10),
             Row(
               children: [
                 Expanded(
-                  child: RadioListTile<String>(
+                  child: ListTile(
                     title: const Text("PDF"),
-                    value: 'PDF',
-                    groupValue: _formatoSelecionado,
-                    onChanged: (v) => setState(() => _formatoSelecionado = v),
+                    leading: Radio<String>(
+                      value: 'PDF',
+                      groupValue: _formatoSelecionado,
+                      onChanged: (v) => setState(() => _formatoSelecionado = v),
+                    ),
                   ),
                 ),
                 Expanded(
-                  child: RadioListTile<String>(
+                  child: ListTile(
                     title: const Text("XML"),
-                    value: 'XML',
-                    groupValue: _formatoSelecionado,
-                    onChanged: (v) => setState(() => _formatoSelecionado = v),
+                    leading: Radio<String>(
+                      value: 'XML',
+                      groupValue: _formatoSelecionado,
+                      onChanged: (v) => setState(() => _formatoSelecionado = v),
+                    ),
                   ),
                 ),
               ],

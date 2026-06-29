@@ -5,17 +5,16 @@
 
 ---
 
-## 1. 🎨 Modernização de UI/UX (Experiência do Usuário)
-*   **Nova Sidebar Inteligente**: Transição da navegação superior por abas para uma barra lateral dinâmica.
-    *   **Controle Manual**: Substituição da expansão por hover por um botão de alternância ("puxador") no AppBar, garantindo maior estabilidade e controle.
-    *   **Responsividade Total**: O Dashboard agora se adapta automaticamente para dispositivos móveis, utilizando um menu lateral (`Drawer`) e redimensionamento dinâmico de componentes.
-    *   **Ganho de Espaço**: Otimização da área útil da tela, permitindo que os gráficos do Dashboard ocupem quase 100% da largura.
-*   **Correção de Contraste (Modo Claro)**: Solução definitiva para o problema de textos brancos sobre fundo claro. Títulos e componentes agora utilizam uma paleta de cores adaptativa (`Indigo 900` no modo claro).
+## 1. 🎨 Modernização de UI/UX & Responsividade
+*   **Ajuste Mobile Premium**: Cabeçalho do Dashboard agora é totalmente flexível, impedindo cortes de texto no celular e adaptando o logo dinamicamente.
+*   **Nova Sidebar Inteligente**: Transição da navegação superior por abas para uma barra lateral dinâmica com controle manual por botão (puxador), eliminando travamentos de hover.
+*   **Correção de Contraste (Modo Claro)**: Solução definitiva para o problema de textos brancos sobre fundo claro em todos os cards e títulos.
 
-## 2. 🏢 Fortalecimento do Branding (Identidade Visual)
-*   **Logo Premium**: Expansão do logo da empresa para **100px** de altura.
-*   **Header Estratégico**: Inclusão do nome da empresa e subtítulo operacional no AppBar, conferindo um aspecto mais robusto e corporativo ao Dashboard.
-*   **Fundo de Contraste**: Container arredondado para o logo, garantindo que a marca se destaque independentemente da cor de fundo.
+## 2. 🏢 Governança e Branding (Identidade Visual)
+*   **Padronização Corporativa de Relatórios**: 
+    *   Todos os PDFs (Mapas, Rondas, Metas, Logs e Locação) agora possuem cabeçalho unificado com o logo e nome da empresa.
+    *   Implementação de rodapé oficial com **Nome, CNPJ, Contato** e **Data de Geração** automática.
+*   **Logo Premium**: Expansão do logo para **100px** de altura no Dashboard.
 
 ## 3. 🛠️ Correções Técnicas e Estabilidade
 *   **Correção de Erro de Nulidade (PDF)**: Resolvido o crash no `report_repository.dart` que ocorria durante a geração de relatórios comparativos.

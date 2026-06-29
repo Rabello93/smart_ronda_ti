@@ -26,6 +26,62 @@ class ReportRepository {
     return null;
   }
 
+  static pw.Widget _buildHeader(Map<String, dynamic> config, String title, pw.MemoryImage? logoImage) {
+    return pw.Container(
+      alignment: pw.Alignment.centerRight,
+      margin: const pw.EdgeInsets.only(bottom: 5.0 * PdfPageFormat.mm),
+      padding: const pw.EdgeInsets.only(bottom: 2.0 * PdfPageFormat.mm),
+      decoration: const pw.BoxDecoration(border: pw.Border(bottom: pw.BorderSide(width: 0.5, color: PdfColors.grey))),
+      child: pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        children: [
+          pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Text(config['nome'] ?? "RONDA TI", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14)),
+              pw.Text(title.toUpperCase(), style: const pw.TextStyle(fontSize: 10, color: PdfColors.blue900)),
+            ]
+          ),
+          if (logoImage != null) pw.Image(logoImage, height: 40),
+        ]
+      )
+    );
+  }
+
+  static pw.Widget _buildFooter(Map<String, dynamic> config) {
+    final now = DateTime.now();
+    final dateStr = "${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}";
+    
+    return pw.Container(
+      alignment: pw.Alignment.centerRight,
+      margin: const pw.EdgeInsets.only(top: 5.0 * PdfPageFormat.mm),
+      padding: const pw.EdgeInsets.only(top: 2.0 * PdfPageFormat.mm),
+      decoration: const pw.BoxDecoration(border: pw.Border(top: pw.BorderSide(width: 0.5, color: PdfColors.grey))),
+      child: pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        children: [
+          pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Text(config['nome'] ?? "SMART RONDA TI", style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold)),
+              if (config['cnpj'] != null && config['cnpj'].isNotEmpty)
+                pw.Text("CNPJ: ${config['cnpj']}", style: const pw.TextStyle(fontSize: 7)),
+              if (config['contato'] != null && config['contato'].isNotEmpty)
+                pw.Text("Contato: ${config['contato']}", style: const pw.TextStyle(fontSize: 7)),
+            ]
+          ),
+          pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.end,
+            children: [
+              pw.Text("Gerado em: $dateStr", style: const pw.TextStyle(fontSize: 7, color: PdfColors.grey700)),
+              pw.Text("Smart Ronda TI - Governança de Ativos", style: const pw.TextStyle(fontSize: 6, color: PdfColors.grey500)),
+            ]
+          ),
+        ]
+      )
+    );
+  }
+
   // --- PDF EXPORTS ---
 
   static Future<void> exportarLocacaoParaPDF(BuildContext context, List<Map<String, dynamic>> itens, String titulo) async {
@@ -42,24 +98,8 @@ class ReportRepository {
       pdf.addPage(
         pw.MultiPage(
           pageFormat: PdfPageFormat.a4,
-          header: (pw.Context context) => pw.Container(
-            alignment: pw.Alignment.centerRight,
-            margin: const pw.EdgeInsets.only(bottom: 5.0 * PdfPageFormat.mm),
-            decoration: const pw.BoxDecoration(border: pw.Border(bottom: pw.BorderSide(width: 0.5, color: PdfColors.grey))),
-            child: pw.Row(
-              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-              children: [
-                pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    pw.Text(config['nome'] ?? "RONDA TI", style: const pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14)),
-                    pw.Text(titulo.toUpperCase(), style: const pw.TextStyle(fontSize: 10, color: PdfColors.blue900)),
-                  ]
-                ),
-                if (logoImage != null) pw.Image(logoImage, height: 35),
-              ]
-            )
-          ),
+          header: (pw.Context context) => _buildHeader(config, titulo, logoImage),
+          footer: (pw.Context context) => _buildFooter(config),
           build: (pw.Context context) => [
             pw.SizedBox(height: 10),
             pw.TableHelper.fromTextArray(
@@ -181,24 +221,8 @@ class ReportRepository {
       pdf.addPage(
         pw.MultiPage(
           pageFormat: PdfPageFormat.a4.landscape,
-          header: (pw.Context context) => pw.Container(
-            alignment: pw.Alignment.centerRight,
-            margin: const pw.EdgeInsets.only(bottom: 3.0 * PdfPageFormat.mm),
-            decoration: const pw.BoxDecoration(border: pw.Border(bottom: pw.BorderSide(width: 0.5, color: PdfColors.grey))),
-            child: pw.Row(
-              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-              children: [
-                pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    pw.Text(config['nome'] ?? "RONDA TI", style: const pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14)),
-                    pw.Text("RELATÓRIO TÉCNICO", style: const pw.TextStyle(fontSize: 10, color: PdfColors.blue900)),
-                  ]
-                ),
-                if (logoImage != null) pw.Image(logoImage, height: 35),
-              ]
-            )
-          ),
+          header: (pw.Context context) => _buildHeader(config, "RELATÓRIO TÉCNICO", logoImage),
+          footer: (pw.Context context) => _buildFooter(config),
           build: (pw.Context context) => [
             pw.SizedBox(height: 10),
             pw.Center(child: pw.Text(apenasObsoletos == true ? "RELATÓRIO DE OBSOLESCÊNCIA (+5 ANOS)" : "AUDITORIA DE RONDAS", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 16))),
@@ -227,13 +251,26 @@ class ReportRepository {
     final messenger = (context.mounted) ? ScaffoldMessenger.of(context) : null;
     try {
       final pdf = pw.Document();
-      pdf.addPage(pw.MultiPage(pageFormat: PdfPageFormat.a4, build: (pw.Context context) => [
-        pw.Header(level: 0, child: pw.Text("MAPA DE ATIVOS - SETOR ${setor.toUpperCase()}")),
-        pw.TableHelper.fromTextArray(
-          headers: const ['TIPO', 'PATRIMÔNIO', 'STATUS OP.', 'LOCADO'],
-          data: itens.map((i) => [i['tipo'] ?? '', i['patrimonio'] ?? 'S/P', i['status_operacional'] ?? 'Em uso', (i['is_locado'] ?? false) ? 'Sim' : 'Não']).toList(),
-        ),
-      ]));
+      final firestore = FirebaseFirestore.instance;
+      DocumentSnapshot configDoc = await firestore.collection('config').doc('empresa').get();
+      Map<String, dynamic> config = configDoc.exists ? (configDoc.data() as Map<String, dynamic>) : {};
+      pw.MemoryImage? logoImage = await _fetchLogo(config);
+
+      pdf.addPage(pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        header: (pw.Context context) => _buildHeader(config, "MAPA DE ATIVOS", logoImage),
+        footer: (pw.Context context) => _buildFooter(config),
+        build: (pw.Context context) => [
+          pw.Header(level: 0, child: pw.Text("SETOR ${setor.toUpperCase()}")),
+          pw.SizedBox(height: 10),
+          pw.TableHelper.fromTextArray(
+            headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 10),
+            headerDecoration: const pw.BoxDecoration(color: PdfColors.indigo900),
+            headers: const ['TIPO', 'PATRIMÔNIO', 'STATUS OP.', 'LOCADO'],
+            data: itens.map((i) => [i['tipo'] ?? '', i['patrimonio'] ?? 'S/P', i['status_operacional'] ?? 'Em uso', (i['is_locado'] ?? false) ? 'Sim' : 'Não']).toList(),
+          ),
+        ]
+      ));
       final output = await getTemporaryDirectory();
       final file = File("${output.path}/Mapa_$setor.pdf");
       await file.writeAsBytes(await pdf.save());
@@ -275,7 +312,7 @@ class ReportRepository {
           xml.writeln('        <Tipo>${equip['tipo']}</Tipo>');
           xml.writeln('        <Patrimonio>${equip['patrimonio'] ?? 'S/P'}</Patrimonio>');
           xml.writeln('        <Status>${equip['status']}</Status>');
-          xml.writeln('        <Série>${equip['serie'] ?? ''}</Série>');
+          xml.writeln('        <Serie>${equip['serie'] ?? ''}</Serie>');
           xml.writeln('      </Equipamento>');
         }
 
@@ -324,19 +361,30 @@ class ReportRepository {
     try {
       final pdf = pw.Document();
       final firestore = FirebaseFirestore.instance;
+      
+      DocumentSnapshot configDoc = await firestore.collection('config').doc('empresa').get();
+      Map<String, dynamic> config = configDoc.exists ? (configDoc.data() as Map<String, dynamic>) : {};
+      pw.MemoryImage? logoImage = await _fetchLogo(config);
+
       QuerySnapshot logSnapshot = await firestore.collection('logs').orderBy('timestamp', descending: true).get();
-      pdf.addPage(pw.MultiPage(pageFormat: PdfPageFormat.a4, build: (pw.Context context) => [
-        pw.Header(level: 0, child: pw.Text("Auditoria - Logs do Sistema")),
-        pw.SizedBox(height: 20),
-        pw.TableHelper.fromTextArray(
-          headers: const ['Data/Hora', 'Tecnico', 'Acao', 'Detalhes'],
-          data: logSnapshot.docs.map((doc) {
-            final log = doc.data() as Map<String, dynamic>;
-            final date = (log['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now();
-            return ["${date.day}/${date.month}/${date.year}", log['tecnico_nome'] ?? '---', log['acao'] ?? '---', log['detalhes'] ?? '---'];
-          }).toList(),
-        ),
-      ]));
+      pdf.addPage(pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        header: (pw.Context context) => _buildHeader(config, "LOGS DO SISTEMA", logoImage),
+        footer: (pw.Context context) => _buildFooter(config),
+        build: (pw.Context context) => [
+          pw.SizedBox(height: 20),
+          pw.TableHelper.fromTextArray(
+            headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 10),
+            headerDecoration: const pw.BoxDecoration(color: PdfColors.indigo900),
+            headers: const ['Data/Hora', 'Tecnico', 'Acao', 'Detalhes'],
+            data: logSnapshot.docs.map((doc) {
+              final log = doc.data() as Map<String, dynamic>;
+              final date = (log['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now();
+              return ["${date.day}/${date.month}/${date.year}", log['tecnico_nome'] ?? '---', log['acao'] ?? '---', log['detalhes'] ?? '---'];
+            }).toList(),
+          ),
+        ]
+      ));
       final output = await getTemporaryDirectory();
       final file = File("${output.path}/Logs_${DateTime.now().millisecondsSinceEpoch}.pdf");
       await file.writeAsBytes(await pdf.save());
@@ -347,7 +395,34 @@ class ReportRepository {
   static Future<void> exportarPropostaComercial(BuildContext context) async {
     try {
       final pdf = pw.Document();
-      pdf.addPage(pw.Page(build: (pw.Context context) => pw.Center(child: pw.Text("APRESENTAÇÃO COMERCIAL RONDA TI"))));
+      final firestore = FirebaseFirestore.instance;
+      DocumentSnapshot configDoc = await firestore.collection('config').doc('empresa').get();
+      Map<String, dynamic> config = configDoc.exists ? (configDoc.data() as Map<String, dynamic>) : {};
+      pw.MemoryImage? logoImage = await _fetchLogo(config);
+
+      pdf.addPage(pw.Page(
+        build: (pw.Context context) => pw.Stack(
+          children: [
+            pw.Center(
+              child: pw.Column(
+                mainAxisSize: pw.MainAxisSize.min,
+                children: [
+                  if (logoImage != null) pw.Image(logoImage, height: 120),
+                  pw.SizedBox(height: 30),
+                  pw.Text(config['nome']?.toUpperCase() ?? "RONDA TI", style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+                  pw.Text("APRESENTAÇÃO COMERCIAL SMART RONDA TI", style: const pw.TextStyle(fontSize: 16, color: PdfColors.blueGrey700)),
+                ]
+              )
+            ),
+            pw.Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: _buildFooter(config),
+            ),
+          ]
+        )
+      ));
       final output = await getTemporaryDirectory();
       final file = File("${output.path}/Proposta_RondaTI.pdf");
       await file.writeAsBytes(await pdf.save());
@@ -395,24 +470,8 @@ class ReportRepository {
 
       pdf.addPage(pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
-        header: (pw.Context context) => pw.Container(
-          alignment: pw.Alignment.centerRight,
-          margin: const pw.EdgeInsets.only(bottom: 5.0 * PdfPageFormat.mm),
-          decoration: const pw.BoxDecoration(border: pw.Border(bottom: pw.BorderSide(width: 0.5, color: PdfColors.grey))),
-          child: pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-            children: [
-              pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  pw.Text(config['nome'] ?? "RONDA TI", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14)),
-                  pw.Text("RELATÓRIO DE PERFORMANCE E METAS", style: const pw.TextStyle(fontSize: 10, color: PdfColors.blue900)),
-                ]
-              ),
-              if (logoImage != null) pw.Image(logoImage, height: 35),
-            ]
-          )
-        ),
+        header: (pw.Context context) => _buildHeader(config, "RELATÓRIO DE PERFORMANCE E METAS", logoImage),
+        footer: (pw.Context context) => _buildFooter(config),
         build: (pw.Context context) => [
           pw.SizedBox(height: 10),
           pw.Text("Período Principal: ${start.day}/${start.month}/${start.year} - ${end.day}/${end.month}/${end.year}", style: const pw.TextStyle(fontSize: 12)),

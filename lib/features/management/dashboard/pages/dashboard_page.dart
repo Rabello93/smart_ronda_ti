@@ -189,7 +189,7 @@ class _DashboardPageState extends State<DashboardPage> {
         }
 
         final displayUrl = UrlHelper.convertDriveUrl(logoUrl);
-        final double logoSize = isMobile ? 60 : 100;
+        final double logoHeight = isMobile ? 40 : 100;
 
         return Row(
           mainAxisSize: MainAxisSize.min,
@@ -198,60 +198,52 @@ class _DashboardPageState extends State<DashboardPage> {
               Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(isMobile ? 6 : 12),
                 ),
-                padding: const EdgeInsets.all(6),
+                padding: EdgeInsets.all(isMobile ? 3 : 6),
                 child: Image.network(
                   displayUrl, 
-                  height: logoSize, 
+                  height: logoHeight, 
                   fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => Image.asset("assets/logo.png", height: logoSize),
+                  errorBuilder: (_, __, ___) => Image.asset("assets/logo.png", height: logoHeight),
                 ),
               )
             else
               Image.asset(
                 "assets/logo.png", 
-                height: logoSize, 
-                errorBuilder: (_, __, ___) => Icon(Icons.business, size: logoSize * 0.8),
+                height: logoHeight, 
+                errorBuilder: (_, __, ___) => Icon(Icons.business, size: logoHeight * 0.8),
               ),
-            const SizedBox(width: 15),
-            if (!isMobile)
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      companyName.toUpperCase(),
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.5,
-                        color: Colors.white,
-                      ),
-                      overflow: TextOverflow.ellipsis,
+            const SizedBox(width: 10),
+            Flexible(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    companyName.toUpperCase(),
+                    style: TextStyle(
+                      fontSize: isMobile ? 11 : 22,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: isMobile ? 0.5 : 1.5,
+                      color: Colors.white,
                     ),
-                    const Text(
-                      "SISTEMA DE GESTÃO E RONDAS",
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.white70,
-                        letterSpacing: 2.0,
-                      ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                  Text(
+                    isMobile ? "RONDA OPERACIONAL" : "SISTEMA DE GESTÃO E RONDAS",
+                    style: TextStyle(
+                      fontSize: isMobile ? 7 : 11,
+                      color: Colors.white70,
+                      letterSpacing: isMobile ? 0.5 : 2.0,
                     ),
-                  ],
-                ),
-              )
-            else
-              Text(
-                companyName.toUpperCase(),
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-                overflow: TextOverflow.ellipsis,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                ],
               ),
+            ),
           ],
         );
       }
