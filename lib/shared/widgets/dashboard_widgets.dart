@@ -18,7 +18,7 @@ class SummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardColor = isDark ? Colors.black87 : Colors.white;
+    final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     final textColor = isDark ? Colors.white : Colors.black87;
 
     return Container(
@@ -27,10 +27,10 @@ class SummaryCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withValues(alpha: 0.3), width: 1.5),
+        border: Border.all(color: color.withValues(alpha: isDark ? 0.5 : 0.3), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: isDark ? Colors.black26 : color.withValues(alpha: 0.1),
+            color: isDark ? Colors.black45 : color.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           )
@@ -99,7 +99,7 @@ class SectionTitle extends StatelessWidget {
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white : Colors.black87,
+            color: isDark ? Colors.white : Colors.indigo.shade900,
           ),
         ),
       ],
@@ -353,7 +353,7 @@ class GoalProgressCard extends StatelessWidget {
       width: 160,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? Colors.black87 : Colors.white,
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: color.withValues(alpha: 0.2)),
       ),

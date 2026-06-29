@@ -32,13 +32,14 @@ class _DashboardPageState extends State<DashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isDark = widget.themeMode == ThemeMode.dark;
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final bgColor = isDark ? Colors.grey.shade900 : Colors.grey.shade100;
     final textColor = isDark ? Colors.white : Colors.black87;
 
     return Scaffold(
       backgroundColor: bgColor,
       appBar: AppBar(
+        toolbarHeight: 75,
         title: _buildCompanyLogo(),
         backgroundColor: isDark ? Colors.black : Colors.indigo.shade900,
         foregroundColor: Colors.white,
@@ -95,37 +96,81 @@ class _DashboardPageState extends State<DashboardPage> {
       stream: _adminController.brandingStream,
       builder: (context, snapshot) {
         String logoUrl = "";
+        String companyName = "RONDA TI";
         if (snapshot.hasData && snapshot.data!.exists) {
           final data = snapshot.data!.data() as Map<String, dynamic>;
           logoUrl = data['logo_url'] ?? "";
+          companyName = data['nome'] ?? "RONDA TI";
         }
 
         final displayUrl = UrlHelper.convertDriveUrl(logoUrl);
 
-        if (displayUrl != null && displayUrl.isNotEmpty) {
-          return Image.network(
-            displayUrl, 
-            height: 40, 
-            errorBuilder: (_, __, ___) => Image.asset("assets/logo.png", height: 40),
-          );
-        } else {
-          return Image.asset(
-            "assets/logo.png", 
-            height: 40, 
-            errorBuilder: (_, __, ___) => const Icon(Icons.business, size: 30),
-          );
-        }
+        return Row(
+          children: [
+            if (displayUrl != null && displayUrl.isNotEmpty)
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.all(4),
+                child: Image.network(
+                  displayUrl, 
+                  height: 55, 
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => Image.asset("assets/logo.png", height: 55),
+                ),
+              )
+            else
+              Image.asset(
+                "assets/logo.png", 
+                height: 55, 
+                errorBuilder: (_, __, ___) => const Icon(Icons.business, size: 45),
+              ),
+            const SizedBox(width: 15),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    companyName.toUpperCase(),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2,
+                      color: Colors.white,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const Text(
+                    "DASHBOARD OPERACIONAL",
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.white70,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
       }
     );
   }
 
   Widget _buildTabBar(bool isDark) {
     return Container(
-      color: isDark ? Colors.black87 : Colors.white,
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        border: Border(bottom: BorderSide(color: isDark ? Colors.white10 : Colors.grey.shade300)),
+      ),
       child: TabBar(
         labelColor: Colors.blue,
         unselectedLabelColor: isDark ? Colors.grey : Colors.grey.shade600,
         indicatorColor: Colors.blue,
+        indicatorWeight: 3,
         isScrollable: true,
         tabs: const [
           Tab(icon: Icon(Icons.dashboard), text: "Geral"),
@@ -231,7 +276,7 @@ class _DashboardPageState extends State<DashboardPage> {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: isDark ? Colors.black54 : Colors.white,
+                  color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)],
                 ),
@@ -252,7 +297,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: isDark ? Colors.black54 : Colors.white,
+                            color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: CoverageChart(
@@ -274,7 +319,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: isDark ? Colors.black54 : Colors.white,
+                            color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Column(
@@ -379,7 +424,7 @@ class _DashboardPageState extends State<DashboardPage> {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: isDark ? Colors.black54 : Colors.white,
+                  color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Column(
@@ -394,7 +439,7 @@ class _DashboardPageState extends State<DashboardPage> {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: isDark ? Colors.black54 : Colors.white,
+                  color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Column(
@@ -529,7 +574,7 @@ class _DashboardPageState extends State<DashboardPage> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDark ? Colors.black54 : Colors.white, 
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10),
