@@ -328,6 +328,130 @@ class CriticalAlertBanner extends StatelessWidget {
   }
 }
 
+class GoalProgressCard extends StatelessWidget {
+  final String title;
+  final double current;
+  final double goal;
+  final Color color;
+  final String unit;
+
+  const GoalProgressCard({
+    super.key,
+    required this.title,
+    required this.current,
+    required this.goal,
+    required this.color,
+    this.unit = "",
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final double percent = goal > 0 ? (current / goal).clamp(0.0, 1.2) : 0.0;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      width: 160,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.black87 : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        children: [
+          Text(title, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 80,
+            width: 80,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                CircularProgressIndicator(
+                  value: percent,
+                  strokeWidth: 8,
+                  backgroundColor: color.withValues(alpha: 0.1),
+                  color: color,
+                ),
+                Text(
+                  "${(percent * 100).toInt()}%",
+                  style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            "${current.toInt()} / ${goal.toInt()} $unit",
+            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class ComparisonChart extends StatelessWidget {
+  final Map<String, Map<String, int>> data;
+  final String metric;
+  final Color color;
+
+  const ComparisonChart({
+    super.key,
+    required this.data,
+    required this.metric,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final keys = data.keys.toList();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return SizedBox(
+      height: 250,
+      child: BarChart(
+        BarChartData(
+          gridData: const FlGridData(show: false),
+          titlesData: FlTitlesData(
+            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                getTitlesWidget: (value, meta) {
+                  int idx = value.toInt();
+                  if (idx >= 0 && idx < keys.length) {
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(keys[idx], style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold)),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
+            ),
+          ),
+          borderData: FlBorderData(show: false),
+          barGroups: keys.asMap().entries.map((e) {
+            return BarChartGroupData(
+              x: e.key,
+              barRods: [
+                BarChartRodData(
+                  toY: data[e.value]![metric]!.toDouble(),
+                  color: color,
+                  width: 16,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                ),
+              ],
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+}
+
 class StatusIndicatorCard extends StatelessWidget {
   final String title;
   final String count;

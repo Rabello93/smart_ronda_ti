@@ -23,7 +23,7 @@ class AboutPage extends StatelessWidget {
                   Icon(Icons.checklist_rtl, size: 80, color: Colors.blue),
                   SizedBox(height: 10),
                   Text("Smart Ronda TI", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                  Text("Versão 3.1.0", style: TextStyle(color: Colors.grey)),
+                  Text("Versão 3.1.1", style: TextStyle(color: Colors.grey)),
                 ],
               ),
             ),
@@ -36,8 +36,12 @@ class AboutPage extends StatelessWidget {
             const SizedBox(height: 20),
             _sectionTitle("🚀 Log de Atualizações"),
             _buildUpdate(
-              "3.1.0 (Atual)",
-              "• ARQUITETURA: Reestruturação completa para escalabilidade futurista (Capex, Intelligence, Audit).\n• STATUS: Aba Status do Dashboard com análise dinâmica de equipamentos em manutenção.\n• MANUTENÇÃO: Correção no campo de relato de problemas/defeitos.\n• ROADMAP: Preparação do sistema para inteligência preditiva e gestão financeira.",
+              "3.1.1 (Atual)",
+              "• DASHBOARD: Implementação de Gráficos de Tendência (fl_chart) e Alertas Críticos.\n• METAS: Nova aba de Metas com indicadores de performance (KPIs) e comparativos mensais.\n• BI: Gráfico de Cobertura de Inventário e análise de Capex por categoria.\n• UI: Melhorias de contraste e legibilidade no modo claro.",
+            ),
+            _buildUpdate(
+              "3.1.0",
+              "• ARQUITETURA: Reestruturação completa para escalabilidade futurista (Capex, Intelligence, Audit).\n• STATUS: Aba Status do Dashboard com análise dinâmica de equipamentos em manutenção.",
             ),
             _buildUpdate(
               "3.0.2",

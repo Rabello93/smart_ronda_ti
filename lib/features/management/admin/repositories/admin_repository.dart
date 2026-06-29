@@ -91,4 +91,13 @@ class AdminRepository {
   Stream<DocumentSnapshot> getCompanyConfigStream() {
     return _firestore.collection('config').doc('empresa').snapshots();
   }
+
+  // --- GOALS CONFIG ---
+  Future<void> saveGoalsConfig(Map<String, dynamic> goals) async {
+    await _firestore.collection('config').doc('metas').set(goals, SetOptions(merge: true));
+  }
+
+  Stream<DocumentSnapshot> getGoalsConfigStream() {
+    return _firestore.collection('config').doc('metas').snapshots();
+  }
 }

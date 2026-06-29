@@ -17,6 +17,12 @@ O app foi desenvolvido para otimizar as rondas técnicas em ambiente corporativo
 
 ## 🚀 Série Histórica (Evolução)
 
+### [3.1.1 Stable] - 2024-06-25
+- **Inteligência de Metas**: Nova aba de Metas com indicadores de performance (KPIs) para Rondas e Auditoria.
+- **Gráficos de BI**: Integração com `fl_chart` para visualização de tendências dos últimos 7 dias e comparativo semestral.
+- **Saúde do Patrimônio**: Gráfico de rosca para cobertura de inventário e resumo de Capex por categoria de ativos.
+- **Alertas Estratégicos**: Banner de alertas críticos para novos defeitos e excesso de pendências técnicas.
+
 ### [3.1.0 Stable] - 2024-06-25
 - **Estrutura Futurista**: Reestruturação completa do sistema de pastas para suportar módulos de Capex, Inteligência Preditiva e Auditoria Avançada.
 - **Análise Dinâmica**: Aba Status do Dashboard agora detalha o mix de equipamentos em manutenção e indicadores de saúde.

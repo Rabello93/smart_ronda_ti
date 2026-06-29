@@ -23,4 +23,7 @@ class AdminController {
 
   Future<void> updateCompanyBranding(Map<String, dynamic> config) => _repository.saveCompanyConfig(config);
   Stream<DocumentSnapshot> get brandingStream => _repository.getCompanyConfigStream();
+
+  Future<void> updateGoals(Map<String, dynamic> goals) => _repository.saveGoalsConfig(goals);
+  Stream<DocumentSnapshot> get goalsStream => _repository.getGoalsConfigStream();
 }

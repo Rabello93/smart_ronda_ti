@@ -65,7 +65,7 @@ class _DashboardPageState extends State<DashboardPage> {
           final rondas = _dashboardController.filterRoundsByDateRange(allRondas, dataFiltro);
 
           return DefaultTabController(
-            length: 5,
+            length: 6,
             child: Column(
               children: [
                 _buildTabBar(isDark),
@@ -73,6 +73,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   child: TabBarView(
                     children: [
                       _buildGeralTab(rondas, allRondas, textColor),
+                      _buildMetasTab(allRondas, textColor),
                       _buildTecnicosTab(rondas, textColor),
                       _buildDefeitosTab(textColor),
                       _buildLocacaoTab(textColor),
@@ -128,6 +129,7 @@ class _DashboardPageState extends State<DashboardPage> {
         isScrollable: true,
         tabs: const [
           Tab(icon: Icon(Icons.dashboard), text: "Geral"),
+          Tab(icon: Icon(Icons.stars), text: "Metas"),
           Tab(icon: Icon(Icons.person), text: "Técnicos"),
           Tab(icon: Icon(Icons.warning_amber), text: "Defeitos"),
           Tab(icon: Icon(Icons.business), text: "Locação"),
@@ -138,7 +140,7 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget _buildFooter(Color textColor) {
-    const String fullVersion = String.fromEnvironment('APP_VERSION', defaultValue: '3.1.0+Local');
+    const String fullVersion = String.fromEnvironment('APP_VERSION', defaultValue: '3.1.1+Local');
     final String version = fullVersion.split('+')[0];
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -320,6 +322,144 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
         );
       }
+    );
+  }
+
+  Widget _buildMetasTab(List<RoundModel> allRondas, Color textColor) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final monthlyData = _dashboardController.getMonthlyComparison(allRondas);
+    
+    final now = DateTime.now();
+    final thisMonthRondas = allRondas.where((r) => r.dataInicio.month == now.month && r.dataInicio.year == now.year).toList();
+    final totalItensMes = _dashboardController.getTotalItens(thisMonthRondas);
+
+    return StreamBuilder<DocumentSnapshot>(
+      stream: _adminController.goalsStream,
+      builder: (context, snapshot) {
+        Map<String, dynamic> goals = {
+          'rondas_mensal': 100,
+          'itens_mensal': 500,
+          'defeitos_max': 10,
+        };
+
+        if (snapshot.hasData && snapshot.data!.exists) {
+          goals = snapshot.data!.data() as Map<String, dynamic>;
+        }
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SectionTitle(title: "Progresso das Metas (Mês Atual)", color: Colors.amber),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 16,
+                runSpacing: 16,
+                alignment: WrapAlignment.center,
+                children: [
+                  GoalProgressCard(
+                    title: "RONDAS REALIZADAS", 
+                    current: thisMonthRondas.length.toDouble(), 
+                    goal: (goals['rondas_mensal'] ?? 100).toDouble(), 
+                    color: Colors.blue,
+                    unit: "rondas",
+                  ),
+                  GoalProgressCard(
+                    title: "ITENS AUDITADOS", 
+                    current: totalItensMes.toDouble(), 
+                    goal: (goals['itens_mensal'] ?? 500).toDouble(), 
+                    color: Colors.orange,
+                    unit: "itens",
+                  ),
+                ],
+              ),
+              const SizedBox(height: 32),
+              const SectionTitle(title: "Comparativo Mensal (Últimos 6 Meses)", color: Colors.purple),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.black54 : Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  children: [
+                    const Text("Volume de Rondas", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 20),
+                    ComparisonChart(data: monthlyData, metric: 'rondas', color: Colors.purple),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.black54 : Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  children: [
+                    const Text("Itens Auditados", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 20),
+                    ComparisonChart(data: monthlyData, metric: 'itens', color: Colors.orange),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 32),
+              const Divider(),
+              Center(
+                child: TextButton.icon(
+                  onPressed: () => _showEditGoalsDialog(goals),
+                  icon: const Icon(Icons.edit_note),
+                  label: const Text("Ajustar Metas Estratégicas"),
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+    );
+  }
+
+  void _showEditGoalsDialog(Map<String, dynamic> currentGoals) {
+    // Implementação rápida para o Admin editar metas
+    final rondasController = TextEditingController(text: currentGoals['rondas_mensal']?.toString());
+    final itensController = TextEditingController(text: currentGoals['itens_mensal']?.toString());
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Configurar Metas"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: rondasController,
+              decoration: const InputDecoration(labelText: "Meta de Rondas/Mês"),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              controller: itensController,
+              decoration: const InputDecoration(labelText: "Meta de Itens Auditados/Mês"),
+              keyboardType: TextInputType.number,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancelar")),
+          ElevatedButton(
+            onPressed: () {
+              _adminController.updateGoals({
+                'rondas_mensal': int.tryParse(rondasController.text) ?? 100,
+                'itens_mensal': int.tryParse(itensController.text) ?? 500,
+              });
+              Navigator.pop(context);
+            },
+            child: const Text("Salvar"),
+          ),
+        ],
+      ),
     );
   }
 

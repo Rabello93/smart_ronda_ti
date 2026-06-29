@@ -91,6 +91,28 @@ class DashboardController {
     return categories.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
   }
 
+  /// Gera dados para comparativo mensal (últimos 6 meses)
+  Map<String, Map<String, int>> getMonthlyComparison(List<RoundModel> allRounds) {
+    Map<String, Map<String, int>> data = {};
+    final now = DateTime.now();
+    
+    for (int i = 5; i >= 0; i--) {
+      final date = DateTime(now.year, now.month - i, 1);
+      final key = DateFormat('MMM/yy').format(date);
+      data[key] = {'rondas': 0, 'itens': 0, 'defeitos': 0};
+    }
+
+    for (var r in allRounds) {
+      final key = DateFormat('MMM/yy').format(r.dataInicio);
+      if (data.containsKey(key)) {
+        data[key]!['rondas'] = data[key]!['rondas']! + 1;
+        data[key]!['itens'] = data[key]!['itens']! + r.itensTotal;
+        data[key]!['defeitos'] = data[key]!['defeitos']! + r.defeitosTotal;
+      }
+    }
+    return data;
+  }
+
   /// Identifica alertas críticos (Ex: Muitos defeitos hoje)
   List<String> getCriticalAlerts(List<RoundModel> allRounds, [List<AssetModel>? allAssets]) {
     List<String> alerts = [];
