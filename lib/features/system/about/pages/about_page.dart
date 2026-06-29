@@ -23,7 +23,7 @@ class AboutPage extends StatelessWidget {
                   Icon(Icons.checklist_rtl, size: 80, color: Colors.blue),
                   SizedBox(height: 10),
                   Text("Smart Ronda TI", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                  Text("Versão 3.1.1", style: TextStyle(color: Colors.grey)),
+                  Text("Versão 3.1.2", style: TextStyle(color: Colors.grey)),
                 ],
               ),
             ),
@@ -36,8 +36,12 @@ class AboutPage extends StatelessWidget {
             const SizedBox(height: 20),
             _sectionTitle("🚀 Log de Atualizações"),
             _buildUpdate(
-              "3.1.1 (Atual)",
-              "• DASHBOARD: Gráficos de Tendência, Alertas Críticos e Cobertura de Inventário.\n• METAS: Nova aba com KPIs em tempo real e comparativos mensais.\n• ADMIN: Gestão estratégica de metas, filtros por data e comparativos de evolução.\n• RELATÓRIOS: Performance de Metas em PDF (com Branding) e exportação XML para Excel.\n• UI: Alinhamento total de versão v3.1.1 e melhorias no modo claro.",
+              "3.1.2 (Atual)",
+              "• UI/UX: Nova Sidebar Interativa com controle de expansão manual.\n• RESPONSIVIDADE: Adaptação completa do Dashboard para dispositivos móveis.\n• BRANDING: Logo de 100px no Dashboard com ajuste dinâmico.\n• CORREÇÃO: Resolução de erro de contraste e textos invisíveis no modo claro.",
+            ),
+            _buildUpdate(
+              "3.1.1",
+              "• DASHBOARD: Gráficos de Tendência, Alertas Críticos e Cobertura de Inventário.\n• METAS: Nova aba com KPIs em tempo real e comparativos mensais.\n• RELATÓRIOS: Performance de Metas em PDF (com Branding) e exportação XML para Excel.",
             ),
             _buildUpdate(
               "3.1.0",

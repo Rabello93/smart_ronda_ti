@@ -40,6 +40,10 @@ O app foi desenvolvido para otimizar as rondas técnicas em ambiente corporativo
 - **Central de Relatórios**: Nova página administrativa para geração de relatórios com filtros avançados.
 
 ## 🚀 Roadmap & Future Releases
+- **Autenticação Biométrica (v3.2.0)**: 
+  - Login via Digital/FaceID para agilizar operação em campo.
+  - Fluxo de ativação para usuários antigos via menu de configurações.
+  - Armazenamento seguro de credenciais via `flutter_secure_storage`.
 - **Módulo Intelligence**: Implementação de tendências de falha e previsão de troca de ativos.
 - **Módulo Capex**: Gestão financeira de ativos e planejamento de investimentos.
 - **Auditoria 360**: Expansão dos logs de sistema para um módulo completo de rastreabilidade.

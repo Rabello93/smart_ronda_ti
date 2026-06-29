@@ -107,7 +107,7 @@ class _HomePageState extends State<HomePage> {
           persistentFooterButtons: [
             const Center(
               child: Text(
-                "Smart Ronda TI - v3.1.1",
+                "Smart Ronda TI - v3.1.2",
                 style: TextStyle(fontSize: 10, color: Colors.grey),
               ),
             ),

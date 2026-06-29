@@ -37,12 +37,22 @@ class _DashboardPageState extends State<DashboardPage> {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final bgColor = isDark ? Colors.grey.shade900 : Colors.grey.shade100;
     final textColor = isDark ? Colors.white : Colors.black87;
+    final bool isMobile = MediaQuery.of(context).size.width < 800;
 
     return Scaffold(
       backgroundColor: bgColor,
       appBar: AppBar(
-        toolbarHeight: 125,
-        title: _buildCompanyLogo(),
+        toolbarHeight: isMobile ? 80 : 125,
+        leading: isMobile 
+          ? Builder(builder: (ctx) => IconButton(
+              icon: const Icon(Icons.menu),
+              onPressed: () => Scaffold.of(ctx).openDrawer(),
+            ))
+          : IconButton(
+              icon: Icon(_isRailExpanded ? Icons.menu_open : Icons.menu),
+              onPressed: () => setState(() => _isRailExpanded = !_isRailExpanded),
+            ),
+        title: _buildCompanyLogo(isMobile),
         backgroundColor: isDark ? Colors.black : Colors.indigo.shade900,
         foregroundColor: Colors.white,
         actions: [
@@ -57,6 +67,25 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
         ],
       ),
+      drawer: isMobile ? Drawer(
+        child: Container(
+          color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+          child: Column(
+            children: [
+              DrawerHeader(
+                decoration: BoxDecoration(color: isDark ? Colors.black : Colors.indigo.shade900),
+                child: Center(child: _buildCompanyLogo(true)),
+              ),
+              _buildDrawerItem(0, Icons.dashboard, "Geral", isDark),
+              _buildDrawerItem(1, Icons.stars, "Metas", isDark),
+              _buildDrawerItem(2, Icons.person, "Técnicos", isDark),
+              _buildDrawerItem(3, Icons.warning_amber, "Defeitos", isDark),
+              _buildDrawerItem(4, Icons.business, "Locação", isDark),
+              _buildDrawerItem(5, Icons.analytics, "Status", isDark),
+            ],
+          ),
+        ),
+      ) : null,
       body: StreamBuilder<List<RoundModel>>(
         stream: _roundController.getHistoryStream(),
         builder: (context, snapshot) {
@@ -69,8 +98,10 @@ class _DashboardPageState extends State<DashboardPage> {
 
           return Row(
             children: [
-              _buildSideNavigation(isDark),
-              const VerticalDivider(thickness: 1, width: 1),
+              if (!isMobile) ...[
+                _buildSideNavigation(isDark),
+                const VerticalDivider(thickness: 1, width: 1),
+              ],
               Expanded(
                 child: Column(
                   children: [
@@ -88,29 +119,41 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
+  Widget _buildDrawerItem(int index, IconData icon, String label, bool isDark) {
+    final isSelected = _selectedIndex == index;
+    return ListTile(
+      leading: Icon(icon, color: isSelected ? Colors.blue : (isDark ? Colors.white54 : Colors.grey)),
+      title: Text(label, style: TextStyle(
+        color: isSelected ? Colors.blue : (isDark ? Colors.white : Colors.black87),
+        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+      )),
+      selected: isSelected,
+      onTap: () {
+        setState(() => _selectedIndex = index);
+        Navigator.pop(context);
+      },
+    );
+  }
+
   Widget _buildSideNavigation(bool isDark) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isRailExpanded = true),
-      onExit: (_) => setState(() => _isRailExpanded = false),
-      child: NavigationRail(
-        extended: _isRailExpanded,
-        backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: (index) => setState(() => _selectedIndex = index),
-        labelType: _isRailExpanded ? NavigationRailLabelType.none : NavigationRailLabelType.selected,
-        unselectedIconTheme: IconThemeData(color: isDark ? Colors.white54 : Colors.grey.shade600),
-        selectedIconTheme: const IconThemeData(color: Colors.blue),
-        selectedLabelTextStyle: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 12),
-        unselectedLabelTextStyle: TextStyle(color: isDark ? Colors.white54 : Colors.grey.shade600, fontSize: 11),
-        destinations: const [
-          NavigationRailDestination(icon: Icon(Icons.dashboard), label: Text("Geral")),
-          NavigationRailDestination(icon: Icon(Icons.stars), label: Text("Metas")),
-          NavigationRailDestination(icon: Icon(Icons.person), label: Text("Técnicos")),
-          NavigationRailDestination(icon: Icon(Icons.warning_amber), label: Text("Defeitos")),
-          NavigationRailDestination(icon: Icon(Icons.business), label: Text("Locação")),
-          NavigationRailDestination(icon: Icon(Icons.analytics), label: Text("Status")),
-        ],
-      ),
+    return NavigationRail(
+      extended: _isRailExpanded,
+      backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+      selectedIndex: _selectedIndex,
+      onDestinationSelected: (index) => setState(() => _selectedIndex = index),
+      labelType: _isRailExpanded ? NavigationRailLabelType.none : NavigationRailLabelType.selected,
+      unselectedIconTheme: IconThemeData(color: isDark ? Colors.white54 : Colors.grey.shade600),
+      selectedIconTheme: const IconThemeData(color: Colors.blue),
+      selectedLabelTextStyle: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 12),
+      unselectedLabelTextStyle: TextStyle(color: isDark ? Colors.white54 : Colors.grey.shade600, fontSize: 11),
+      destinations: const [
+        NavigationRailDestination(icon: Icon(Icons.dashboard), label: Text("Geral")),
+        NavigationRailDestination(icon: Icon(Icons.stars), label: Text("Metas")),
+        NavigationRailDestination(icon: Icon(Icons.person), label: Text("Técnicos")),
+        NavigationRailDestination(icon: Icon(Icons.warning_amber), label: Text("Defeitos")),
+        NavigationRailDestination(icon: Icon(Icons.business), label: Text("Locação")),
+        NavigationRailDestination(icon: Icon(Icons.analytics), label: Text("Status")),
+      ],
     );
   }
 
@@ -126,7 +169,7 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
-  Widget _buildCompanyLogo() {
+  Widget _buildCompanyLogo(bool isMobile) {
     return StreamBuilder<DocumentSnapshot>(
       stream: _adminController.brandingStream,
       builder: (context, snapshot) {
@@ -139,8 +182,10 @@ class _DashboardPageState extends State<DashboardPage> {
         }
 
         final displayUrl = UrlHelper.convertDriveUrl(logoUrl);
+        final double logoSize = isMobile ? 60 : 100;
 
         return Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             if (displayUrl != null && displayUrl.isNotEmpty)
               Container(
@@ -151,44 +196,55 @@ class _DashboardPageState extends State<DashboardPage> {
                 padding: const EdgeInsets.all(6),
                 child: Image.network(
                   displayUrl, 
-                  height: 100, 
+                  height: logoSize, 
                   fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => Image.asset("assets/logo.png", height: 100),
+                  errorBuilder: (_, __, ___) => Image.asset("assets/logo.png", height: logoSize),
                 ),
               )
             else
               Image.asset(
                 "assets/logo.png", 
-                height: 100, 
-                errorBuilder: (_, __, ___) => const Icon(Icons.business, size: 80),
+                height: logoSize, 
+                errorBuilder: (_, __, ___) => Icon(Icons.business, size: logoSize * 0.8),
               ),
-            const SizedBox(width: 20),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    companyName.toUpperCase(),
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.5,
-                      color: Colors.white,
+            const SizedBox(width: 15),
+            if (!isMobile)
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      companyName.toUpperCase(),
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.5,
+                        color: Colors.white,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const Text(
-                    "SISTEMA DE GESTÃO E RONDAS",
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: Colors.white70,
-                      letterSpacing: 2.0,
+                    const Text(
+                      "SISTEMA DE GESTÃO E RONDAS",
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.white70,
+                        letterSpacing: 2.0,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
+              )
+            else
+              Text(
+                companyName.toUpperCase(),
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
-            ),
           ],
         );
       }
