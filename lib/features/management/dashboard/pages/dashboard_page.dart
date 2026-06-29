@@ -39,7 +39,7 @@ class _DashboardPageState extends State<DashboardPage> {
     return Scaffold(
       backgroundColor: bgColor,
       appBar: AppBar(
-        toolbarHeight: 75,
+        toolbarHeight: 100,
         title: _buildCompanyLogo(),
         backgroundColor: isDark ? Colors.black : Colors.indigo.shade900,
         foregroundColor: Colors.white,
@@ -116,16 +116,16 @@ class _DashboardPageState extends State<DashboardPage> {
                 padding: const EdgeInsets.all(4),
                 child: Image.network(
                   displayUrl, 
-                  height: 55, 
+                  height: 80, 
                   fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => Image.asset("assets/logo.png", height: 55),
+                  errorBuilder: (_, __, ___) => Image.asset("assets/logo.png", height: 80),
                 ),
               )
             else
               Image.asset(
                 "assets/logo.png", 
-                height: 55, 
-                errorBuilder: (_, __, ___) => const Icon(Icons.business, size: 45),
+                height: 80, 
+                errorBuilder: (_, __, ___) => const Icon(Icons.business, size: 60),
               ),
             const SizedBox(width: 15),
             Expanded(
