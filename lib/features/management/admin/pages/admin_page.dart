@@ -726,6 +726,9 @@ class _MetasAdminTabState extends State<_MetasAdminTab> {
   final AdminController _controller = AdminController();
   final TextEditingController rondasController = TextEditingController();
   final TextEditingController itensController = TextEditingController();
+  
+  DateTimeRange? _periodoPrincipal;
+  DateTimeRange? _periodoComparativo;
 
   @override
   void initState() {
@@ -785,15 +788,68 @@ class _MetasAdminTabState extends State<_MetasAdminTab> {
           const SizedBox(height: 40),
           const Divider(),
           const SizedBox(height: 20),
-          const Text("Relatórios de Metas", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 12),
+          const Text("Central de Relatórios de Performance", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 16),
+          
+          // Seletor de Período Principal
           ListTile(
-            leading: const Icon(Icons.assessment, color: Colors.purple),
-            title: const Text("Relatório de Performance Mensal"),
-            subtitle: const Text("Exporta o atingimento das metas em PDF."),
-            onTap: () => ReportRepository.exportarRelatorioMetas(context),
-            trailing: const Icon(Icons.chevron_right),
+            tileColor: Colors.blue.withValues(alpha: 0.05),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            leading: const Icon(Icons.date_range, color: Colors.blue),
+            title: const Text("Período Principal"),
+            subtitle: Text(_periodoPrincipal == null ? "Selecione o mês/período" : "${_periodoPrincipal!.start.day}/${_periodoPrincipal!.start.month} até ${_periodoPrincipal!.end.day}/${_periodoPrincipal!.end.month}"),
+            onTap: () async {
+              final picked = await showDateRangePicker(context: context, firstDate: DateTime(2023), lastDate: DateTime.now());
+              if (picked != null) setState(() => _periodoPrincipal = picked);
+            },
           ),
+          const SizedBox(height: 8),
+          
+          // Seletor de Período Comparativo
+          ListTile(
+            tileColor: Colors.purple.withValues(alpha: 0.05),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            leading: const Icon(Icons.compare_arrows, color: Colors.purple),
+            title: const Text("Período Comparativo (Opcional)"),
+            subtitle: Text(_periodoComparativo == null ? "Toque para comparar com outro mês" : "${_periodoComparativo!.start.day}/${_periodoComparativo!.start.month} até ${_periodoComparativo!.end.day}/${_periodoComparativo!.end.month}"),
+            onTap: () async {
+              final picked = await showDateRangePicker(context: context, firstDate: DateTime(2023), lastDate: DateTime.now());
+              if (picked != null) setState(() => _periodoComparativo = picked);
+            },
+            trailing: _periodoComparativo != null ? IconButton(icon: const Icon(Icons.clear), onPressed: () => setState(() => _periodoComparativo = null)) : null,
+          ),
+          
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () => ReportRepository.exportarRelatorioMetas(
+                    context, 
+                    periodo: _periodoPrincipal,
+                    periodoComparativo: _periodoComparativo
+                  ),
+                  icon: const Icon(Icons.picture_as_pdf),
+                  label: const Text("GERAR PDF"),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade900, foregroundColor: Colors.white),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () => ReportRepository.exportarRelatorioMetasXML(
+                    context,
+                    periodo: _periodoPrincipal
+                  ),
+                  icon: const Icon(Icons.code),
+                  label: const Text("EXCEL (XML)"),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green.shade900, foregroundColor: Colors.white),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          const Center(child: Text("ℹ️ Relatórios comparativos ajudam a medir o crescimento da equipe.", style: TextStyle(fontSize: 10, color: Colors.grey))),
         ],
       ),
     );

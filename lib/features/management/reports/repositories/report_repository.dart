@@ -8,6 +8,24 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class ReportRepository {
+  // --- HELPERS ---
+  static Future<pw.MemoryImage?> _fetchLogo(Map<String, dynamic> config) async {
+    if (config['logo_url'] != null && config['logo_url'].isNotEmpty) {
+      try {
+        String url = config['logo_url'];
+        if (url.contains("drive.google.com")) {
+          final fileId = RegExp(r"d/([^/]+)").firstMatch(url)?.group(1) ?? RegExp(r"id=([^&]+)").firstMatch(url)?.group(1);
+          if (fileId != null) url = "https://docs.google.com/uc?export=download&id=$fileId";
+        }
+        final response = await http.get(Uri.parse(url));
+        if (response.statusCode == 200) return pw.MemoryImage(response.bodyBytes);
+      } catch (e) {
+        debugPrint("Erro logo PDF: $e");
+      }
+    }
+    return null;
+  }
+
   // --- PDF EXPORTS ---
 
   static Future<void> exportarLocacaoParaPDF(BuildContext context, List<Map<String, dynamic>> itens, String titulo) async {
@@ -19,20 +37,7 @@ class ReportRepository {
       DocumentSnapshot configDoc = await firestore.collection('config').doc('empresa').get();
       Map<String, dynamic> config = configDoc.exists ? (configDoc.data() as Map<String, dynamic>) : {};
       
-      pw.MemoryImage? logoImage;
-      if (config['logo_url'] != null && config['logo_url'].isNotEmpty) {
-        try {
-          String url = config['logo_url'];
-          if (url.contains("drive.google.com")) {
-            final fileId = RegExp(r"d/([^/]+)").firstMatch(url)?.group(1) ?? RegExp(r"id=([^&]+)").firstMatch(url)?.group(1);
-            if (fileId != null) url = "https://docs.google.com/uc?export=download&id=$fileId";
-          }
-          final response = await http.get(Uri.parse(url));
-          if (response.statusCode == 200) logoImage = pw.MemoryImage(response.bodyBytes);
-        } catch (e) {
-          debugPrint("Erro logo PDF: $e");
-        }
-      }
+      pw.MemoryImage? logoImage = await _fetchLogo(config);
 
       pdf.addPage(
         pw.MultiPage(
@@ -101,20 +106,7 @@ class ReportRepository {
       DocumentSnapshot configDoc = await firestore.collection('config').doc('empresa').get();
       Map<String, dynamic> config = configDoc.exists ? (configDoc.data() as Map<String, dynamic>) : {};
       
-      pw.MemoryImage? logoImage;
-      if (config['logo_url'] != null && config['logo_url'].isNotEmpty) {
-        try {
-          String url = config['logo_url'];
-          if (url.contains("drive.google.com")) {
-            final fileId = RegExp(r"d/([^/]+)").firstMatch(url)?.group(1) ?? RegExp(r"id=([^&]+)").firstMatch(url)?.group(1);
-            if (fileId != null) url = "https://docs.google.com/uc?export=download&id=$fileId";
-          }
-          final response = await http.get(Uri.parse(url));
-          if (response.statusCode == 200) logoImage = pw.MemoryImage(response.bodyBytes);
-        } catch (e) {
-          debugPrint("Erro logo PDF: $e");
-        }
-      }
+      pw.MemoryImage? logoImage = await _fetchLogo(config);
 
       Query query = firestore.collection('rondas').orderBy('timestamp', descending: true);
       QuerySnapshot rondasSnapshot = await query.get();
@@ -363,50 +355,164 @@ class ReportRepository {
     } catch (e) { debugPrint("Erro: $e"); }
   }
 
-  static Future<void> exportarRelatorioMetas(BuildContext context) async {
+  static Future<void> exportarRelatorioMetas(BuildContext context, {DateTimeRange? periodo, DateTimeRange? periodoComparativo}) async {
     final messenger = (context.mounted) ? ScaffoldMessenger.of(context) : null;
     try {
       final pdf = pw.Document();
       final firestore = FirebaseFirestore.instance;
 
+      DocumentSnapshot configDoc = await firestore.collection('config').doc('empresa').get();
+      Map<String, dynamic> config = configDoc.exists ? (configDoc.data() as Map<String, dynamic>) : {};
+      pw.MemoryImage? logoImage = await _fetchLogo(config);
+
       DocumentSnapshot goalsDoc = await firestore.collection('config').doc('metas').get();
       Map<String, dynamic> goals = goalsDoc.exists ? (goalsDoc.data() as Map<String, dynamic>) : {'rondas_mensal': 100, 'itens_mensal': 500};
 
       final now = DateTime.now();
+      final start = periodo?.start ?? DateTime(now.year, now.month, 1);
+      final end = periodo?.end ?? DateTime(now.year, now.month + 1, 0, 23, 59, 59);
+
+      Future<Map<String, int>> fetchPerformance(DateTime start, DateTime end) async {
+        QuerySnapshot roundsSnap = await firestore.collection('rondas')
+            .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(start))
+            .where('timestamp', isLessThanOrEqualTo: Timestamp.fromDate(end))
+            .get();
+
+        int rondas = roundsSnap.docs.length;
+        int itens = 0;
+        for (var doc in roundsSnap.docs) {
+          final data = doc.data() as Map<String, dynamic>;
+          itens += (data['itens_total'] as int? ?? 0);
+        }
+        return {'rondas': rondas, 'itens': itens};
+      }
+
+      final perfPrincipal = await fetchPerformance(start, end);
+      Map<String, int>? perfComparativo;
+      if (periodoComparativo != null) {
+        perfComparativo = await fetchPerformance(periodoComparativo.start, periodoComparativo.end);
+      }
+
+      pdf.addPage(pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        header: (pw.Context context) => pw.Container(
+          alignment: pw.Alignment.centerRight,
+          margin: const pw.EdgeInsets.only(bottom: 5.0 * PdfPageFormat.mm),
+          decoration: const pw.BoxDecoration(border: pw.Border(bottom: pw.BorderSide(width: 0.5, color: PdfColors.grey))),
+          child: pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: [
+              pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text(config['nome'] ?? "RONDA TI", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14)),
+                  pw.Text("RELATÓRIO DE PERFORMANCE E METAS", style: const pw.TextStyle(fontSize: 10, color: PdfColors.blue900)),
+                ]
+              ),
+              if (logoImage != null) pw.Image(logoImage, height: 35),
+            ]
+          )
+        ),
+        build: (pw.Context context) => [
+          pw.SizedBox(height: 10),
+          pw.Text("Período Principal: ${start.day}/${start.month}/${start.year} - ${end.day}/${end.month}/${end.year}", style: const pw.TextStyle(fontSize: 12)),
+          if (periodoComparativo != null)
+            pw.Text("Período Comparativo: ${periodoComparativo.start.day}/${periodoComparativo.start.month}/${periodoComparativo.start.year} - ${periodoComparativo.end.day}/${periodoComparativo.end.month}/${periodoComparativo.end.year}", style: const pw.TextStyle(fontSize: 12, color: PdfColors.grey)),
+          
+          pw.SizedBox(height: 20),
+          pw.TableHelper.fromTextArray(
+            headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 10),
+            headerDecoration: const pw.BoxDecoration(color: PdfColors.indigo900),
+            headers: periodoComparativo == null 
+              ? const ['INDICADOR', 'META', 'REALIZADO', 'ATINGIMENTO']
+              : const ['INDICADOR', 'META', 'PERÍODO 1', 'PERÍODO 2', 'EVOLUÇÃO'],
+            data: periodoComparativo == null 
+              ? [
+                  ['RONDAS', '${goals['rondas_mensal']}', '${perfPrincipal['rondas']}', '${(perfPrincipal['rondas']! / goals['rondas_mensal'] * 100).toStringAsFixed(1)}%'],
+                  ['ITENS AUDITADOS', '${goals['itens_mensal']}', '${perfPrincipal['itens']}', '${(perfPrincipal['itens']! / goals['itens_mensal'] * 100).toStringAsFixed(1)}%'],
+                ]
+              : [
+                  [
+                    'RONDAS', 
+                    '${goals['rondas_mensal']}', 
+                    '${perfComparativo['rondas']}', 
+                    '${perfPrincipal['rondas']}',
+                    "${perfComparativo['rondas']! > 0 ? ((perfPrincipal['rondas']! - perfComparativo['rondas']!) / perfComparativo['rondas']! * 100).toStringAsFixed(1) : '---'}%"
+                  ],
+                  [
+                    'ITENS AUDITADOS', 
+                    '${goals['itens_mensal']}', 
+                    '${perfComparativo['itens']}', 
+                    '${perfPrincipal['itens']}',
+                    "${perfComparativo['itens']! > 0 ? ((perfPrincipal['itens']! - perfComparativo['itens']!) / perfComparativo['itens']! * 100).toStringAsFixed(1) : '---'}%"
+                  ],
+                ],
+          ),
+        ],
+      ));
+
+      final output = await getTemporaryDirectory();
+      final file = File("${output.path}/Relatorio_Metas_${DateTime.now().millisecondsSinceEpoch}.pdf");
+      await file.writeAsBytes(await pdf.save());
+      await Share.shareXFiles([XFile(file.path)], text: 'Relatório de Metas');
+    } catch (e) { messenger?.showSnackBar(SnackBar(content: Text("Erro: $e"), backgroundColor: Colors.red)); }
+  }
+
+  static Future<void> exportarRelatorioMetasXML(BuildContext context, {DateTimeRange? periodo}) async {
+    final messenger = (context.mounted) ? ScaffoldMessenger.of(context) : null;
+    try {
+      final firestore = FirebaseFirestore.instance;
+      DocumentSnapshot goalsDoc = await firestore.collection('config').doc('metas').get();
+      Map<String, dynamic> goals = goalsDoc.exists ? (goalsDoc.data() as Map<String, dynamic>) : {'rondas_mensal': 100, 'itens_mensal': 500};
+
+      final now = DateTime.now();
+      final start = periodo?.start ?? DateTime(now.year, now.month, 1);
+      final end = periodo?.end ?? DateTime(now.year, now.month + 1, 0, 23, 59, 59);
+
       QuerySnapshot roundsSnap = await firestore.collection('rondas')
-          .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(DateTime(now.year, now.month, 1)))
+          .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(start))
+          .where('timestamp', isLessThanOrEqualTo: Timestamp.fromDate(end))
           .get();
 
       int rondasRealizadas = roundsSnap.docs.length;
       int itensVistos = 0;
+      
+      StringBuffer xml = StringBuffer();
+      xml.writeln('<?xml version="1.0" encoding="UTF-8"?>');
+      xml.writeln('<PerformanceMetas>');
+      xml.writeln('  <Periodo>');
+      xml.writeln('    <Inicio>${start.toIso8601String()}</Inicio>');
+      xml.writeln('    <Fim>${end.toIso8601String()}</Fim>');
+      xml.writeln('  </Periodo>');
+      xml.writeln('  <MetasConfiguradas>');
+      xml.writeln('    <MetaRondas>${goals['rondas_mensal']}</MetaRondas>');
+      xml.writeln('    <MetaItens>${goals['itens_mensal']}</MetaItens>');
+      xml.writeln('  </MetasConfiguradas>');
+      xml.writeln('  <Realizado>');
+      
       for (var doc in roundsSnap.docs) {
         final data = doc.data() as Map<String, dynamic>;
         itensVistos += (data['itens_total'] as int? ?? 0);
+        xml.writeln('    <Ronda id="${doc.id}">');
+        xml.writeln('      <Data>${data['data_inicio']}</Data>');
+        xml.writeln('      <Setor>${data['setor']}</Setor>');
+        xml.writeln('      <Itens>${data['itens_total']}</Itens>');
+        xml.writeln('    </Ronda>');
       }
 
-      pdf.addPage(pw.Page(
-        build: (pw.Context context) => pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
-          children: [
-            pw.Header(level: 0, child: pw.Text("RELATÓRIO DE PERFORMANCE E METAS")),
-            pw.SizedBox(height: 20),
-            pw.Text("Período: ${now.month}/${now.year}"),
-            pw.SizedBox(height: 30),
-            pw.TableHelper.fromTextArray(
-              headers: const ['INDICADOR', 'META', 'REALIZADO', 'ATINGIMENTO'],
-              data: [
-                ['RONDAS', '${goals['rondas_mensal']}', '$rondasRealizadas', '${(rondasRealizadas / goals['rondas_mensal'] * 100).toStringAsFixed(1)}%'],
-                ['ITENS AUDITADOS', '${goals['itens_mensal']}', '$itensVistos', '${(itensVistos / goals['itens_mensal'] * 100).toStringAsFixed(1)}%'],
-              ],
-            ),
-          ],
-        ),
-      ));
+      xml.writeln('  </Realizado>');
+      xml.writeln('  <Sumario>');
+      xml.writeln('    <TotalRondas>$rondasRealizadas</TotalRondas>');
+      xml.writeln('    <TotalItens>$itensVistos</TotalItens>');
+      xml.writeln('    <AtingimentoRondas>${(rondasRealizadas / goals['rondas_mensal'] * 100).toStringAsFixed(2)}%</AtingimentoRondas>');
+      xml.writeln('    <AtingimentoItens>${(itensVistos / goals['itens_mensal'] * 100).toStringAsFixed(2)}%</AtingimentoItens>');
+      xml.writeln('  </Sumario>');
+      xml.writeln('</PerformanceMetas>');
 
       final output = await getTemporaryDirectory();
-      final file = File("${output.path}/Relatorio_Metas_${now.month}_${now.year}.pdf");
-      await file.writeAsBytes(await pdf.save());
-      await Share.shareXFiles([XFile(file.path)], text: 'Relatório de Metas');
+      final file = File("${output.path}/Metas_Excel_${DateTime.now().millisecondsSinceEpoch}.xml");
+      await file.writeAsString(xml.toString());
+      await Share.shareXFiles([XFile(file.path)], text: 'Dados de Metas para Excel');
     } catch (e) { messenger?.showSnackBar(SnackBar(content: Text("Erro: $e"), backgroundColor: Colors.red)); }
   }
 }

@@ -37,7 +37,7 @@ class AboutPage extends StatelessWidget {
             _sectionTitle("🚀 Log de Atualizações"),
             _buildUpdate(
               "3.1.1 (Atual)",
-              "• DASHBOARD: Implementação de Gráficos de Tendência (fl_chart) e Alertas Críticos.\n• METAS: Nova aba de Metas com indicadores de performance (KPIs) e comparativos mensais.\n• ADMIN: Painel de configuração de Metas Estratégicas e Relatório de Performance em PDF.\n• BI: Gráfico de Cobertura de Inventário e análise de Capex por categoria.\n• UI: Melhorias de contraste e legibilidade no modo claro.",
+              "• DASHBOARD: Gráficos de Tendência, Alertas Críticos e Cobertura de Inventário.\n• METAS: Nova aba com KPIs em tempo real e comparativos mensais.\n• ADMIN: Gestão estratégica de metas, filtros por data e comparativos de evolução.\n• RELATÓRIOS: Performance de Metas em PDF (com Branding) e exportação XML para Excel.\n• UI: Alinhamento total de versão v3.1.1 e melhorias no modo claro.",
             ),
             _buildUpdate(
               "3.1.0",
