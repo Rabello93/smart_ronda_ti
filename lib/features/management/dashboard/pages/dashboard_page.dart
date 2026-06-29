@@ -10,6 +10,7 @@ import 'package:smart_ronda_ti/features/management/dashboard/controllers/dashboa
 import 'package:smart_ronda_ti/shared/widgets/dashboard_widgets.dart';
 import 'package:smart_ronda_ti/features/operation/rounds/models/round_model.dart';
 import 'package:smart_ronda_ti/features/operation/assets/models/asset_model.dart';
+import 'package:smart_ronda_ti/features/system/auth/models/user_model.dart';
 
 class DashboardPage extends StatefulWidget {
   final ThemeMode themeMode;
