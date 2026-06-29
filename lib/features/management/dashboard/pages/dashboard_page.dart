@@ -224,13 +224,14 @@ class _DashboardPageState extends State<DashboardPage> {
                   Text(
                     companyName.toUpperCase(),
                     style: TextStyle(
-                      fontSize: isMobile ? 11 : 22,
+                      fontSize: isMobile ? 11 : 20,
                       fontWeight: FontWeight.bold,
-                      letterSpacing: isMobile ? 0.5 : 1.5,
+                      letterSpacing: isMobile ? 0.5 : 1.2,
                       color: Colors.white,
                     ),
                     overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
+                    maxLines: 2,
+                    softWrap: true,
                   ),
                   Text(
                     isMobile ? "RONDA OPERACIONAL" : "SISTEMA DE GESTÃO E RONDAS",
