@@ -86,35 +86,42 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
         ),
       ) : null,
-      body: StreamBuilder<List<RoundModel>>(
-        stream: _roundController.getHistoryStream(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: StreamBuilder<UserModel?>(
+        stream: _authController.profileStream,
+        builder: (context, userSnapshot) {
+          final user = userSnapshot.data;
           
-          final allRondas = snapshot.data ?? [];
-          final rondas = _dashboardController.filterRoundsByDateRange(allRondas, dataFiltro);
+          return StreamBuilder<List<RoundModel>>(
+            stream: _roundController.getHistoryStream(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              
+              final allRondas = snapshot.data ?? [];
+              final rondas = _dashboardController.filterRoundsByDateRange(allRondas, dataFiltro);
 
-          return Row(
-            children: [
-              if (!isMobile) ...[
-                _buildSideNavigation(isDark),
-                const VerticalDivider(thickness: 1, width: 1),
-              ],
-              Expanded(
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: _buildCurrentTab(rondas, allRondas, textColor),
-                    ),
-                    _buildFooter(textColor),
+              return Row(
+                children: [
+                  if (!isMobile) ...[
+                    _buildSideNavigation(isDark),
+                    const VerticalDivider(thickness: 1, width: 1),
                   ],
-                ),
-              ),
-            ],
+                  Expanded(
+                    child: Column(
+                      children: [
+                        Expanded(
+                          child: _buildCurrentTab(rondas, allRondas, textColor, user),
+                        ),
+                        _buildFooter(textColor),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            },
           );
-        },
+        }
       ),
     );
   }
@@ -157,10 +164,10 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _buildCurrentTab(List<RoundModel> rondas, List<RoundModel> allRondas, Color textColor) {
+  Widget _buildCurrentTab(List<RoundModel> rondas, List<RoundModel> allRondas, Color textColor, UserModel? user) {
     switch (_selectedIndex) {
       case 0: return _buildGeralTab(rondas, allRondas, textColor);
-      case 1: return _buildMetasTab(allRondas, textColor);
+      case 1: return _buildMetasTab(allRondas, textColor, user);
       case 2: return _buildTecnicosTab(rondas, textColor);
       case 3: return _buildDefeitosTab(textColor);
       case 4: return _buildLocacaoTab(textColor);
@@ -460,13 +467,14 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _buildMetasTab(List<RoundModel> allRondas, Color textColor) {
+  Widget _buildMetasTab(List<RoundModel> allRondas, Color textColor, UserModel? user) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final monthlyData = _dashboardController.getMonthlyComparison(allRondas);
     
     final now = DateTime.now();
     final thisMonthRondas = allRondas.where((r) => r.dataInicio.month == now.month && r.dataInicio.year == now.year).toList();
     final totalItensMes = _dashboardController.getTotalItens(thisMonthRondas);
+    final bool canEdit = user?.isAdmin ?? false;
 
     return StreamBuilder<DocumentSnapshot>(
       stream: _adminController.goalsStream,
@@ -541,15 +549,17 @@ class _DashboardPageState extends State<DashboardPage> {
                   ],
                 ),
               ),
-              const SizedBox(height: 32),
-              const Divider(),
-              Center(
-                child: TextButton.icon(
-                  onPressed: () => _showEditGoalsDialog(goals),
-                  icon: const Icon(Icons.edit_note),
-                  label: const Text("Ajustar Metas Estratégicas"),
+              if (canEdit) ...[
+                const SizedBox(height: 32),
+                const Divider(),
+                Center(
+                  child: TextButton.icon(
+                    onPressed: () => _showEditGoalsDialog(goals),
+                    icon: const Icon(Icons.edit_note),
+                    label: const Text("Ajustar Metas Estratégicas"),
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
         );
