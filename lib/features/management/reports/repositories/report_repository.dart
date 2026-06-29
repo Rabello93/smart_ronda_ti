@@ -435,16 +435,16 @@ class ReportRepository {
                   [
                     'RONDAS', 
                     '${goals['rondas_mensal']}', 
-                    '${perfComparativo['rondas']}', 
+                    '${perfComparativo!['rondas']}', 
                     '${perfPrincipal['rondas']}',
-                    "${perfComparativo['rondas']! > 0 ? ((perfPrincipal['rondas']! - perfComparativo['rondas']!) / perfComparativo['rondas']! * 100).toStringAsFixed(1) : '---'}%"
+                    "${perfComparativo!['rondas']! > 0 ? ((perfPrincipal['rondas']! - perfComparativo!['rondas']!) / perfComparativo!['rondas']! * 100).toStringAsFixed(1) : '---'}%"
                   ],
                   [
                     'ITENS AUDITADOS', 
                     '${goals['itens_mensal']}', 
-                    '${perfComparativo['itens']}', 
+                    '${perfComparativo!['itens']}', 
                     '${perfPrincipal['itens']}',
-                    "${perfComparativo['itens']! > 0 ? ((perfPrincipal['itens']! - perfComparativo['itens']!) / perfComparativo['itens']! * 100).toStringAsFixed(1) : '---'}%"
+                    "${perfComparativo!['itens']! > 0 ? ((perfPrincipal['itens']! - perfComparativo!['itens']!) / perfComparativo!['itens']! * 100).toStringAsFixed(1) : '---'}%"
                   ],
                 ],
           ),
