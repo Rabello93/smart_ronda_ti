@@ -2,7 +2,7 @@ name: smart_ronda_ti
 description: Smart Ronda TI - Sistema de Governança e Auditoria de Ativos
 publish_to: 'none'
 
-version: 3.1.2+3
+version: 3.2.0+4
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
@@ -42,6 +42,8 @@ dependencies:
   # Removido flutter_app_badger por incompatibilidade com Android moderno
   fl_chart: ^1.2.0
   http: ^1.6.0
+  local_auth: ^2.2.0
+  flutter_secure_storage: ^9.0.0
 
 dev_dependencies:
   flutter_test:

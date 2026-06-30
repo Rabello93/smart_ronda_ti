@@ -38,7 +38,7 @@ class ReportRepository {
           pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.Text(config['nome'] ?? "RONDA TI", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14)),
+              pw.Text(config['nome'] ?? "RONDA TI", style: const pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14)),
               pw.Text(title.toUpperCase(), style: const pw.TextStyle(fontSize: 10, color: PdfColors.blue900)),
             ]
           ),
@@ -63,7 +63,7 @@ class ReportRepository {
           pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.Text(config['nome'] ?? "SMART RONDA TI", style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold)),
+              pw.Text(config['nome'] ?? "SMART RONDA TI", style: const pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold)),
               if (config['cnpj'] != null && config['cnpj'].isNotEmpty)
                 pw.Text("CNPJ: ${config['cnpj']}", style: const pw.TextStyle(fontSize: 7)),
               if (config['contato'] != null && config['contato'].isNotEmpty)
@@ -118,7 +118,7 @@ class ReportRepository {
       );
 
       final output = await getTemporaryDirectory();
-      final file = File("${output.path}/Relatorio_Locacao_${DateTime.now().millisecondsSinceEpoch}.pdf");
+      final file = File("${output.path}/relatorio_${DateTime.now().millisecondsSinceEpoch}.pdf");
       await file.writeAsBytes(await pdf.save());
       await Share.shareXFiles([XFile(file.path)], text: titulo);
     } catch (e) {
@@ -225,7 +225,7 @@ class ReportRepository {
           footer: (pw.Context context) => _buildFooter(config),
           build: (pw.Context context) => [
             pw.SizedBox(height: 10),
-            pw.Center(child: pw.Text(apenasObsoletos == true ? "RELATÓRIO DE OBSOLESCÊNCIA (+5 ANOS)" : "AUDITORIA DE RONDAS", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 16))),
+            pw.Center(child: pw.Text(apenasObsoletos == true ? "RELATÓRIO DE OBSOLESCÊNCIA (+5 ANOS)" : "AUDITORIA DE RONDAS", style: const pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 16))),
             pw.SizedBox(height: 20),
             pw.TableHelper.fromTextArray(
               headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 8),
@@ -239,7 +239,7 @@ class ReportRepository {
       );
 
       final output = await getTemporaryDirectory();
-      final file = File("${output.path}/Relatorio_${DateTime.now().millisecondsSinceEpoch}.pdf");
+      final file = File("${output.path}/relatorio_${DateTime.now().millisecondsSinceEpoch}.pdf");
       await file.writeAsBytes(await pdf.save());
       await Share.shareXFiles([XFile(file.path)], text: 'Relatório PDF');
     } catch (e) {
@@ -262,7 +262,7 @@ class ReportRepository {
         footer: (pw.Context context) => _buildFooter(config),
         build: (pw.Context context) => [
           pw.Header(level: 0, child: pw.Text("SETOR ${setor.toUpperCase()}")),
-          pw.SizedBox(height: 10),
+          const pw.SizedBox(height: 10),
           pw.TableHelper.fromTextArray(
             headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 10),
             headerDecoration: const pw.BoxDecoration(color: PdfColors.indigo900),
@@ -272,7 +272,7 @@ class ReportRepository {
         ]
       ));
       final output = await getTemporaryDirectory();
-      final file = File("${output.path}/Mapa_$setor.pdf");
+      final file = File("${output.path}/relatorio_${DateTime.now().millisecondsSinceEpoch}.pdf");
       await file.writeAsBytes(await pdf.save());
       await Share.shareXFiles([XFile(file.path)], text: 'Mapa de Ativos');
     } catch (e) { messenger?.showSnackBar(SnackBar(content: Text("Erro: $e"), backgroundColor: Colors.red)); }
@@ -323,7 +323,7 @@ class ReportRepository {
       xml.writeln('</RelatorioRondas>');
 
       final output = await getTemporaryDirectory();
-      final file = File("${output.path}/Relatorio_${DateTime.now().millisecondsSinceEpoch}.xml");
+      final file = File("${output.path}/relatorio_${DateTime.now().millisecondsSinceEpoch}.xml");
       await file.writeAsString(xml.toString());
       await Share.shareXFiles([XFile(file.path)], text: 'Relatório XML');
     } catch (e) {
@@ -348,7 +348,7 @@ class ReportRepository {
       xml.writeln('</MapaAtivos>');
 
       final output = await getTemporaryDirectory();
-      final file = File("${output.path}/Mapa_$setor.xml");
+      final file = File("${output.path}/relatorio_${DateTime.now().millisecondsSinceEpoch}.xml");
       await file.writeAsString(xml.toString());
       await Share.shareXFiles([XFile(file.path)], text: 'Mapa de Ativos XML');
     } catch (e) { messenger?.showSnackBar(SnackBar(content: Text("Erro: $e"), backgroundColor: Colors.red)); }
@@ -372,7 +372,7 @@ class ReportRepository {
         header: (pw.Context context) => _buildHeader(config, "LOGS DO SISTEMA", logoImage),
         footer: (pw.Context context) => _buildFooter(config),
         build: (pw.Context context) => [
-          pw.SizedBox(height: 20),
+          const pw.SizedBox(height: 20),
           pw.TableHelper.fromTextArray(
             headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 10),
             headerDecoration: const pw.BoxDecoration(color: PdfColors.indigo900),
@@ -386,7 +386,7 @@ class ReportRepository {
         ]
       ));
       final output = await getTemporaryDirectory();
-      final file = File("${output.path}/Logs_${DateTime.now().millisecondsSinceEpoch}.pdf");
+      final file = File("${output.path}/relatorio_${DateTime.now().millisecondsSinceEpoch}.pdf");
       await file.writeAsBytes(await pdf.save());
       await Share.shareXFiles([XFile(file.path)], text: 'Logs de Auditoria');
     } catch (e) { messenger?.showSnackBar(SnackBar(content: Text("Erro: $e"), backgroundColor: Colors.red)); }
@@ -408,7 +408,7 @@ class ReportRepository {
                 mainAxisSize: pw.MainAxisSize.min,
                 children: [
                   if (logoImage != null) pw.Image(logoImage, height: 120),
-                  pw.SizedBox(height: 30),
+                  const pw.SizedBox(height: 30),
                   pw.Text(config['nome']?.toUpperCase() ?? "RONDA TI", style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
                   pw.Text("APRESENTAÇÃO COMERCIAL SMART RONDA TI", style: const pw.TextStyle(fontSize: 16, color: PdfColors.blueGrey700)),
                 ]
@@ -424,7 +424,7 @@ class ReportRepository {
         )
       ));
       final output = await getTemporaryDirectory();
-      final file = File("${output.path}/Proposta_RondaTI.pdf");
+      final file = File("${output.path}/relatorio_${DateTime.now().millisecondsSinceEpoch}.pdf");
       await file.writeAsBytes(await pdf.save());
       await Share.shareXFiles([XFile(file.path)]);
     } catch (e) { debugPrint("Erro: $e"); }
@@ -473,7 +473,7 @@ class ReportRepository {
         header: (pw.Context context) => _buildHeader(config, "RELATÓRIO DE PERFORMANCE E METAS", logoImage),
         footer: (pw.Context context) => _buildFooter(config),
         build: (pw.Context context) => [
-          pw.SizedBox(height: 10),
+          const pw.SizedBox(height: 10),
           pw.Text("Período Principal: ${start.day}/${start.month}/${start.year} - ${end.day}/${end.month}/${end.year}", style: const pw.TextStyle(fontSize: 12)),
           if (periodoComparativo != null)
             pw.Text("Período Comparativo: ${periodoComparativo.start.day}/${periodoComparativo.start.month}/${periodoComparativo.start.year} - ${periodoComparativo.end.day}/${periodoComparativo.end.month}/${periodoComparativo.end.year}", style: const pw.TextStyle(fontSize: 12, color: PdfColors.grey)),
@@ -487,23 +487,23 @@ class ReportRepository {
               : const ['INDICADOR', 'META', 'PERÍODO 1', 'PERÍODO 2', 'EVOLUÇÃO'],
             data: periodoComparativo == null 
               ? [
-                  ['RONDAS', '${goals['rondas_mensal']}', '${perfPrincipal['rondas']}', '${(perfPrincipal['rondas']! / goals['rondas_mensal'] * 100).toStringAsFixed(1)}%'],
-                  ['ITENS AUDITADOS', '${goals['itens_mensal']}', '${perfPrincipal['itens']}', '${(perfPrincipal['itens']! / goals['itens_mensal'] * 100).toStringAsFixed(1)}%'],
+                  ['RONDAS', '${goals['rondas_mensal']}', '${perfPrincipal['rondas']}', '${(perfPrincipal['rondas'] / goals['rondas_mensal'] * 100).toStringAsFixed(1)}%'],
+                  ['ITENS AUDITADOS', '${goals['itens_mensal']}', '${perfPrincipal['itens']}', '${(perfPrincipal['itens'] / goals['itens_mensal'] * 100).toStringAsFixed(1)}%'],
                 ]
               : [
                   [
                     'RONDAS', 
                     '${goals['rondas_mensal']}', 
-                    '${perfComparativo!['rondas']}', 
+                    '${perfComparativo['rondas']}', 
                     '${perfPrincipal['rondas']}',
-                    "${perfComparativo!['rondas']! > 0 ? ((perfPrincipal['rondas']! - perfComparativo!['rondas']!) / perfComparativo!['rondas']! * 100).toStringAsFixed(1) : '---'}%"
+                    "${perfComparativo['rondas']! > 0 ? ((perfPrincipal['rondas']! - perfComparativo['rondas']!) / perfComparativo['rondas']! * 100).toStringAsFixed(1) : '---'}%"
                   ],
                   [
                     'ITENS AUDITADOS', 
                     '${goals['itens_mensal']}', 
-                    '${perfComparativo!['itens']}', 
+                    '${perfComparativo['itens']}', 
                     '${perfPrincipal['itens']}',
-                    "${perfComparativo!['itens']! > 0 ? ((perfPrincipal['itens']! - perfComparativo!['itens']!) / perfComparativo!['itens']! * 100).toStringAsFixed(1) : '---'}%"
+                    "${perfComparativo['itens']! > 0 ? ((perfPrincipal['itens']! - perfComparativo['itens']!) / perfComparativo['itens']! * 100).toStringAsFixed(1) : '---'}%"
                   ],
                 ],
           ),
@@ -511,7 +511,7 @@ class ReportRepository {
       ));
 
       final output = await getTemporaryDirectory();
-      final file = File("${output.path}/Relatorio_Metas_${DateTime.now().millisecondsSinceEpoch}.pdf");
+      final file = File("${output.path}/relatorio_${DateTime.now().millisecondsSinceEpoch}.pdf");
       await file.writeAsBytes(await pdf.save());
       await Share.shareXFiles([XFile(file.path)], text: 'Relatório de Metas');
     } catch (e) { messenger?.showSnackBar(SnackBar(content: Text("Erro: $e"), backgroundColor: Colors.red)); }
@@ -569,7 +569,7 @@ class ReportRepository {
       xml.writeln('</PerformanceMetas>');
 
       final output = await getTemporaryDirectory();
-      final file = File("${output.path}/Metas_Excel_${DateTime.now().millisecondsSinceEpoch}.xml");
+      final file = File("${output.path}/relatorio_${DateTime.now().millisecondsSinceEpoch}.xml");
       await file.writeAsString(xml.toString());
       await Share.shareXFiles([XFile(file.path)], text: 'Dados de Metas para Excel');
     } catch (e) { messenger?.showSnackBar(SnackBar(content: Text("Erro: $e"), backgroundColor: Colors.red)); }

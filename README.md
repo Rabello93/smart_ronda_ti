@@ -17,6 +17,12 @@ O app foi desenvolvido para otimizar as rondas técnicas em ambiente corporativo
 
 ## 🚀 Série Histórica (Evolução)
 
+### [3.2.0 Stable] - 2024-06-25
+- **Segurança**: Implementação de autenticação por biometria (Digital/FaceID) para login rápido e seguro.
+- **Relatórios**: Padronização de nomes de arquivos exportados para `relatorio_[timestamp]` em todos os formatos (PDF, CSV, XML).
+- **UI/UX**: Rebranding de títulos internos para um tom mais profissional e executivo (ex: "Histórico de Atividades" em vez de "Quem fez o quê").
+- **Performance**: Otimização global de widgets com `const` e correção de avisos do analisador para maior fluidez do app.
+
 ### [3.1.2 Stable] - 2024-06-25
 - **Geração de Valor**: Implementação de rodapé corporativo automático em todos os PDFs (Nome, CNPJ, Contato e Data/Hora).
 - **Padronização Visual**: Unificação de cabeçalhos com logo dinâmico em todos os relatórios, incluindo o Mapa de Ativos por Setor.
@@ -42,10 +48,6 @@ O app foi desenvolvido para otimizar as rondas técnicas em ambiente corporativo
 - **Central de Relatórios**: Nova página administrativa para geração de relatórios com filtros avançados.
 
 ## 🚀 Roadmap & Future Releases
-- **Autenticação Biométrica (v3.2.0)**: 
-  - Login via Digital/FaceID para agilizar operação em campo.
-  - Fluxo de ativação para usuários antigos via menu de configurações.
-  - Armazenamento seguro de credenciais via `flutter_secure_storage`.
 - **Módulo Intelligence**: Implementação de tendências de falha e previsão de troca de ativos.
 - **Módulo Capex**: Gestão financeira de ativos e planejamento de investimentos.
 - **Auditoria 360**: Expansão dos logs de sistema para um módulo completo de rastreabilidade.

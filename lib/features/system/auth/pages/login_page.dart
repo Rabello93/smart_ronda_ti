@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:local_auth/local_auth.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../controllers/auth_controller.dart';
 
 class LoginPage extends StatefulWidget {
@@ -15,6 +17,58 @@ class _LoginPageState extends State<LoginPage> {
   bool _isLogin = true;
   bool _loading = false;
   final _authController = AuthController();
+  final _localAuth = LocalAuthentication();
+  final _secureStorage = const FlutterSecureStorage();
+  bool _canCheckBiometrics = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkBiometrics();
+  }
+
+  Future<void> _checkBiometrics() async {
+    try {
+      final canCheck = await _localAuth.canCheckBiometrics;
+      final isDeviceSupported = await _localAuth.isDeviceSupported();
+      setState(() {
+        _canCheckBiometrics = canCheck && isDeviceSupported;
+      });
+    } catch (e) {
+      debugPrint("Erro ao verificar biometria: $e");
+    }
+  }
+
+  Future<void> _authenticateWithBiometrics() async {
+    try {
+      final authenticated = await _localAuth.authenticate(
+        localizedReason: 'Autentique-se para entrar no Smart Ronda TI',
+        options: const AuthenticationOptions(
+          stickyAuth: true,
+          biometricOnly: true,
+        ),
+      );
+
+      if (authenticated) {
+        final email = await _secureStorage.read(key: 'user_email');
+        final password = await _secureStorage.read(key: 'user_password');
+
+        if (email != null && password != null) {
+          _emailController.text = email;
+          _passwordController.text = password;
+          _submit();
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Faça login com e-mail e senha primeiro para habilitar a biometria."))
+            );
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint("Erro na autenticação biométrica: $e");
+    }
+  }
 
   @override
   void dispose() {
@@ -38,6 +92,9 @@ class _LoginPageState extends State<LoginPage> {
     try {
       if (_isLogin) {
         await _authController.login(email, password);
+        // Salva as credenciais para futuro login biométrico
+        await _secureStorage.write(key: 'user_email', value: email);
+        await _secureStorage.write(key: 'user_password', value: password);
       } else {
         await _authController.registerSimple(
           email: email,
@@ -80,10 +137,24 @@ class _LoginPageState extends State<LoginPage> {
               const SizedBox(height: 20),
               _loading 
                 ? const CircularProgressIndicator()
-                : ElevatedButton(
-                    onPressed: _submit, 
-                    style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 50)),
-                    child: Text(_isLogin ? "ENTRAR" : "CADASTRAR"),
+                : Column(
+                    children: [
+                      ElevatedButton(
+                        onPressed: _submit, 
+                        style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 50)),
+                        child: Text(_isLogin ? "ENTRAR" : "CADASTRAR"),
+                      ),
+                      if (_isLogin && _canCheckBiometrics) ...[
+                        const SizedBox(height: 16),
+                        IconButton(
+                          iconSize: 50,
+                          icon: const Icon(Icons.fingerprint, color: Colors.blue),
+                          onPressed: _authenticateWithBiometrics,
+                          tooltip: "Login com Biometria",
+                        ),
+                        const Text("Entrar com biometria", style: TextStyle(color: Colors.grey)),
+                      ],
+                    ],
                   ),
               TextButton(
                 onPressed: () => setState(() => _isLogin = !_isLogin), 

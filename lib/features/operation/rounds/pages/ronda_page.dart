@@ -724,7 +724,7 @@ class _RondaPageState extends State<RondaPage> {
             if (setorDivergente) ...[
               const SizedBox(height: 10),
               DropdownButtonFormField<String>(
-                value: setorDivergenteSelecionado,
+                initialValue: setorDivergenteSelecionado,
                 decoration: const InputDecoration(labelText: 'Setor Atual (Onde o item está) *', border: OutlineInputBorder()),
                 items: listaSetores.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
                 onChanged: (v) => setState(() => setorDivergenteSelecionado = v),

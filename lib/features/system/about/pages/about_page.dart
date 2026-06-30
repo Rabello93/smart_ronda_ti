@@ -23,7 +23,7 @@ class AboutPage extends StatelessWidget {
                   Icon(Icons.checklist_rtl, size: 80, color: Colors.blue),
                   SizedBox(height: 10),
                   Text("Smart Ronda TI", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                  Text("Versão 3.1.2", style: TextStyle(color: Colors.grey)),
+                  Text("Versão 3.2.0", style: TextStyle(color: Colors.grey)),
                 ],
               ),
             ),
@@ -36,7 +36,11 @@ class AboutPage extends StatelessWidget {
             const SizedBox(height: 20),
             _sectionTitle("🚀 Log de Atualizações"),
             _buildUpdate(
-              "3.1.2 (Atual)",
+              "3.2.0 (Atual)",
+              "• SEGURANÇA: Implementação de login por biometria (Impressão Digital).\n• RELATÓRIOS: Padronização de nomes de arquivos exportados para 'relatorio_sequencia'.\n• UI/UX: Refatoração de títulos para um tom mais profissional e executivo.\n• PERFORMANCE: Otimização de widgets com 'const' e correção de warnings do analisador.",
+            ),
+            _buildUpdate(
+              "3.1.2",
               "• UI/UX: Nova Sidebar Interativa com controle de expansão manual.\n• RESPONSIVIDADE: Adaptação completa do Dashboard para dispositivos móveis.\n• BRANDING: Logo de 100px no Dashboard com ajuste dinâmico.\n• CORREÇÃO: Resolução de erro de contraste e textos invisíveis no modo claro.",
             ),
             _buildUpdate(

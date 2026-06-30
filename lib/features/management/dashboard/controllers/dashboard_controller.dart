@@ -65,7 +65,6 @@ class DashboardController {
   Map<String, double> getInventoryCoverage(List<AssetModel> allAssets, List<RoundModel> roundsInPeriod) {
     if (allAssets.isEmpty) return {'auditado': 0, 'pendente': 0};
     
-    Set<String> patrimoniosAuditados = {};
     // Idealmente rounds deveria ter uma lista de ids de equipamentos vistos
     // Como simplificação, vamos assumir que itensTotal representa a cobertura
     // Mas para ser real, precisaríamos buscar nos equipamentos das rondas.

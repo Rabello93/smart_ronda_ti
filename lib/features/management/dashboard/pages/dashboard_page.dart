@@ -252,32 +252,9 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _buildTabBar(bool isDark) {
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-        border: Border(bottom: BorderSide(color: isDark ? Colors.white10 : Colors.grey.shade300)),
-      ),
-      child: TabBar(
-        labelColor: Colors.blue,
-        unselectedLabelColor: isDark ? Colors.grey : Colors.grey.shade600,
-        indicatorColor: Colors.blue,
-        indicatorWeight: 3,
-        isScrollable: true,
-        tabs: const [
-          Tab(icon: Icon(Icons.dashboard), text: "Geral"),
-          Tab(icon: Icon(Icons.stars), text: "Metas"),
-          Tab(icon: Icon(Icons.person), text: "Técnicos"),
-          Tab(icon: Icon(Icons.warning_amber), text: "Defeitos"),
-          Tab(icon: Icon(Icons.business), text: "Locação"),
-          Tab(icon: Icon(Icons.analytics), text: "Status"),
-        ],
-      ),
-    );
-  }
 
   Widget _buildFooter(Color textColor) {
-    const String version = '3.1.2';
+    const String version = '3.2.0';
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Center(
@@ -639,7 +616,7 @@ class _DashboardPageState extends State<DashboardPage> {
             Colors.green,
           ),
           const SizedBox(height: 32),
-          const SectionTitle(title: "Quem fez o quê (Recentes)", color: Colors.orange),
+          const SectionTitle(title: "Histórico de Atividades Recentes", color: Colors.orange),
           const SizedBox(height: 16),
           ListView.builder(
             shrinkWrap: true,

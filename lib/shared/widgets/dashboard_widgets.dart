@@ -406,7 +406,6 @@ class ComparisonChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final keys = data.keys.toList();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return SizedBox(
       height: 250,

@@ -116,7 +116,7 @@ class ExportRepository {
 
       String csvData = const ListToCsvConverter(fieldDelimiter: ';').convert(rows);
       final directory = await getTemporaryDirectory();
-      final file = File("${directory.path}/Relatorio_${DateTime.now().millisecondsSinceEpoch}.csv");
+      final file = File("${directory.path}/relatorio_${DateTime.now().millisecondsSinceEpoch}.csv");
       await file.writeAsBytes([0xEF, 0xBB, 0xBF]); // UTF-8 BOM
       await file.writeAsString(csvData);
       await Share.shareXFiles([XFile(file.path)], text: 'Exportação CSV');
