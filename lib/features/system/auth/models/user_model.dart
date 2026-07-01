@@ -59,4 +59,5 @@ class UserModel {
 
   // Atalho para saber se é administrador
   bool get isAdmin => nivelAcesso == 'master' || nivelAcesso == 'gerente';
+  bool get isMaster => nivelAcesso == 'master';
 }

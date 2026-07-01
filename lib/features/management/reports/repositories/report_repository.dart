@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
@@ -6,6 +7,8 @@ import 'package:share_plus/share_plus.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:intl/intl.dart';
 
 class ReportRepository {
   // --- HELPERS ---
@@ -42,7 +45,7 @@ class ReportRepository {
               pw.Text(title.toUpperCase(), style: const pw.TextStyle(fontSize: 10, color: PdfColors.blue900)),
             ]
           ),
-          if (logoImage != null) pw.Image(logoImage, height: 40),
+          if (logoImage != null) pw.Image(logoImage, height: 80),
         ]
       )
     );
@@ -395,39 +398,100 @@ class ReportRepository {
   static Future<void> exportarPropostaComercial(BuildContext context) async {
     try {
       final pdf = pw.Document();
-      final firestore = FirebaseFirestore.instance;
-      DocumentSnapshot configDoc = await firestore.collection('config').doc('empresa').get();
-      Map<String, dynamic> config = configDoc.exists ? (configDoc.data() as Map<String, dynamic>) : {};
-      pw.MemoryImage? logoImage = await _fetchLogo(config);
+      
+      // Carrega a logo do assets
+      final ByteData bytes = await rootBundle.load('assets/logo.png');
+      final Uint8List byteList = bytes.buffer.asUint8List();
+      final logoImage = pw.MemoryImage(byteList);
+
+      final now = DateTime.now();
+      final dateStr = DateFormat('dd/MM/yyyy HH:mm').format(now);
 
       pdf.addPage(pw.Page(
-        build: (pw.Context context) => pw.Stack(
+        pageFormat: PdfPageFormat.a4,
+        build: (pw.Context context) => pw.Column(
           children: [
-            pw.Center(
+            pw.Expanded(
               child: pw.Column(
-                mainAxisSize: pw.MainAxisSize.min,
+                mainAxisAlignment: pw.MainAxisAlignment.center,
                 children: [
-                  if (logoImage != null) pw.Image(logoImage, height: 120),
+                  pw.Image(logoImage, height: 120),
                   pw.SizedBox(height: 30),
-                  pw.Text(config['nome']?.toUpperCase() ?? "RONDA TI", style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
-                  pw.Text("APRESENTAÇÃO COMERCIAL SMART RONDA TI", style: const pw.TextStyle(fontSize: 16, color: PdfColors.blueGrey700)),
+                  pw.Text("Smart Ronda TI", style: pw.TextStyle(fontSize: 28, fontWeight: pw.FontWeight.bold, color: PdfColors.blue900)),
+                  pw.Text("SOLUÇÃO EM GOVERNANÇA E AUDITORIA DE ATIVOS", style: const pw.TextStyle(fontSize: 12, color: PdfColors.blueGrey700)),
+                  pw.SizedBox(height: 50),
+                  pw.Container(
+                    padding: const pw.EdgeInsets.all(20),
+                    decoration: pw.BoxDecoration(
+                      color: PdfColors.grey100,
+                      borderRadius: const pw.BorderRadius.all(pw.Radius.circular(10)),
+                    ),
+                    child: pw.Text(
+                      "O Smart Ronda TI é uma solução definitiva para instituições que buscam excelência na governança de seus ativos tecnológicos. O sistema foi projetado para transformar o processo manual de conferência em uma operação digital inteligente, garantindo transparência, redução de perdas e suporte estratégico para novos investimentos em infraestrutura.",
+                      textAlign: pw.TextAlign.center,
+                      style: const pw.TextStyle(fontSize: 11, lineSpacing: 1.5),
+                    ),
+                  ),
+                  pw.SizedBox(height: 40),
+                  pw.Align(
+                    alignment: pw.Alignment.centerLeft,
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Text("PRINCIPAIS FUNCIONALIDADES:", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 13, color: PdfColors.blue900)),
+                        pw.SizedBox(height: 15),
+                        _bulletPoint("Gestão completa de ativos de TI com Inventário Mestre."),
+                        _bulletPoint("Auditoria de rondas técnicas em campo com sincronização real-time."),
+                        _bulletPoint("Controle rigoroso de equipamentos próprios e locados."),
+                        _bulletPoint("Análise inteligente de obsolescência (+5 anos) e saúde do parque."),
+                        _bulletPoint("Relatórios executivos e operacionais (PDF, CSV, XML)."),
+                        _bulletPoint("Segurança avançada com autenticação biométrica."),
+                      ]
+                    )
+                  ),
                 ]
               )
             ),
-            pw.Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: _buildFooter(config),
+            // Rodapé customizado do desenvolvedor
+            pw.Container(
+              padding: const pw.EdgeInsets.only(top: 10),
+              border: const pw.Border(top: pw.BorderSide(width: 0.5, color: PdfColors.grey300)),
+              child: pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text("Desenvolvedor: Fabio Rabelo", style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                      pw.Text("Contato: fabiorabelosilva93@outlook.com", style: const pw.TextStyle(fontSize: 8)),
+                    ]
+                  ),
+                  pw.Text("Gerado em: $dateStr", style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
+                ]
+              )
             ),
           ]
         )
       ));
+
       final output = await getTemporaryDirectory();
       final file = File("${output.path}/relatorio_${DateTime.now().millisecondsSinceEpoch}.pdf");
       await file.writeAsBytes(await pdf.save());
-      await Share.shareXFiles([XFile(file.path)]);
-    } catch (e) { debugPrint("Erro: $e"); }
+      await Share.shareXFiles([XFile(file.path)], text: 'Apresentação Comercial Smart Ronda TI');
+    } catch (e) { debugPrint("Erro ao gerar proposta: $e"); }
+  }
+
+  static pw.Widget _bulletPoint(String text) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.only(bottom: 5),
+      child: pw.Row(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text("  • ", style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+          pw.Expanded(child: pw.Text(text, style: const pw.TextStyle(fontSize: 10))),
+        ]
+      )
+    );
   }
 
   static Future<void> exportarRelatorioMetas(BuildContext context, {DateTimeRange? periodo, DateTimeRange? periodoComparativo}) async {
