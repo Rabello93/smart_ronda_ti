@@ -183,11 +183,11 @@ class ReportRepository {
             ronda['data_inicio']?.toString().substring(0, 10) ?? '',
             ronda['setor']?.toString().toUpperCase() ?? '',
             equip['tipo'] ?? '',
-            equip['patrimonio'] ?? 'S/P',
+            equip['patrimonio'] ?? (equip['id'] ?? 'S/P'),
             equip['processador'] ?? '---',
             equip['mac_address'] ?? '---',
             isObsoleto ? "SIM ($idade anos)" : 'NÃO',
-            equip['status'] ?? '',
+            equip['status_operacional'] ?? (equip['status'] ?? 'OK'),
           ]);
         }
       }

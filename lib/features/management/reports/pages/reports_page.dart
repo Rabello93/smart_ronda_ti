@@ -187,12 +187,13 @@ class _ReportsPageState extends State<ReportsPage> {
       selected: selected,
       onSelected: onSelected,
       selectedColor: color ?? Colors.indigo,
-      backgroundColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.shade200,
+      backgroundColor: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.grey.shade200,
       checkmarkColor: Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
         side: BorderSide(
-          color: selected ? (color ?? Colors.indigo) : (isDark ? Colors.white24 : Colors.grey.shade400),
+          color: selected ? (color ?? Colors.indigo) : (isDark ? Colors.white38 : Colors.grey.shade400),
+          width: 1,
         ),
       ),
     );
