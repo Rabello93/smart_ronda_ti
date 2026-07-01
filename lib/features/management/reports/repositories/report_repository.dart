@@ -456,7 +456,9 @@ class ReportRepository {
             // Rodapé customizado do desenvolvedor
             pw.Container(
               padding: const pw.EdgeInsets.only(top: 10),
-              border: const pw.Border(top: pw.BorderSide(width: 0.5, color: PdfColors.grey300)),
+              decoration: const pw.BoxDecoration(
+                border: pw.Border(top: pw.BorderSide(width: 0.5, color: PdfColors.grey300)),
+              ),
               child: pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
