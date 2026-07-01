@@ -746,7 +746,10 @@ class _DashboardPageState extends State<DashboardPage> {
           .collection('inventario_mestre')
           .where('is_locado', isEqualTo: true)
           .snapshots()
-          .map((snap) => snap.docs.map((doc) => doc.data()).toList()),
+          .map((snap) => snap.docs.map((doc) {
+                final data = doc.data();
+                return {...data, 'patrimonio': doc.id};
+              }).toList()),
       builder: (context, snapshot) {
         final itens = snapshot.data ?? [];
         if (itens.isEmpty) return const Center(child: Text("Nenhum item locado encontrado."));

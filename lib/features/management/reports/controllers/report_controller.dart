@@ -27,7 +27,11 @@ class ReportController {
       if (apenasHomeOffice) query = query.where('is_home_office', isEqualTo: true);
 
       final snapshot = await query.get();
-      var itens = snapshot.docs.map((d) => d.data() as Map<String, dynamic>).toList();
+      var itens = snapshot.docs.map((d) {
+        final data = d.data() as Map<String, dynamic>;
+        // Garante que o ID do documento (Patrimônio) seja incluído no mapa
+        return {...data, 'patrimonio': d.id};
+      }).toList();
 
       if (apenasObsoletos) {
         final int currentYear = DateTime.now().year;
