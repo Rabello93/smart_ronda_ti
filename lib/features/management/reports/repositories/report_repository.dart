@@ -486,14 +486,27 @@ class ReportRepository {
 
   static pw.Widget _bulletPoint(String text) {
     return pw.Padding(
-      padding: const pw.EdgeInsets.only(bottom: 5),
+      padding: const pw.EdgeInsets.only(bottom: 8),
       child: pw.Row(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          pw.Text("  • ", style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-          pw.Expanded(child: pw.Text(text, style: const pw.TextStyle(fontSize: 10))),
-        ]
-      )
+          pw.Container(
+            margin: const pw.EdgeInsets.only(top: 2, right: 8),
+            width: 6,
+            height: 6,
+            decoration: const pw.BoxDecoration(
+              color: PdfColors.blue700,
+              shape: pw.BoxShape.circle,
+            ),
+          ),
+          pw.Expanded(
+            child: pw.Text(
+              text,
+              style: const pw.TextStyle(fontSize: 10, lineSpacing: 1.2),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

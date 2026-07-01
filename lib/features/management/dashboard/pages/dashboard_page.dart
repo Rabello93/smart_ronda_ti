@@ -368,6 +368,13 @@ class _DashboardPageState extends State<DashboardPage> {
                       icon: Icons.today, 
                       color: Colors.green,
                     ),
+                    const SizedBox(width: 12),
+                    SummaryCard(
+                      title: "Home Office", 
+                      value: allAssets.where((a) => a.isHomeOffice).length.toString(), 
+                      icon: Icons.home_work, 
+                      color: Colors.purple,
+                    ),
                   ],
                 ),
               ),

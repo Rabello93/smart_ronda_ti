@@ -46,9 +46,9 @@ class AboutPage extends StatelessWidget {
                 const SizedBox(height: 20),
                 _sectionTitle("🚀 Log de Atualizações"),
                 _buildUpdate(
-                  "3.2.0 (Atual)",
-                  "• SEGURANÇA: Implementação de login por biometria (Impressão Digital).\n• RELATÓRIOS: Padronização de nomes de arquivos exportados para 'relatorio_sequencia'.\n• UI/UX: Refatoração de títulos para um tom mais profissional e executivo.\n• PERFORMANCE: Otimização de widgets com 'const' e correção de warnings do analisador.",
-                ),
+              "3.2.0 (Atual)",
+              "• SEGURANÇA: Implementação de login por biometria (Impressão Digital).\n• HOME OFFICE: Novo status para notebooks/smartphones externos com rastreio de responsável.\n• INTELIGÊNCIA: Lupa de busca contextual que lista primeiro ativos do setor atual.\n• RELATÓRIOS: Padronização de nomes de arquivos e Proposta Comercial executiva.\n• PERFORMANCE: Otimização global de widgets e correção de warnings.",
+            ),
                 _buildUpdate(
                   "3.1.2",
                   "• UI/UX: Nova Sidebar Interativa com controle de expansão manual.\n• RESPONSIVIDADE: Adaptação completa do Dashboard para dispositivos móveis.\n• BRANDING: Logo de 100px no Dashboard com ajuste dinâmico.\n• CORREÇÃO: Resolução de erro de contraste e textos invisíveis no modo claro.",

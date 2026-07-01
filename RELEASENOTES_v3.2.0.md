@@ -17,6 +17,8 @@ Nesta atualização, focamos em **Segurança**, **Profissionalismo** e **Perform
 ### 📊 Relatórios e Gestão
 *   **Padronização de Arquivos**: Todos os arquivos exportados (PDF, CSV, XML) agora seguem o padrão `relatorio_[timestamp].ext`, removendo sufixos informais e garantindo compatibilidade total com sistemas de arquivos.
 *   **Títulos Executivos**: Alteração de rótulos informais para termos corporativos. Exemplo: "Quem fez o quê" agora é **"Histórico de Atividades Recentes"**.
+*   **Gestão Home Office**: Implementado rastreio de ativos externos (Notebooks/Smartphones) com indicação de responsável.
+*   **Lupa Inteligente**: Busca no inventário agora prioriza automaticamente os itens do setor onde a ronda está sendo realizada.
 
 ### ⚡ Performance e Estabilidade
 *   **Otimização de Memória**: Refatoração profunda utilizando modificadores `const` em widgets estáticos, reduzindo o consumo de CPU e bateria.

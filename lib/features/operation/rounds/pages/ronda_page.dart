@@ -45,6 +45,7 @@ class _RondaPageState extends State<RondaPage> {
   final TextEditingController observacaoController = TextEditingController();
   final TextEditingController descricaoDefeitoController = TextEditingController();
   final TextEditingController motivoDivergenciaController = TextEditingController();
+  final TextEditingController responsavelHomeOfficeController = TextEditingController();
   
   final TextEditingController anoFabricacaoController = TextEditingController();
 
@@ -63,6 +64,7 @@ class _RondaPageState extends State<RondaPage> {
   bool defeito = false;
   bool isLocado = false;
   bool setorDivergente = false;
+  bool isHomeOffice = false;
   String? locadoraSelecionada;
   String? setorDivergenteSelecionado;
   bool houveTroca = false;
@@ -142,6 +144,7 @@ class _RondaPageState extends State<RondaPage> {
     patrimonioAntigoController.dispose();
     patrimonioNovoController.dispose();
     motivoTrocaController.dispose();
+    responsavelHomeOfficeController.dispose();
     super.dispose();
   }
 
@@ -204,6 +207,8 @@ class _RondaPageState extends State<RondaPage> {
         anoFabricacaoController.text = dados.anoFabricacao?.toString() ?? "";
         isLocado = dados.isLocado;
         locadoraSelecionada = dados.locadora;
+        isHomeOffice = dados.isHomeOffice;
+        responsavelHomeOfficeController.text = dados.responsavelExterno ?? "";
       });
     }
   }
@@ -330,31 +335,72 @@ class _RondaPageState extends State<RondaPage> {
               padding: EdgeInsets.all(15.0),
               child: Text("Busca Rápida no Inventário", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
             ),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0),
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: "Digite patrimônio, série ou modelo...",
-                  prefixIcon: Icon(Icons.search),
-                  border: OutlineInputBorder(),
-                ),
-              ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+              child: Text("Exibindo ativos registrados no setor: ${widget.setor}", style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.w600, fontSize: 12)),
             ),
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance.collection('inventario_mestre').limit(50).snapshots(),
+                stream: FirebaseFirestore.instance
+                  .collection('inventario_mestre')
+                  .where('setor', isEqualTo: widget.setor)
+                  .snapshots(),
                 builder: (context, snapshot) {
                   if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
                   final docs = snapshot.data!.docs;
+                  
+                  if (docs.isEmpty) {
+                    return const Center(child: Text("Nenhum item registrado neste setor no Castelo."));
+                  }
+
+                  return ListView.builder(
+                    itemCount: docs.length,
+                    itemBuilder: (context, index) {
+                      final item = docs[index].data() as Map<String, dynamic>;
+                      final pat = docs[index].id;
+                      final isHome = item['is_home_office'] ?? false;
+
+                      return ListTile(
+                        leading: Icon(
+                          isHome ? Icons.home_work : Icons.computer, 
+                          color: isHome ? Colors.orange : Colors.blue
+                        ),
+                        title: Text("Pat: $pat - ${item['tipo']}"),
+                        subtitle: Text("${item['marca'] ?? ''} ${item['modelo'] ?? ''} ${isHome ? '(HOME OFFICE)' : ''}"),
+                        onTap: () {
+                          Navigator.pop(context);
+                          setState(() {
+                            patrimonioController.text = pat;
+                            possuiPatrimonio = !pat.toLowerCase().contains("sem patrimônio");
+                          });
+                          _verificarInventario(pat);
+                        },
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+            const Divider(),
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Text("BUSCA GERAL (OUTROS SETORES)", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
+            ),
+            Expanded(
+              child: StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance.collection('inventario_mestre').limit(20).snapshots(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+                  final docs = snapshot.data!.docs.where((d) => (d.data() as Map)['setor'] != widget.setor).toList();
                   return ListView.builder(
                     itemCount: docs.length,
                     itemBuilder: (context, index) {
                       final item = docs[index].data() as Map<String, dynamic>;
                       final pat = docs[index].id;
                       return ListTile(
-                        leading: const Icon(Icons.computer, color: Colors.blue),
+                        leading: const Icon(Icons.search, color: Colors.grey),
                         title: Text("Pat: $pat - ${item['tipo']}"),
-                        subtitle: Text("${item['marca'] ?? ''} ${item['modelo'] ?? ''} (S/N: ${item['serie'] ?? ''})"),
+                        subtitle: Text("Setor: ${item['setor']}"),
                         onTap: () {
                           Navigator.pop(context);
                           setState(() {
@@ -462,6 +508,8 @@ class _RondaPageState extends State<RondaPage> {
         descricaoDefeito: (defeito || statusOperacional == 'Em manutenção') ? descricaoDefeitoController.text.trim() : null,
         setor: setorDestino,
         status: 'Ativo',
+        isHomeOffice: isHomeOffice,
+        responsavelExterno: isHomeOffice ? responsavelHomeOfficeController.text.trim() : null,
         acessorios: Map<String, bool>.from(acessoriosSelecionados),
       ));
 
@@ -474,11 +522,13 @@ class _RondaPageState extends State<RondaPage> {
       observacaoController.clear();
       descricaoDefeitoController.clear();
       anoFabricacaoController.clear();
+      responsavelHomeOfficeController.clear();
       acessoriosSelecionados.clear();
       defeito = false;
       isLocado = false;
       possuiPatrimonio = true;
       setorDivergente = false;
+      isHomeOffice = false;
       setorDivergenteSelecionado = null;
       locadoraSelecionada = null;
       statusOperacional = 'Em uso';
@@ -718,9 +768,22 @@ class _RondaPageState extends State<RondaPage> {
                 // STATUS FIXOS (AUDITORIA)
                 FilterChip(label: const Text('Defeito'), selected: defeito, selectedColor: Colors.red.withAlpha(80), onSelected: (v) => setState(() => defeito = v)),
                 FilterChip(label: const Text('Locado?'), selected: isLocado, selectedColor: Colors.orange.withAlpha(80), onSelected: (v) => setState(() => isLocado = v)),
+                if (tipoEquipamento == 'Notebook' || tipoEquipamento == 'Smartphone' || tipoEquipamento == 'Tablet')
+                  FilterChip(label: const Text('Home Office?'), selected: isHomeOffice, selectedColor: Colors.blue.withAlpha(80), onSelected: (v) => setState(() => isHomeOffice = v)),
                 FilterChip(label: const Text('Em outro setor?'), selected: setorDivergente, selectedColor: Colors.purple.withAlpha(80), onSelected: (v) => setState(() => setorDivergente = v)),
               ],
             ),
+            if (isHomeOffice) ...[
+              const SizedBox(height: 10),
+              TextField(
+                controller: responsavelHomeOfficeController, 
+                decoration: const InputDecoration(
+                  labelText: 'Responsável pelo Item (Nome Completo) *', 
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.person_pin_outlined)
+                )
+              ),
+            ],
             if (setorDivergente) ...[
               const SizedBox(height: 10),
               DropdownButtonFormField<String>(

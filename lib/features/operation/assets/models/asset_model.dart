@@ -23,6 +23,8 @@ class AssetModel {
   final String status;
   final int? anoFabricacao;
   final int? anoEntradaUnidade;
+  final bool isHomeOffice;
+  final String? responsavelExterno;
   final Map<String, bool> acessorios;
 
   AssetModel({
@@ -48,6 +50,8 @@ class AssetModel {
     this.status = 'Ativo',
     this.anoFabricacao,
     this.anoEntradaUnidade,
+    this.isHomeOffice = false,
+    this.responsavelExterno,
     this.acessorios = const {},
   });
 
@@ -77,6 +81,8 @@ class AssetModel {
       status: map['status'] ?? 'Ativo',
       anoFabricacao: map['ano_fabricacao'],
       anoEntradaUnidade: map['ano_entrada_unidade'],
+      isHomeOffice: map['is_home_office'] ?? false,
+      responsavelExterno: map['responsavel_externo'],
       acessorios: Map<String, bool>.from(map['acessorios'] ?? {}),
     );
   }
@@ -106,6 +112,8 @@ class AssetModel {
       'status': status,
       'ano_fabricacao': anoFabricacao,
       'ano_entrada_unidade': anoEntradaUnidade,
+      'is_home_office': isHomeOffice,
+      'responsavel_externo': responsavelExterno,
       'acessorios': acessorios,
     };
   }
