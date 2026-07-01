@@ -287,7 +287,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
 
   Widget _buildFooter(Color textColor) {
-    const String version = '3.2.0';
+    const String version = '3.2.1';
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Center(

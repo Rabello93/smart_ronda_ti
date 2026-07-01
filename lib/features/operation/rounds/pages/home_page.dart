@@ -4,7 +4,6 @@ import 'package:smart_ronda_ti/app/app.dart';
 import 'package:smart_ronda_ti/core/utils/utils.dart';
 import 'package:smart_ronda_ti/features/management/dashboard/pages/dashboard_page.dart';
 import 'package:smart_ronda_ti/features/system/auth/controllers/auth_controller.dart';
-import 'package:smart_ronda_ti/features/operation/rounds/controllers/round_controller.dart';
 import 'package:smart_ronda_ti/features/operation/rounds/pages/ronda_page.dart';
 import 'package:smart_ronda_ti/features/operation/rounds/pages/history/history_page.dart';
 import 'package:smart_ronda_ti/features/system/about/pages/about_page.dart';
@@ -145,10 +144,10 @@ class _HomePageState extends State<HomePage> {
               if (isAdmin) const BottomNavigationBarItem(icon: Icon(Icons.admin_panel_settings), label: "Admin"),
             ],
           ),
-          persistentFooterButtons: const [
+          persistentFooterButtons: [
             const Center(
               child: Text(
-                "Smart Ronda TI - v3.2.0",
+                "Smart Ronda TI - v3.2.1",
                 style: TextStyle(fontSize: 10, color: Colors.grey),
               ),
             ),

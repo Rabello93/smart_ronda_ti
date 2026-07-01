@@ -89,6 +89,7 @@ class AssetModel {
 
   Map<String, dynamic> toMap() {
     return {
+      'patrimonio': patrimonio,
       'tipo': tipo,
       'marca': marca,
       'modelo': modelo,

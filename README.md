@@ -17,6 +17,12 @@ O app foi desenvolvido para otimizar as rondas técnicas em ambiente corporativo
 
 ## 🚀 Série Histórica (Evolução)
 
+### [3.2.1 Stable] - 2024-06-25
+- **Correção Crítica**: Garantida a exibição do número de patrimônio no Relatório Técnico de Rondas.
+- **Inteligência de BI**: Subtítulos dos relatórios agora são dinâmicos e descrevem exatamente os filtros aplicados.
+- **UI/UX**: Refinamento visual dos botões de filtro na Central de Relatórios para garantir 100% de visibilidade no Modo Escuro.
+- **Persistência**: Ajuste no mapeamento de dados para garantir que o patrimônio seja salvo como campo interno em todas as subcoleções.
+
 ### [3.2.0 Stable] - 2024-06-25
 - **Segurança**: Autenticação biométrica e alertas em tempo real de novos cadastros para Master/Gerente.
 - **Relatórios**: Nova Central de Relatórios integrada à aba Admin e padronização de arquivos para `relatorio_[timestamp]`.

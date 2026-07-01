@@ -177,12 +177,24 @@ class _ReportsPageState extends State<ReportsPage> {
   }
 
   Widget _filterChip(String label, bool selected, Function(bool) onSelected, {Color? color}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return FilterChip(
-      label: Text(label, style: TextStyle(fontSize: 11, color: selected ? Colors.white : Colors.black87)),
+      label: Text(label, style: TextStyle(
+        fontSize: 11, 
+        color: selected ? Colors.white : (isDark ? Colors.white70 : Colors.black87),
+        fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+      )),
       selected: selected,
       onSelected: onSelected,
       selectedColor: color ?? Colors.indigo,
+      backgroundColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.shade200,
       checkmarkColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: BorderSide(
+          color: selected ? (color ?? Colors.indigo) : (isDark ? Colors.white24 : Colors.grey.shade400),
+        ),
+      ),
     );
   }
 

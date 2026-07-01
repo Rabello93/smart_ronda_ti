@@ -29,7 +29,6 @@ class ReportController {
       final snapshot = await query.get();
       var itens = snapshot.docs.map((d) {
         final data = d.data() as Map<String, dynamic>;
-        // Garante que o ID do documento (Patrimônio) seja incluído no mapa
         return {...data, 'patrimonio': d.id};
       }).toList();
 
@@ -50,12 +49,29 @@ class ReportController {
         return;
       }
 
+      // Construção do Título Dinâmico
+      String titulo = "Relatório de Inventário";
+      List<String> filtros = [];
+      if (setor != null) filtros.add(setor.toUpperCase());
+      if (apenasObsoletos) filtros.add("OBSOLETOS");
+      if (apenasDefeitos) filtros.add("COM DEFEITO");
+      if (emManutencao) filtros.add("EM MANUTENÇÃO");
+      if (emDivergencia) filtros.add("DIVERGENTES");
+      if (reservados) filtros.add("RESERVADOS");
+      if (apenasHomeOffice) filtros.add("HOME OFFICE");
+
+      if (filtros.isEmpty) {
+        titulo += " Geral";
+      } else {
+        titulo += ": ${filtros.join(' - ')}";
+      }
+
       if (context.mounted) {
         if (formato == 'PDF') {
           await ReportRepository.exportarLocacaoParaPDF(
             context, 
             itens, 
-            apenasHomeOffice ? "Relatório de Home Office" : "Relatório de Inventário Filtrado"
+            titulo
           );
         } else {
           await ReportRepository.exportarMapaAtivosSetorXML(
