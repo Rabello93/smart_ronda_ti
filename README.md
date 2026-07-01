@@ -18,10 +18,11 @@ O app foi desenvolvido para otimizar as rondas técnicas em ambiente corporativo
 ## 🚀 Série Histórica (Evolução)
 
 ### [3.2.0 Stable] - 2024-06-25
-- **Segurança**: Implementação de autenticação por biometria (Digital/FaceID) para login rápido e seguro.
-- **Relatórios**: Padronização de nomes de arquivos exportados para `relatorio_[timestamp]` em todos os formatos (PDF, CSV, XML).
-- **UI/UX**: Rebranding de títulos internos para um tom mais profissional e executivo (ex: "Histórico de Atividades" em vez de "Quem fez o quê").
-- **Performance**: Otimização global de widgets com `const` e correção de avisos do analisador para maior fluidez do app.
+- **Segurança**: Autenticação biométrica e alertas em tempo real de novos cadastros para Master/Gerente.
+- **Relatórios**: Nova Central de Relatórios integrada à aba Admin e padronização de arquivos para `relatorio_[timestamp]`.
+- **Home Office**: Status dedicado para rastreio de notebooks externos com indicação de responsável legal.
+- **Inteligência**: Lupa de busca contextual que lista primeiro ativos do setor atual na ronda técnica.
+- **Performance**: Otimização global de widgets com `const` e correção dewarnings do analisador.
 
 ### [3.1.2 Stable] - 2024-06-25
 - **Geração de Valor**: Implementação de rodapé corporativo automático em todos os PDFs (Nome, CNPJ, Contato e Data/Hora).

@@ -857,6 +857,21 @@ class _DashboardPageState extends State<DashboardPage> {
           
           const SizedBox(height: 12),
           StreamBuilder<List<AssetModel>>(
+            stream: _assetController.getHomeOfficeStream(),
+            builder: (context, snapshot) {
+              final count = snapshot.data?.length ?? 0;
+              return StatusIndicatorCard(
+                title: "EM HOME OFFICE", 
+                count: count.toString(), 
+                icon: Icons.home_work_outlined, 
+                color: Colors.blue, 
+                onTap: () => _showItensList(context, "Ativos em Home Office", snapshot.data ?? []),
+              );
+            }
+          ),
+          
+          const SizedBox(height: 12),
+          StreamBuilder<List<AssetModel>>(
             stream: _assetController.getDivergenceStream(),
             builder: (context, snapshot) {
               final count = snapshot.data?.length ?? 0;
@@ -937,6 +952,9 @@ class _DashboardPageState extends State<DashboardPage> {
                   }
                   if (item.statusOperacional == 'Em manutenção') {
                     subtitulo += "\nDefeito: ${item.descricaoDefeito ?? 'Não inf.'}";
+                  }
+                  if (item.isHomeOffice) {
+                    subtitulo += "\nResponsável: ${item.responsavelExterno ?? 'Não inf.'}";
                   }
 
                   return Card(

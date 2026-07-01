@@ -57,7 +57,7 @@ class _AdminPageState extends State<AdminPage> {
         final bool isMaster = userData.nivelAcesso == 'master';
 
         return DefaultTabController(
-          length: 6,
+          length: 7,
           child: Scaffold(
             appBar: AppBar(
               title: const Text("Administração Corporativa"),
@@ -69,6 +69,7 @@ class _AdminPageState extends State<AdminPage> {
                   Tab(icon: Icon(Icons.people), text: "Equipe"),
                   Tab(icon: Icon(Icons.castle), text: "O Castelo"),
                   Tab(icon: Icon(Icons.location_on), text: "Setores"),
+                  Tab(icon: Icon(Icons.description), text: "Relatórios"),
                   Tab(icon: Icon(Icons.stars), text: "Metas"),
                   Tab(icon: Icon(Icons.business), text: "Empresa"),
                   Tab(icon: Icon(Icons.swap_horiz), text: "Locadoras"),
@@ -85,11 +86,6 @@ class _AdminPageState extends State<AdminPage> {
                     tooltip: "Resetar Inventário Mestre",
                   ),
                 IconButton(
-                  icon: const Icon(Icons.description, color: Colors.white),
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ReportsPage())),
-                  tooltip: "Central de Relatórios",
-                ),
-                IconButton(
                   icon: const Icon(Icons.receipt_long),
                   onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LogPage())),
                   tooltip: "Ver Logs",
@@ -101,6 +97,7 @@ class _AdminPageState extends State<AdminPage> {
                 _EquipeTab(),
                 _CasteloTab(),
                 _SetoresTab(),
+                ReportsPage(embed: true),
                 _MetasAdminTab(),
                 _EmpresaTab(),
                 _LocadorasTab(),
@@ -727,9 +724,6 @@ class _MetasAdminTabState extends State<_MetasAdminTab> {
   final TextEditingController rondasController = TextEditingController();
   final TextEditingController itensController = TextEditingController();
   
-  DateTimeRange? _periodoPrincipal;
-  DateTimeRange? _periodoComparativo;
-
   @override
   void initState() {
     super.initState();
@@ -785,71 +779,8 @@ class _MetasAdminTabState extends State<_MetasAdminTab> {
               label: const Text("ATUALIZAR DIRETRIZES"),
             ),
           ),
-          const SizedBox(height: 40),
-          const Divider(),
           const SizedBox(height: 20),
-          const Text("Central de Relatórios de Performance", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 16),
-          
-          // Seletor de Período Principal
-          ListTile(
-            tileColor: Colors.blue.withValues(alpha: 0.05),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            leading: const Icon(Icons.date_range, color: Colors.blue),
-            title: const Text("Período Principal"),
-            subtitle: Text(_periodoPrincipal == null ? "Selecione o mês/período" : "${_periodoPrincipal!.start.day}/${_periodoPrincipal!.start.month} até ${_periodoPrincipal!.end.day}/${_periodoPrincipal!.end.month}"),
-            onTap: () async {
-              final picked = await showDateRangePicker(context: context, firstDate: DateTime(2023), lastDate: DateTime.now());
-              if (picked != null) setState(() => _periodoPrincipal = picked);
-            },
-          ),
-          const SizedBox(height: 8),
-          
-          // Seletor de Período Comparativo
-          ListTile(
-            tileColor: Colors.purple.withValues(alpha: 0.05),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            leading: const Icon(Icons.compare_arrows, color: Colors.purple),
-            title: const Text("Período Comparativo (Opcional)"),
-            subtitle: Text(_periodoComparativo == null ? "Toque para comparar com outro mês" : "${_periodoComparativo!.start.day}/${_periodoComparativo!.start.month} até ${_periodoComparativo!.end.day}/${_periodoComparativo!.end.month}"),
-            onTap: () async {
-              final picked = await showDateRangePicker(context: context, firstDate: DateTime(2023), lastDate: DateTime.now());
-              if (picked != null) setState(() => _periodoComparativo = picked);
-            },
-            trailing: _periodoComparativo != null ? IconButton(icon: const Icon(Icons.clear), onPressed: () => setState(() => _periodoComparativo = null)) : null,
-          ),
-          
-          const SizedBox(height: 24),
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () => ReportRepository.exportarRelatorioMetas(
-                    context, 
-                    periodo: _periodoPrincipal,
-                    periodoComparativo: _periodoComparativo
-                  ),
-                  icon: const Icon(Icons.picture_as_pdf),
-                  label: const Text("GERAR PDF"),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade900, foregroundColor: Colors.white),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () => ReportRepository.exportarRelatorioMetasXML(
-                    context,
-                    periodo: _periodoPrincipal
-                  ),
-                  icon: const Icon(Icons.code),
-                  label: const Text("EXCEL (XML)"),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green.shade900, foregroundColor: Colors.white),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          const Center(child: Text("ℹ️ Relatórios comparativos ajudam a medir o crescimento da equipe.", style: TextStyle(fontSize: 10, color: Colors.grey))),
+          const Center(child: Text("ℹ️ As metas configuradas aqui impactam diretamente os gráficos do Dashboard.", style: TextStyle(fontSize: 10, color: Colors.grey))),
         ],
       ),
     );

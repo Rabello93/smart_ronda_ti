@@ -77,6 +77,13 @@ class AssetRepository {
         .map((snap) => snap.docs.map((doc) => AssetModel.fromMap(doc.data(), doc.id)).toList());
   }
 
+  Stream<List<AssetModel>> getAssetsByHomeOffice() {
+    return _firestore.collection('inventario_mestre')
+        .where('is_home_office', isEqualTo: true)
+        .snapshots()
+        .map((snap) => snap.docs.map((doc) => AssetModel.fromMap(doc.data(), doc.id)).toList());
+  }
+
   Stream<List<AssetModel>> getAllAssetsStream() {
     return _firestore.collection('inventario_mestre')
         .snapshots()

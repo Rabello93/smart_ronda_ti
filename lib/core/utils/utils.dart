@@ -2,6 +2,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class NotificationService {
   static final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
@@ -31,8 +33,8 @@ class NotificationService {
     );
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      String? token = await messaging.getToken();
-      debugPrint("FCM Token: $token");
+      // Salva o token do dispositivo para o usuário logado
+      _saveDeviceToken();
 
       const AndroidNotificationChannel channel = AndroidNotificationChannel(
         'high_importance_channel', 
@@ -67,6 +69,23 @@ class NotificationService {
           );
         }
       });
+    }
+  }
+
+  static Future<void> _saveDeviceToken() async {
+    try {
+      String? token = await FirebaseMessaging.instance.getToken();
+      String? uid = FirebaseAuth.instance.currentUser?.uid;
+
+      if (token != null && uid != null) {
+        await FirebaseFirestore.instance.collection('tecnicos').doc(uid).set({
+          'fcm_token': token,
+          'ultima_interacao': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+        debugPrint("FCM Token salvo com sucesso.");
+      }
+    } catch (e) {
+      debugPrint("Erro ao salvar FCM Token: $e");
     }
   }
 

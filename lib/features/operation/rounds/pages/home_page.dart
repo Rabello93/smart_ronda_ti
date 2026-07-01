@@ -1,13 +1,17 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:smart_ronda_ti/app/app.dart';
+import 'package:smart_ronda_ti/core/utils/utils.dart';
 import 'package:smart_ronda_ti/features/management/dashboard/pages/dashboard_page.dart';
 import 'package:smart_ronda_ti/features/system/auth/controllers/auth_controller.dart';
+import 'package:smart_ronda_ti/features/operation/rounds/controllers/round_controller.dart';
 import 'package:smart_ronda_ti/features/operation/rounds/pages/ronda_page.dart';
 import 'package:smart_ronda_ti/features/operation/rounds/pages/history/history_page.dart';
 import 'package:smart_ronda_ti/features/system/about/pages/about_page.dart';
 import 'package:smart_ronda_ti/features/management/admin/pages/admin_page.dart';
 import 'package:smart_ronda_ti/features/management/admin/controllers/admin_controller.dart';
 import 'package:smart_ronda_ti/features/system/auth/models/user_model.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -20,6 +24,43 @@ class _HomePageState extends State<HomePage> {
   final AuthController _authController = AuthController();
   final AdminController _adminController = AdminController();
   int _selectedIndex = 0;
+  StreamSubscription? _userSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _setupNotificationListener();
+  }
+
+  @override
+  void dispose() {
+    _userSubscription?.cancel();
+    super.dispose();
+  }
+
+  void _setupNotificationListener() {
+    // Monitora novos cadastros pendentes para notificar Master/Gerente (em foreground)
+    _authController.profileStream.listen((user) {
+      if (user != null && (user.isAdmin)) {
+        _userSubscription?.cancel();
+        _userSubscription = FirebaseFirestore.instance
+            .collection('tecnicos')
+            .where('ativo', isEqualTo: false)
+            .snapshots()
+            .listen((snapshot) {
+          for (var change in snapshot.docChanges) {
+            if (change.type == DocumentChangeType.added) {
+              final data = change.doc.data() as Map<String, dynamic>;
+              NotificationService.showLocalNotification(
+                title: "🆕 Novo Cadastro Pendente",
+                body: "O usuário ${data['nome'] ?? 'Desconhecido'} acabou de se registrar e aguarda aprovação.",
+              );
+            }
+          }
+        });
+      }
+    });
+  }
 
   void _iniciarRonda(UserModel user) {
     showDialog(

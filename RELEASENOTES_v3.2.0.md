@@ -12,12 +12,14 @@ Nesta atualização, focamos em **Segurança**, **Profissionalismo** e **Perform
 
 ### 🛡️ Segurança e Acesso
 *   **Autenticação Biométrica**: Adicionada compatibilidade com Impressão Digital e FaceID. Agora o técnico pode entrar no sistema instantaneamente após o primeiro login.
+*   **Alertas de Cadastro**: Gestores (Master/Gerente) recebem notificações em tempo real no app quando um novo usuário se cadastra e aguarda aprovação.
 *   **Armazenamento Seguro**: As credenciais são criptografadas e armazenadas localmente usando `FlutterSecureStorage` (AES/RSA).
 
 ### 📊 Relatórios e Gestão
-*   **Padronização de Arquivos**: Todos os arquivos exportados (PDF, CSV, XML) agora seguem o padrão `relatorio_[timestamp].ext`, removendo sufixos informais e garantindo compatibilidade total com sistemas de arquivos.
+*   **Central de Relatórios Unificada**: Nova seção dentro da aba Admin que centraliza todos os relatórios de Inventário e Performance em um único lugar.
+*   **Padronização de Arquivos**: Todos os arquivos exportados (PDF, CSV, XML) agora seguem o padrão `relatorio_[timestamp].ext`, garantindo compatibilidade total.
 *   **Títulos Executivos**: Alteração de rótulos informais para termos corporativos. Exemplo: "Quem fez o quê" agora é **"Histórico de Atividades Recentes"**.
-*   **Gestão Home Office**: Implementado rastreio de ativos externos (Notebooks/Smartphones) com indicação de responsável.
+*   **Gestão Home Office**: Implementado rastreio de ativos externos com indicação de responsável e filtro dedicado na central de relatórios.
 *   **Lupa Inteligente**: Busca no inventário agora prioriza automaticamente os itens do setor onde a ronda está sendo realizada.
 
 ### ⚡ Performance e Estabilidade

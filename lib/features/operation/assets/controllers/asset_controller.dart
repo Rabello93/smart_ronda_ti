@@ -30,5 +30,6 @@ class AssetController {
   Stream<List<AssetModel>> getDivergenceStream() => _repository.getAssetsWithDivergence();
   Stream<List<AssetModel>> getDefectsStream() => _repository.getAssetsWithDefects();
   Stream<List<AssetModel>> getObsoleteStream() => _repository.getObsoleteAssets();
+  Stream<List<AssetModel>> getHomeOfficeStream() => _repository.getAssetsByHomeOffice();
   Stream<List<AssetModel>> getAllAssetsStream() => _repository.getAllAssetsStream();
 }
