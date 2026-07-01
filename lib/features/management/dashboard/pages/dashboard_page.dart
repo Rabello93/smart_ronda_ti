@@ -11,6 +11,7 @@ import 'package:smart_ronda_ti/shared/widgets/dashboard_widgets.dart';
 import 'package:smart_ronda_ti/features/operation/rounds/models/round_model.dart';
 import 'package:smart_ronda_ti/features/operation/assets/models/asset_model.dart';
 import 'package:smart_ronda_ti/features/system/auth/models/user_model.dart';
+import 'package:smart_ronda_ti/features/system/about/pages/about_page.dart';
 
 class DashboardPage extends StatefulWidget {
   final ThemeMode themeMode;
@@ -83,6 +84,17 @@ class _DashboardPageState extends State<DashboardPage> {
               _buildDrawerItem(3, Icons.warning_amber, "Defeitos", isDark),
               _buildDrawerItem(4, Icons.business, "Locação", isDark),
               _buildDrawerItem(5, Icons.analytics, "Status", isDark),
+              const Spacer(),
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.info_outline),
+                title: const Text("Sobre o Sistema"),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutPage()));
+                },
+              ),
+              const SizedBox(height: 10),
             ],
           ),
         ),
@@ -162,6 +174,27 @@ class _DashboardPageState extends State<DashboardPage> {
         NavigationRailDestination(icon: Icon(Icons.business), label: Text("Locação")),
         NavigationRailDestination(icon: Icon(Icons.analytics), label: Text("Status")),
       ],
+      trailing: Expanded(
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 20),
+            child: _isRailExpanded 
+              ? TextButton.icon(
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutPage())),
+                  icon: const Icon(Icons.info_outline),
+                  label: const Text("Sobre o Sistema"),
+                  style: TextButton.styleFrom(foregroundColor: isDark ? Colors.white70 : Colors.grey.shade700),
+                )
+              : IconButton(
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutPage())),
+                  icon: const Icon(Icons.info_outline),
+                  tooltip: "Sobre o Sistema",
+                  color: isDark ? Colors.white70 : Colors.grey.shade700,
+                ),
+          ),
+        ),
+      ),
     );
   }
 

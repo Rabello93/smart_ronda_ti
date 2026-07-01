@@ -446,6 +446,7 @@ class ReportRepository {
                         _bulletPoint("Análise inteligente de obsolescência (+5 anos) e saúde do parque."),
                         _bulletPoint("Relatórios executivos e operacionais (PDF, CSV, XML)."),
                         _bulletPoint("Segurança avançada com autenticação biométrica."),
+                        _bulletPoint("Níveis de Acesso: Master, Gerente e Espectador (Acesso exclusivo ao Dashboard)."),
                       ]
                     )
                   ),
