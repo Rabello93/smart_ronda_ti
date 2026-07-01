@@ -57,7 +57,7 @@ class AssetModel {
 
   factory AssetModel.fromMap(Map<String, dynamic> map, String id) {
     return AssetModel(
-      patrimonio: id,
+      patrimonio: map['patrimonio'] ?? id,
       tipo: map['tipo'] ?? 'Outro',
       marca: map['marca'] ?? '',
       modelo: map['modelo'] ?? '',

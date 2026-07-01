@@ -30,35 +30,27 @@ class ReportController {
         return {...data, 'patrimonio': d.id};
       }).toList();
 
-      // Filtra em memória para permitir combinações complexas sem necessidade de múltiplos índices compostos
-      if (apenasDefeitos) {
-        itens = itens.where((i) => i['tem_defeito'] == true).toList();
-      }
-      
-      // Se selecionou Manutenção OU Reservados, ele quer ambos (Lógica OR para status)
-      if (emManutencao || reservados) {
+      // Lógica de Filtros Combinados (União de Condições)
+      final bool temFiltroCondicao = apenasDefeitos || apenasObsoletos || emManutencao || emDivergencia || reservados || apenasHomeOffice;
+
+      if (temFiltroCondicao) {
         itens = itens.where((i) {
+          bool condicaoMatch = false;
+          
+          if (apenasDefeitos && i['tem_defeito'] == true) condicaoMatch = true;
+          
+          if (apenasObsoletos) {
+            int? ano = i['ano_fabricacao'];
+            if (ano != null && (DateTime.now().year - ano >= 5)) condicaoMatch = true;
+          }
+          
           final status = i['status_operacional'];
-          bool match = false;
-          if (emManutencao && status == 'Em manutenção') match = true;
-          if (reservados && status == 'Reservado') match = true;
-          return match;
-        }).toList();
-      }
-
-      if (emDivergencia) {
-        itens = itens.where((i) => i['setor_divergente'] == true).toList();
-      }
-
-      if (apenasHomeOffice) {
-        itens = itens.where((i) => i['is_home_office'] == true).toList();
-      }
-
-      if (apenasObsoletos) {
-        final int currentYear = DateTime.now().year;
-        itens = itens.where((i) {
-          int? ano = i['ano_fabricacao'];
-          return ano != null && (currentYear - ano >= 5);
+          if (emManutencao && status == 'Em manutenção') condicaoMatch = true;
+          if (reservados && status == 'Reservado') condicaoMatch = true;
+          if (emDivergencia && i['setor_divergente'] == true) condicaoMatch = true;
+          if (apenasHomeOffice && i['is_home_office'] == true) condicaoMatch = true;
+          
+          return condicaoMatch;
         }).toList();
       }
 

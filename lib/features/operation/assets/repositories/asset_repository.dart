@@ -41,6 +41,15 @@ class AssetRepository {
     });
   }
 
+  Future<void> resetInventory() async {
+    final QuerySnapshot snapshot = await _firestore.collection('inventario_mestre').get();
+    final WriteBatch batch = _firestore.batch();
+    for (var doc in snapshot.docs) {
+      batch.delete(doc.reference);
+    }
+    await batch.commit();
+  }
+
   Stream<List<AssetModel>> getAssetsByMaintenance() {
     return _firestore.collection('inventario_mestre')
         .where('status_operacional', isEqualTo: 'Em manutenção')

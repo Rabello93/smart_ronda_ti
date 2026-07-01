@@ -25,6 +25,8 @@ class AssetController {
     });
   }
 
+  Future<void> resetAllAssets() => _repository.resetInventory();
+
   Stream<List<AssetModel>> getMaintenanceStream() => _repository.getAssetsByMaintenance();
   Stream<List<AssetModel>> getSectorStream(String sector) => _repository.getAssetsBySector(sector);
   Stream<List<AssetModel>> getDivergenceStream() => _repository.getAssetsWithDivergence();

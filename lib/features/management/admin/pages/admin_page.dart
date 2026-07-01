@@ -32,12 +32,29 @@ class _AdminPageState extends State<AdminPage> {
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("CANCELAR")),
           ElevatedButton(
             onPressed: () async {
-              // Note: resetarInventarioMestre was removed or moved. 
-              // Assuming for now it's not available or we need to implement it.
-              // For now, I'll comment it out or leave as is if I find where it went.
-              // Actually, AssetRepository doesn't have it yet.
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Função de reset em manutenção.")));
-              Navigator.pop(ctx);
+              final AssetController controller = AssetController();
+              final AdminController adminController = AdminController();
+              
+              try {
+                await controller.resetAllAssets();
+                await adminController.registerLog(
+                  action: "RESET CASTELO", 
+                  details: "O usuário realizou a limpeza total do Inventário Mestre."
+                );
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("✅ Inventário Mestre resetado com sucesso!"), backgroundColor: Colors.green)
+                  );
+                  Navigator.pop(ctx);
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("❌ Erro ao resetar: $e"), backgroundColor: Colors.red)
+                  );
+                  Navigator.pop(ctx);
+                }
+              }
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.orange.shade900, foregroundColor: Colors.white),
             child: const Text("CONFIRMAR RESET"),
