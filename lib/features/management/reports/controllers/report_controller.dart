@@ -8,29 +8,44 @@ class ReportController {
   Future<void> gerarRelatorioInventario({
     required BuildContext context,
     String? setor,
+    String? locadora,
+    String? tipo,
     bool apenasDefeitos = false,
     bool apenasObsoletos = false,
     bool emManutencao = false,
     bool emDivergencia = false,
     bool reservados = false,
     bool apenasHomeOffice = false,
+    bool apenasLocados = false,
+    bool apenasSemPatrimonio = false,
     required String formato,
   }) async {
     try {
       Query query = _firestore.collection('inventario_mestre');
 
-      // Aplica filtro de setor na query se selecionado
-      if (setor != null) {
-        query = query.where('setor', isEqualTo: setor);
-      }
-
+      if (setor != null) query = query.where('setor', isEqualTo: setor);
+      
       final snapshot = await query.get();
       var itens = snapshot.docs.map((d) {
         final data = d.data() as Map<String, dynamic>;
         return {...data, 'patrimonio': d.id};
       }).toList();
 
-      // Lógica de Filtros Combinados (União de Condições)
+      if (apenasLocados) {
+        itens = itens.where((i) => i['is_locado'] == true).toList();
+        if (locadora != null) {
+          itens = itens.where((i) => i['locadora'] == locadora).toList();
+        }
+      }
+
+      if (apenasSemPatrimonio) {
+        itens = itens.where((i) => i['sem_patrimonio'] == true || i['patrimonio'].toString().startsWith("SP_")).toList();
+      }
+
+      if (tipo != null) {
+        itens = itens.where((i) => i['tipo'] == tipo).toList();
+      }
+
       final bool temFiltroCondicao = apenasDefeitos || apenasObsoletos || emManutencao || emDivergencia || reservados || apenasHomeOffice;
 
       if (temFiltroCondicao) {
@@ -73,6 +88,7 @@ class ReportController {
       if (emDivergencia) tags.add("DIVERGENTES");
       if (reservados) tags.add("RESERVADOS");
       if (apenasHomeOffice) tags.add("HOME OFFICE");
+      if (apenasSemPatrimonio) tags.add("SEM PATRIMÔNIO");
 
       if (tags.isEmpty) {
         titulo += " Geral";

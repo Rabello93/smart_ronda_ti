@@ -17,6 +17,12 @@ O app foi desenvolvido para otimizar as rondas técnicas em ambiente corporativo
 
 ## 🚀 Série Histórica (Evolução)
 
+### [3.2.2 Stable] - 2024-06-25
+- **Inteligência de Auditoria**: Lógica de união de filtros (OU) implementada para relatórios complexos.
+- **Limpeza do Castelo**: Reativação segura da ferramenta de reset total do banco de dados para o nível Master.
+- **Conversão de Ativos**: Fluxo automático de transformação de itens "Sem Placa" em ativos patrimoniados via busca contextual.
+- **Relatórios**: Inclusão de filtro exclusivo para itens sem patrimônio e correção de exibição de status real.
+
 ### [3.2.1 Stable] - 2024-06-25
 - **Correção Crítica**: Garantida a exibição do número de patrimônio no Relatório Técnico de Rondas.
 - **Inteligência de BI**: Subtítulos dos relatórios agora são dinâmicos e descrevem exatamente os filtros aplicados.

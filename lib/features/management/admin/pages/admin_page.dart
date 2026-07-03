@@ -573,11 +573,16 @@ class _CasteloTabState extends State<_CasteloTab> {
                 itemCount: filteredItens.length,
                 itemBuilder: (context, index) {
                   final i = filteredItens[index];
+                  final displayPat = i.patrimonio.startsWith("SP_") ? "SEM PLACA" : i.patrimonio;
+
                   return Card(
                     margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                     child: ListTile(
-                      leading: const Icon(Icons.computer, color: Colors.blue),
-                      title: Text("${i.tipo} - ${i.patrimonio}"),
+                      leading: Icon(
+                        i.patrimonio.startsWith("SP_") ? Icons.no_photography_outlined : Icons.computer, 
+                        color: i.patrimonio.startsWith("SP_") ? Colors.orange : Colors.blue
+                      ),
+                      title: Text("${i.tipo} - $displayPat"),
                       subtitle: Text("Setor: ${i.setor}\nCPU: ${i.processador ?? '---'}"),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,

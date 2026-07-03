@@ -67,6 +67,7 @@ class _RondaPageState extends State<RondaPage> {
   bool isHomeOffice = false;
   String? locadoraSelecionada;
   String? setorDivergenteSelecionado;
+  String? _patrimonioOriginal; // Rastreia o ID original vindo da lupa
   bool houveTroca = false;
   bool buscandoInventario = false;
   UserModel? _usuarioLogado;
@@ -185,13 +186,49 @@ class _RondaPageState extends State<RondaPage> {
 
       if (dados.setor != widget.setor) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("Atenção: Item pertence ao setor ${dados.setor}. Ao salvar, ele será transferido para ${widget.setor}."),
-              backgroundColor: Colors.orange.shade900,
-              duration: const Duration(seconds: 5),
-              behavior: SnackBarBehavior.floating,
-              action: SnackBarAction(label: 'X', textColor: Colors.white, onPressed: () => ScaffoldMessenger.of(context).hideCurrentSnackBar()),
+          showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text("📍 Transferência de Setor"),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text("Este item está registrado no setor:"),
+                  Text(dados.setor, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.blue)),
+                  const SizedBox(height: 15),
+                  const Text("Deseja confirmar a transferência para:"),
+                  Text(widget.setor, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.green)),
+                  if (dados.statusOperacional == 'Em manutenção') ...[
+                    const SizedBox(height: 15),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      color: Colors.orange,
+                      child: const Text("⚡ ITEM VINDO DA MANUTENÇÃO", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    patrimonioController.clear();
+                    // Limpa os campos se o usuário não confirmar
+                    setState(() {
+                      marcaController.clear();
+                      modeloController.clear();
+                      serieController.clear();
+                    });
+                  },
+                  child: const Text("CANCELAR"),
+                ),
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blue.shade900, foregroundColor: Colors.white),
+                  child: const Text("CONFIRMAR TRANSFERÊNCIA"),
+                ),
+              ],
             ),
           );
         }
@@ -369,9 +406,10 @@ class _RondaPageState extends State<RondaPage> {
                         subtitle: Text("${item['marca'] ?? ''} ${item['modelo'] ?? ''} ${isHome ? '(HOME OFFICE)' : ''}"),
                         onTap: () {
                           Navigator.pop(context);
+                          _patrimonioOriginal = pat; // Salva o ID original (pode ser SP_...)
                           setState(() {
-                            patrimonioController.text = pat;
-                            possuiPatrimonio = !pat.toLowerCase().contains("sem patrimônio");
+                            patrimonioController.text = pat.startsWith("SP_") ? "" : pat;
+                            possuiPatrimonio = !pat.startsWith("SP_");
                           });
                           _verificarInventario(pat);
                         },
@@ -403,9 +441,10 @@ class _RondaPageState extends State<RondaPage> {
                         subtitle: Text("Setor: ${item['setor']}"),
                         onTap: () {
                           Navigator.pop(context);
+                          _patrimonioOriginal = pat; // Salva o ID original (pode ser SP_...)
                           setState(() {
-                            patrimonioController.text = pat;
-                            possuiPatrimonio = !pat.toLowerCase().contains("sem patrimônio");
+                            patrimonioController.text = pat.startsWith("SP_") ? "" : pat;
+                            possuiPatrimonio = !pat.startsWith("SP_");
                           });
                           _verificarInventario(pat);
                         },
@@ -508,12 +547,15 @@ class _RondaPageState extends State<RondaPage> {
         descricaoDefeito: (defeito || statusOperacional == 'Em manutenção') ? descricaoDefeitoController.text.trim() : null,
         setor: setorDestino,
         status: 'Ativo',
+        semPatrimonio: !possuiPatrimonio,
         isHomeOffice: isHomeOffice,
         responsavelExterno: isHomeOffice ? responsavelHomeOfficeController.text.trim() : null,
+        idAnterior: _patrimonioOriginal, // Passa o ID original para o repositório
         acessorios: Map<String, bool>.from(acessoriosSelecionados),
       ));
 
       patrimonioController.clear();
+      _patrimonioOriginal = null;
       marcaController.clear();
       modeloController.clear();
       serieController.clear();

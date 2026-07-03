@@ -287,7 +287,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
 
   Widget _buildFooter(Color textColor) {
-    const String version = '3.2.1';
+    const String version = '3.2.2';
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Center(
@@ -721,6 +721,8 @@ class _DashboardPageState extends State<DashboardPage> {
           itemCount: itens.length,
           itemBuilder: (context, index) {
             final item = itens[index];
+            final displayPat = item.patrimonio.startsWith("SP_") ? "SEM PLACA" : item.patrimonio;
+
             return Card(
               margin: const EdgeInsets.only(bottom: 12),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -729,7 +731,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   backgroundColor: Colors.redAccent,
                   child: Icon(Icons.warning_amber_rounded, color: Colors.white),
                 ),
-                title: Text("${item.tipo} - Pat: ${item.patrimonio}", style: const TextStyle(fontWeight: FontWeight.bold)),
+                title: Text("${item.tipo} - Pat: $displayPat", style: const TextStyle(fontWeight: FontWeight.bold)),
                 subtitle: Text("Setor: ${item.setor}\nDefeito: ${item.descricaoDefeito ?? 'Não informado'}"),
                 isThreeLine: true,
               ),
@@ -744,12 +746,14 @@ class _DashboardPageState extends State<DashboardPage> {
     return StreamBuilder<List<Map<String, dynamic>>>(
       stream: FirebaseFirestore.instance
           .collection('inventario_mestre')
-          .where('is_locado', isEqualTo: true)
           .snapshots()
-          .map((snap) => snap.docs.map((doc) {
+          .map((snap) => snap.docs
+              .map((doc) {
                 final data = doc.data();
-                return {...data, 'patrimonio': doc.id};
-              }).toList()),
+                return {...data, 'patrimonio': data['patrimonio'] ?? doc.id};
+              })
+              .where((item) => item['is_locado'] == true || (item['locadora'] != null && item['locadora'].toString().isNotEmpty))
+              .toList()),
       builder: (context, snapshot) {
         final itens = snapshot.data ?? [];
         if (itens.isEmpty) return const Center(child: Text("Nenhum item locado encontrado."));

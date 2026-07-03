@@ -33,7 +33,7 @@ class AboutPage extends StatelessWidget {
                       Icon(Icons.checklist_rtl, size: 80, color: Colors.blue),
                       SizedBox(height: 10),
                       Text("Smart Ronda TI", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                  Text("Versão 3.2.1", style: TextStyle(color: Colors.grey)),
+                  Text("Versão 3.2.2", style: TextStyle(color: Colors.grey)),
                 ],
               ),
             ),
@@ -46,7 +46,11 @@ class AboutPage extends StatelessWidget {
             const SizedBox(height: 20),
             _sectionTitle("🚀 Log de Atualizações"),
             _buildUpdate(
-              "3.2.1 (Atual)",
+              "3.2.2 (Atual)",
+              "• RELATÓRIOS: Inteligência de união de filtros (OU) e correção definitiva da coluna Patrimônio.\n• GESTÃO: Reativação da ferramenta de limpeza total do Castelo (Botão Laranja).\n• OPERAÇÃO: Conversão automática de itens 'Sem Placa' para 'Com Patrimônio' via Lupa.\n• BI: Novo filtro e relatório exclusivo para itens sem patrimônio físico.",
+            ),
+            _buildUpdate(
+              "3.2.1",
               "• RELATÓRIOS: Correção na exibição de patrimônio nos relatórios técnicos de rondas.\n• INTELIGÊNCIA: Subtítulos dinâmicos nos relatórios que refletem os filtros selecionados.\n• UI/UX: Melhoria na visibilidade dos botões de filtro no modo escuro.\n• ESTABILIDADE: Ajuste na persistência de dados do patrimônio durante a gravação da ronda.",
             ),
             _buildUpdate(

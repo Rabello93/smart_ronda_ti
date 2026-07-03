@@ -17,6 +17,8 @@ class _ReportsPageState extends State<ReportsPage> {
   
   // Filtros Inventário
   String? _setorSelecionado;
+  String? _locadoraSelecionada;
+  String? _tipoEquipamentoSelecionado;
   String? _formatoSelecionado = 'PDF';
   bool _apenasDefeitos = false;
   bool _apenasObsoletos = false;
@@ -24,6 +26,8 @@ class _ReportsPageState extends State<ReportsPage> {
   bool _emDivergencia = false;
   bool _reservados = false;
   bool _apenasHomeOffice = false;
+  bool _apenasLocados = false;
+  bool _apenasSemPatrimonio = false;
   bool _gerandoInventario = false;
 
   // Filtros Performance
@@ -35,12 +39,16 @@ class _ReportsPageState extends State<ReportsPage> {
     await _reportController.gerarRelatorioInventario(
       context: context,
       setor: _setorSelecionado,
+      locadora: _locadoraSelecionada,
+      tipo: _tipoEquipamentoSelecionado,
       apenasDefeitos: _apenasDefeitos,
       apenasObsoletos: _apenasObsoletos,
       emManutencao: _emManutencao,
       emDivergencia: _emDivergencia,
       reservados: _reservados,
       apenasHomeOffice: _apenasHomeOffice,
+      apenasLocados: _apenasLocados,
+      apenasSemPatrimonio: _apenasSemPatrimonio,
       formato: _formatoSelecionado!,
     );
     if (mounted) setState(() => _gerandoInventario = false);
@@ -82,8 +90,47 @@ class _ReportsPageState extends State<ReportsPage> {
               _filterChip("Divergência Setor", _emDivergencia, (v) => setState(() => _emDivergencia = v)),
               _filterChip("Reservados", _reservados, (v) => setState(() => _reservados = v)),
               _filterChip("🏠 HOME OFFICE", _apenasHomeOffice, (v) => setState(() => _apenasHomeOffice = v), color: Colors.blue),
+              _filterChip("🤝 LOCADOS", _apenasLocados, (v) => setState(() => _apenasLocados = v), color: Colors.orange.shade800),
+              _filterChip("🚫 SEM PATRIMÔNIO", _apenasSemPatrimonio, (v) => setState(() => _apenasSemPatrimonio = v), color: Colors.red.shade800),
             ],
           ),
+          const SizedBox(height: 20),
+          
+          if (_apenasLocados) ...[
+            StreamBuilder<List<String>>(
+              stream: _adminController.leasingCompaniesStream,
+              builder: (context, snapshot) {
+                final locadoras = snapshot.data ?? [];
+                return DropdownButtonFormField<String>(
+                  initialValue: _locadoraSelecionada,
+                  decoration: const InputDecoration(labelText: "Selecionar Locadora", border: OutlineInputBorder()),
+                  items: [
+                    const DropdownMenuItem(value: null, child: Text("Todas as Locadoras")),
+                    ...locadoras.map((l) => DropdownMenuItem(value: l, child: Text(l))),
+                  ],
+                  onChanged: (v) => setState(() => _locadoraSelecionada = v),
+                );
+              }
+            ),
+            const SizedBox(height: 15),
+          ],
+
+          DropdownButtonFormField<String>(
+            initialValue: _tipoEquipamentoSelecionado,
+            decoration: const InputDecoration(labelText: "Filtrar por Tipo (Opcional)", border: OutlineInputBorder()),
+            items: const [
+              DropdownMenuItem(value: null, child: Text("Todos os Tipos")),
+              DropdownMenuItem(value: 'Notebook', child: Text("Notebook")),
+              DropdownMenuItem(value: 'Desktop', child: Text("Desktop")),
+              DropdownMenuItem(value: 'Telefone', child: Text("Telefone")),
+              DropdownMenuItem(value: 'Smartphone', child: Text("Smartphone")),
+              DropdownMenuItem(value: 'Impressora', child: Text("Impressora")),
+              DropdownMenuItem(value: 'TV', child: Text("TV")),
+              DropdownMenuItem(value: 'No-Break', child: Text("No-Break")),
+            ],
+            onChanged: (v) => setState(() => _tipoEquipamentoSelecionado = v),
+          ),
+
           const SizedBox(height: 20),
           Row(
             children: [
@@ -200,10 +247,13 @@ class _ReportsPageState extends State<ReportsPage> {
   }
 
   Widget _formatRadio(String label, String value) {
+    // ignore: deprecated_member_use
     return RadioListTile<String>(
       title: Text(label, style: const TextStyle(fontSize: 14)),
       value: value,
+      // ignore: deprecated_member_use
       groupValue: _formatoSelecionado,
+      // ignore: deprecated_member_use
       onChanged: (v) => setState(() => _formatoSelecionado = v),
       contentPadding: EdgeInsets.zero,
     );

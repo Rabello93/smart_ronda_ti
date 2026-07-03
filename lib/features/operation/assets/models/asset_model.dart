@@ -25,6 +25,7 @@ class AssetModel {
   final int? anoEntradaUnidade;
   final bool isHomeOffice;
   final String? responsavelExterno;
+  final String? idAnterior; // Novo campo para rastrear conversões (Sem Placa -> Com Placa)
   final Map<String, bool> acessorios;
 
   AssetModel({
@@ -52,6 +53,7 @@ class AssetModel {
     this.anoEntradaUnidade,
     this.isHomeOffice = false,
     this.responsavelExterno,
+    this.idAnterior,
     this.acessorios = const {},
   });
 
@@ -83,6 +85,7 @@ class AssetModel {
       anoEntradaUnidade: map['ano_entrada_unidade'],
       isHomeOffice: map['is_home_office'] ?? false,
       responsavelExterno: map['responsavel_externo'],
+      idAnterior: map['id_anterior'],
       acessorios: Map<String, bool>.from(map['acessorios'] ?? {}),
     );
   }
@@ -115,6 +118,7 @@ class AssetModel {
       'ano_entrada_unidade': anoEntradaUnidade,
       'is_home_office': isHomeOffice,
       'responsavel_externo': responsavelExterno,
+      'id_anterior': idAnterior,
       'acessorios': acessorios,
     };
   }

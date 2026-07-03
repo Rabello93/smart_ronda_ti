@@ -39,8 +39,14 @@ class RoundRepository {
       Map<String, dynamic> invData = asset.toMap();
       invData['ultima_ronda_id'] = roundRef.id;
       invData['ultimo_tecnico'] = _auth.currentUser?.uid;
+      invData['patrimonio'] = inventoryId; // Garante que o ID final seja salvo dentro do doc
       
       batch.set(invRef, invData, SetOptions(merge: true));
+
+      // LOGICA DE CONVERSÃO: Se o item tinha um ID provisório (SP_...) e ganhou um real, remove o antigo
+      if (asset.idAnterior != null && asset.idAnterior!.startsWith("SP_") && asset.idAnterior != inventoryId) {
+        batch.delete(_firestore.collection('inventario_mestre').doc(asset.idAnterior));
+      }
     }
 
     if (exchangeData != null) {
@@ -53,9 +59,15 @@ class RoundRepository {
   }
 
   String _generateInventoryId(AssetModel asset, String sector) {
+    // Se o item já tem um código SP_... vindo do formulário, mantemos ele para evitar duplicatas
+    if (asset.patrimonio.startsWith("SP_")) {
+      return asset.patrimonio;
+    }
+
     if (asset.semPatrimonio) {
       if (asset.serie.isNotEmpty) return "SP_${asset.serie}";
-      return "SP_${asset.tipo}_$sector".toUpperCase();
+      // Gera novo ID apenas se for um item realmente novo (não carregado da lupa)
+      return "SP_${asset.tipo}_${sector}_${DateTime.now().millisecondsSinceEpoch}".toUpperCase();
     }
     return asset.patrimonio;
   }
