@@ -5,13 +5,22 @@ class AssetRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<AssetModel?> getAssetByPatrimonyOrSerial(String value) async {
-    String search = value.trim().toLowerCase();
+    String search = value.trim(); // Removido .toLowerCase() para suportar IDs SP_...
     if (search.isEmpty) return null;
 
     // Busca direta pelo ID (Patrimônio)
     DocumentSnapshot doc = await _firestore.collection('inventario_mestre').doc(search).get();
     if (doc.exists) {
       return AssetModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
+    }
+
+    // Se não achou pelo ID exato, tenta a busca case-insensitive apenas para o ID
+    // (Útil se o técnico digitar um patrimônio comum em minúsculo)
+    if (!search.startsWith("SP_")) {
+      DocumentSnapshot docLower = await _firestore.collection('inventario_mestre').doc(search.toLowerCase()).get();
+      if (docLower.exists) {
+        return AssetModel.fromMap(docLower.data() as Map<String, dynamic>, docLower.id);
+      }
     }
 
     // Busca pelo campo Série

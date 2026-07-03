@@ -157,6 +157,31 @@ class _RondaPageState extends State<RondaPage> {
     setState(() => buscandoInventario = false);
 
     if (dados != null) {
+      setState(() {
+        tipoEquipamento = dados.tipo;
+        statusOperacional = dados.statusOperacional;
+        marcaController.text = dados.marca;
+        modeloController.text = dados.modelo;
+        serieController.text = dados.serie;
+        processadorController.text = dados.processador ?? "";
+        macController.text = dados.macAddress ?? "";
+        anoFabricacaoController.text = dados.anoFabricacao?.toString() ?? "";
+        isLocado = dados.isLocado;
+        locadoraSelecionada = dados.locadora;
+        isHomeOffice = dados.isHomeOffice;
+        responsavelHomeOfficeController.text = dados.responsavelExterno ?? "";
+        defeito = dados.temDefeito;
+        descricaoDefeitoController.text = dados.descricaoDefeito ?? "";
+        
+        // Se o item vem da lupa e é sem placa, o patrimonioController deve ficar vazio
+        // para o técnico digitar a nova. Caso contrário, preenche com o patrimônio real.
+        if (valor.startsWith("SP_")) {
+          patrimonioController.text = "";
+        } else {
+          patrimonioController.text = dados.patrimonio;
+        }
+      });
+
       if (dados.semPatrimonio && possuiPatrimonio) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -184,6 +209,7 @@ class _RondaPageState extends State<RondaPage> {
         setState(() => statusOperacional = 'Em uso');
       }
 
+      // POPUP DE TRANSFERÊNCIA
       if (dados.setor != widget.setor) {
         if (mounted) {
           showDialog(
