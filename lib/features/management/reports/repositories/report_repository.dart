@@ -331,13 +331,14 @@ class ReportRepository {
           pw.Text("Período de Análise: $dateStr", style: const pw.TextStyle(fontSize: 12)),
           pw.SizedBox(height: 15),
           pw.TableHelper.fromTextArray(
-            headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 9),
-            cellStyle: const pw.TextStyle(fontSize: 8),
+            headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 8),
+            cellStyle: const pw.TextStyle(fontSize: 7),
             headerDecoration: const pw.BoxDecoration(color: PdfColors.red900),
-            headers: const ['PATRIMÔNIO', 'MODELO', 'MANUT.', 'DIV.', 'H.O.', 'STATUS FINAL', 'SETOR ATUAL'],
+            headers: const ['PATRIMÔNIO', 'MODELO', 'DEF.', 'MAN.', 'DIV.', 'H.O.', 'STATUS FINAL', 'SETOR ATUAL'],
             data: dados.map((d) => [
               d['patrimonio']?.toString() ?? '---',
               d['modelo']?.toString() ?? '---',
+              d['count_defeito'].toString(),
               d['count_manutencao'].toString(),
               d['count_divergencia'].toString(),
               d['count_home_office'].toString(),

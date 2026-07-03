@@ -151,6 +151,7 @@ class ReportController {
               'patrimonio': pat,
               'tipo': data['tipo'] ?? '---',
               'modelo': data['modelo'] ?? '---',
+              'count_defeito': 0,
               'count_manutencao': 0,
               'count_divergencia': 0,
               'count_home_office': 0,
@@ -159,7 +160,10 @@ class ReportController {
             };
           }
 
-          if (data['tem_defeito'] == true || data['status_operacional'] == 'Em manutenção') {
+          if (data['tem_defeito'] == true) {
+            agregador[pat]!['count_defeito']++;
+          }
+          if (data['status_operacional'] == 'Em manutenção') {
             agregador[pat]!['count_manutencao']++;
           }
           if (data['setor_divergente'] == true) {
