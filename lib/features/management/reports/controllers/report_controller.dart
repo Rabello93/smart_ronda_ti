@@ -154,6 +154,8 @@ class ReportController {
               'count_manutencao': 0,
               'count_divergencia': 0,
               'count_home_office': 0,
+              'ultimo_status': data['status_operacional'] ?? 'OK',
+              'ultimo_setor': data['setor'] ?? '---',
             };
           }
 
@@ -166,6 +168,10 @@ class ReportController {
           if (data['is_home_office'] == true) {
             agregador[pat]!['count_home_office']++;
           }
+          
+          // Atualiza com o dado mais recente da ronda (como as rondas vêm ordenadas por tempo, o loop pega o rastro)
+          agregador[pat]!['ultimo_status'] = data['status_operacional'] ?? 'OK';
+          agregador[pat]!['ultimo_setor'] = data['setor'] ?? '---';
         }
       }
 
