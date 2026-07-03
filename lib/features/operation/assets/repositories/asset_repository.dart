@@ -41,6 +41,23 @@ class AssetRepository {
     });
   }
 
+  Future<void> renameAsset(String oldPatrimony, String newPatrimony) async {
+    final docRef = _firestore.collection('inventario_mestre').doc(oldPatrimony);
+    final newRef = _firestore.collection('inventario_mestre').doc(newPatrimony);
+
+    final snapshot = await docRef.get();
+    if (snapshot.exists) {
+      final data = snapshot.data() as Map<String, dynamic>;
+      data['patrimonio'] = newPatrimony;
+      data['ultima_atualizacao'] = FieldValue.serverTimestamp();
+
+      final batch = _firestore.batch();
+      batch.set(newRef, data);
+      batch.delete(docRef);
+      await batch.commit();
+    }
+  }
+
   Future<void> resetInventory() async {
     final QuerySnapshot snapshot = await _firestore.collection('inventario_mestre').get();
     final WriteBatch batch = _firestore.batch();

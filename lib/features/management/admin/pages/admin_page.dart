@@ -503,17 +503,28 @@ class _CasteloTabState extends State<_CasteloTab> {
   }
 
   void _editarCastelo(BuildContext context, AssetModel item) {
+    final patrimonioController = TextEditingController(text: item.patrimonio.startsWith("SP_") ? "" : item.patrimonio);
     final processadorController = TextEditingController(text: item.processador);
     final macController = TextEditingController(text: item.macAddress);
 
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text("Editar Ativo: ${item.patrimonio}"),
+        title: Text("Editar Ativo: ${item.patrimonio.startsWith("SP_") ? 'SEM PLACA' : item.patrimonio}"),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              TextField(
+                controller: patrimonioController, 
+                decoration: const InputDecoration(
+                  labelText: "Nº Patrimônio (Plaqueta)", 
+                  hintText: "Digite o novo número para atualizar",
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.qr_code)
+                )
+              ),
+              const SizedBox(height: 15),
               TextField(controller: processadorController, decoration: const InputDecoration(labelText: "Processador", border: OutlineInputBorder())),
               const SizedBox(height: 15),
               TextField(controller: macController, decoration: const InputDecoration(labelText: "Endereço MAC", border: OutlineInputBorder())),
@@ -524,14 +535,22 @@ class _CasteloTabState extends State<_CasteloTab> {
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("CANCELAR")),
           ElevatedButton(
             onPressed: () async {
+              final newPat = patrimonioController.text.trim();
+              
+              if (newPat.isNotEmpty && newPat != item.patrimonio) {
+                // Lógica de renomear (ID do documento muda)
+                await _controller.changeAssetPatrimony(item.patrimonio, newPat);
+              }
+
               await _controller.updateAssetTechnicalData(
-                patrimony: item.patrimonio,
+                patrimony: newPat.isNotEmpty ? newPat : item.patrimonio,
                 processor: processadorController.text.trim(),
                 macAddress: macController.text.trim(),
               );
+              
               if (context.mounted) {
                 Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Ativo atualizado!")));
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Ativo atualizado com sucesso!")));
               }
             },
             child: const Text("SALVAR"),

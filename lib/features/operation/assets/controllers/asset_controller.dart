@@ -25,6 +25,10 @@ class AssetController {
     });
   }
 
+  Future<void> changeAssetPatrimony(String oldPat, String newPat) {
+    return _repository.renameAsset(oldPat, newPat);
+  }
+
   Future<void> resetAllAssets() => _repository.resetInventory();
 
   Stream<List<AssetModel>> getMaintenanceStream() => _repository.getAssetsByMaintenance();

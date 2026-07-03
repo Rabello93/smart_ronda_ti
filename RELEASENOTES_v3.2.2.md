@@ -11,7 +11,8 @@
 Esta versão consolida a integridade do banco de dados e traz ferramentas poderosas para o saneamento do inventário mestre.
 
 ### 🏛️ Gestão do Castelo (Banco de Dados)
-*   **Vassourinha Laranja Reativada**: O botão de Reset Total do Inventário Mestre está novamente operacional e seguro, permitindo limpeza em lote exclusiva para o nível Master com geração de log de auditoria.
+*   **Vassourinha Laranja Reativada**: O botão de Reset Total do Inventário Mestre está novamente operacional e seguro.
+*   **Edição de Patrimônio**: Agora é possível atualizar o número da placa de um equipamento diretamente no menu "O Castelo". O sistema cuida da migração de dados e renomeação do registro automaticamente.
 *   **Conversão Inteligente de Ativos**: Sistema agora rastreia e deleta registros temporários (SP_...) quando um item recebe uma placa de patrimônio definitiva durante a ronda.
 
 ### 📊 Relatórios de Auditoria
