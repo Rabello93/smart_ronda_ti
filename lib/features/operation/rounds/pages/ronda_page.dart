@@ -236,6 +236,7 @@ class _RondaPageState extends State<RondaPage> {
 
       setState(() {
         tipoEquipamento = dados.tipo;
+        statusOperacional = dados.statusOperacional;
         marcaController.text = dados.marca;
         modeloController.text = dados.modelo;
         serieController.text = dados.serie;
@@ -406,10 +407,12 @@ class _RondaPageState extends State<RondaPage> {
                         subtitle: Text("${item['marca'] ?? ''} ${item['modelo'] ?? ''} ${isHome ? '(HOME OFFICE)' : ''}"),
                         onTap: () {
                           Navigator.pop(context);
-                          _patrimonioOriginal = pat; // Salva o ID original (pode ser SP_...)
+                          _patrimonioOriginal = pat; // Salva o ID original
                           setState(() {
+                            // Se for sem placa, deixa vazio para o técnico digitar a nova
+                            // Se tiver placa, já preenche o campo
                             patrimonioController.text = pat.startsWith("SP_") ? "" : pat;
-                            possuiPatrimonio = !pat.startsWith("SP_");
+                            possuiPatrimonio = true; // Força a chave para 'Sim' para permitir edição/confirmação
                           });
                           _verificarInventario(pat);
                         },
@@ -441,10 +444,12 @@ class _RondaPageState extends State<RondaPage> {
                         subtitle: Text("Setor: ${item['setor']}"),
                         onTap: () {
                           Navigator.pop(context);
-                          _patrimonioOriginal = pat; // Salva o ID original (pode ser SP_...)
+                          _patrimonioOriginal = pat; // Salva o ID original
                           setState(() {
+                            // Se for sem placa, deixa vazio para o técnico digitar a nova
+                            // Se tiver placa, já preenche o campo
                             patrimonioController.text = pat.startsWith("SP_") ? "" : pat;
-                            possuiPatrimonio = !pat.startsWith("SP_");
+                            possuiPatrimonio = true; // Força a chave para 'Sim' para permitir edição/confirmação
                           });
                           _verificarInventario(pat);
                         },
@@ -735,7 +740,14 @@ class _RondaPageState extends State<RondaPage> {
                 _verificarInventario(sel);
               },
               fieldViewBuilder: (ctx, ctrl, fNode, onSub) {
-                if (patrimonioController.text.isNotEmpty && ctrl.text.isEmpty) ctrl.text = patrimonioController.text;
+                // Sincroniza o controlador do Autocomplete com o patrimonioController
+                if (patrimonioController.text != ctrl.text) {
+                  // Agendado para o próximo frame para evitar erro de build
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted) ctrl.text = patrimonioController.text;
+                  });
+                }
+
                 return TextField(
                   controller: ctrl,
                   focusNode: fNode,

@@ -10,9 +10,10 @@
 
 Esta versão consolida a integridade do banco de dados e traz ferramentas poderosas para o saneamento do inventário mestre.
 
-### 🏛️ Gestão do Castelo (Banco de Dados)
+### 🏛️ Gestão do Castelo e Dashboard
 *   **Vassourinha Laranja Reativada**: O botão de Reset Total do Inventário Mestre está novamente operacional e seguro.
 *   **Edição de Patrimônio**: Agora é possível atualizar o número da placa de um equipamento diretamente no menu "O Castelo". O sistema cuida da migração de dados e renomeação do registro automaticamente.
+*   **Gestão Unificada de Ativos**: A aba de Locação no Dashboard evoluiu para **"Ativos"**, oferecendo uma visão 360º de todo o parque tecnológico, agrupando itens em "Patrimônio Próprio" ou por suas respectivas locadoras.
 *   **Conversão Inteligente de Ativos**: Sistema agora rastreia e deleta registros temporários (SP_...) quando um item recebe uma placa de patrimônio definitiva durante a ronda.
 
 ### 📊 Relatórios de Auditoria

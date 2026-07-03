@@ -82,7 +82,7 @@ class _DashboardPageState extends State<DashboardPage> {
               _buildDrawerItem(1, Icons.stars, "Metas", isDark),
               _buildDrawerItem(2, Icons.person, "Técnicos", isDark),
               _buildDrawerItem(3, Icons.warning_amber, "Defeitos", isDark),
-              _buildDrawerItem(4, Icons.business, "Locação", isDark),
+              _buildDrawerItem(4, Icons.business, "Ativos", isDark),
               _buildDrawerItem(5, Icons.analytics, "Status", isDark),
               const Spacer(),
               const Divider(),
@@ -171,7 +171,7 @@ class _DashboardPageState extends State<DashboardPage> {
         NavigationRailDestination(icon: Icon(Icons.stars), label: Text("Metas")),
         NavigationRailDestination(icon: Icon(Icons.person), label: Text("Técnicos")),
         NavigationRailDestination(icon: Icon(Icons.warning_amber), label: Text("Defeitos")),
-        NavigationRailDestination(icon: Icon(Icons.business), label: Text("Locação")),
+        NavigationRailDestination(icon: Icon(Icons.business), label: Text("Ativos")),
         NavigationRailDestination(icon: Icon(Icons.analytics), label: Text("Status")),
       ],
       trailing: Expanded(
@@ -204,7 +204,7 @@ class _DashboardPageState extends State<DashboardPage> {
       case 1: return _buildMetasTab(allRondas, textColor, user);
       case 2: return _buildTecnicosTab(rondas, textColor);
       case 3: return _buildDefeitosTab(textColor);
-      case 4: return _buildLocacaoTab(textColor);
+      case 4: return _buildAtivosTab(textColor);
       case 5: return _buildStatusTab(textColor);
       default: return _buildGeralTab(rondas, allRondas, textColor);
     }
@@ -742,41 +742,52 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _buildLocacaoTab(Color textColor) {
+  Widget _buildAtivosTab(Color textColor) {
     return StreamBuilder<List<Map<String, dynamic>>>(
       stream: FirebaseFirestore.instance
           .collection('inventario_mestre')
           .snapshots()
-          .map((snap) => snap.docs
-              .map((doc) {
+          .map((snap) => snap.docs.map((doc) {
                 final data = doc.data();
                 return {...data, 'patrimonio': data['patrimonio'] ?? doc.id};
-              })
-              .where((item) => item['is_locado'] == true || (item['locadora'] != null && item['locadora'].toString().isNotEmpty))
-              .toList()),
+              }).toList()),
       builder: (context, snapshot) {
         final itens = snapshot.data ?? [];
-        if (itens.isEmpty) return const Center(child: Text("Nenhum item locado encontrado."));
+        if (itens.isEmpty) return const Center(child: Text("Nenhum item encontrado no Castelo."));
 
-        Map<String, List<Map<String, dynamic>>> porLocadora = {};
+        Map<String, List<Map<String, dynamic>>> porOrigem = {};
         for (var i in itens) {
-          String loc = i['locadora'] ?? "Não inf.";
-          porLocadora.putIfAbsent(loc, () => []).add(i);
+          String origem = (i['is_locado'] == true && i['locadora'] != null) 
+              ? i['locadora'].toString().toUpperCase() 
+              : "PATRIMÔNIO PRÓPRIO";
+          porOrigem.putIfAbsent(origem, () => []).add(i);
         }
+
+        // Ordena para que Patrimônio Próprio apareça primeiro
+        final listaOrdenada = porOrigem.entries.toList()
+          ..sort((a, b) {
+            if (a.key == "PATRIMÔNIO PRÓPRIO") return -1;
+            if (b.key == "PATRIMÔNIO PRÓPRIO") return 1;
+            return a.key.compareTo(b.key);
+          });
 
         return ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            const SectionTitle(title: "Gestão de Ativos Locados"),
+            const SectionTitle(title: "Gestão Geral de Ativos (Próprios e Locados)"),
             const SizedBox(height: 16),
-            ...porLocadora.entries.map((entry) {
+            ...listaOrdenada.map((entry) {
+              final isProprio = entry.key == "PATRIMÔNIO PRÓPRIO";
               return Card(
                 margin: const EdgeInsets.only(bottom: 12),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 child: ExpansionTile(
-                  leading: const CircleAvatar(child: Icon(Icons.business_center)),
-                  title: Text(entry.key.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Text("${entry.value.length} equipamentos"),
+                  leading: CircleAvatar(
+                    backgroundColor: isProprio ? Colors.blue.shade100 : Colors.orange.shade100,
+                    child: Icon(isProprio ? Icons.inventory : Icons.business_center, color: isProprio ? Colors.blue.shade900 : Colors.orange.shade900),
+                  ),
+                  title: Text(entry.key, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: Text("${entry.value.length} equipamentos cadastrados"),
                   children: _buildLocacaoTipos(entry.value),
                 ),
               );

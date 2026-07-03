@@ -20,6 +20,7 @@ O app foi desenvolvido para otimizar as rondas técnicas em ambiente corporativo
 ### [3.2.2 Stable] - 2024-06-25
 - **Inteligência de Auditoria**: Lógica de união de filtros (OU) implementada para relatórios complexos.
 - **Limpeza do Castelo**: Reativação segura da ferramenta de reset total do banco de dados para o nível Master.
+- **Gestão Unificada**: Expansão da aba de Locação no Dashboard para uma visão geral de todos os **Ativos**, agrupando por Propriedade Própria ou Locadora.
 - **Conversão de Ativos**: Fluxo automático de transformação de itens "Sem Placa" em ativos patrimoniados via busca contextual.
 - **Relatórios**: Inclusão de filtro exclusivo para itens sem patrimônio e correção de exibição de status real.
 
