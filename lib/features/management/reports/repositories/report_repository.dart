@@ -104,7 +104,7 @@ class ReportRepository {
           header: (pw.Context context) => _buildHeader(config, titulo, logoImage),
           footer: (pw.Context context) => _buildFooter(config),
           build: (pw.Context context) => [
-            const pw.SizedBox(height: 10),
+            pw.SizedBox(height: 10),
             pw.TableHelper.fromTextArray(
               headerStyle: const pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 10),
               headerDecoration: const pw.BoxDecoration(color: PdfColors.indigo900),
@@ -229,9 +229,9 @@ class ReportRepository {
           header: (pw.Context context) => _buildHeader(config, "RELATÓRIO TÉCNICO", logoImage),
           footer: (pw.Context context) => _buildFooter(config),
           build: (pw.Context context) => [
-            const pw.SizedBox(height: 10),
+            pw.SizedBox(height: 10),
             pw.Center(child: pw.Text(apenasObsoletos == true ? "RELATÓRIO DE OBSOLESCÊNCIA (+5 ANOS)" : "AUDITORIA DE RONDAS", style: const pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 16))),
-            const pw.SizedBox(height: 20),
+            pw.SizedBox(height: 20),
             pw.TableHelper.fromTextArray(
               headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 8),
               cellStyle: const pw.TextStyle(fontSize: 7),
@@ -266,9 +266,9 @@ class ReportRepository {
         header: (pw.Context context) => _buildHeader(config, "MAPA DE ATIVOS", logoImage),
         footer: (pw.Context context) => _buildFooter(config),
         build: (pw.Context context) => [
-          const pw.SizedBox(height: 10),
+          pw.SizedBox(height: 10),
           pw.Header(level: 0, child: pw.Text("SETOR ${setor.toUpperCase()}")),
-          const pw.SizedBox(height: 10),
+          pw.SizedBox(height: 10),
           pw.TableHelper.fromTextArray(
             headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 10),
             headerDecoration: const pw.BoxDecoration(color: PdfColors.indigo900),
@@ -378,7 +378,7 @@ class ReportRepository {
         header: (pw.Context context) => _buildHeader(config, "LOGS DO SISTEMA", logoImage),
         footer: (pw.Context context) => _buildFooter(config),
         build: (pw.Context context) => [
-          const pw.SizedBox(height: 20),
+          pw.SizedBox(height: 20),
           pw.TableHelper.fromTextArray(
             headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 10),
             headerDecoration: const pw.BoxDecoration(color: PdfColors.indigo900),
@@ -419,7 +419,7 @@ class ReportRepository {
                 mainAxisAlignment: pw.MainAxisAlignment.center,
                 children: [
                   pw.Image(logoImage, height: 120),
-                  const pw.SizedBox(height: 30),
+                  pw.SizedBox(height: 30),
                   pw.Text("Smart Ronda TI", style: pw.TextStyle(fontSize: 28, fontWeight: pw.FontWeight.bold, color: PdfColors.blue900)),
                   pw.Text("SOLUÇÃO EM GOVERNANÇA E AUDITORIA DE ATIVOS", style: const pw.TextStyle(fontSize: 12, color: PdfColors.blueGrey700)),
                   pw.SizedBox(height: 50),
@@ -435,7 +435,7 @@ class ReportRepository {
                       style: const pw.TextStyle(fontSize: 11, lineSpacing: 1.5),
                     ),
                   ),
-                  const pw.SizedBox(height: 40),
+                  pw.SizedBox(height: 40),
                   pw.Align(
                     alignment: pw.Alignment.centerLeft,
                     child: pw.Column(
@@ -556,12 +556,12 @@ class ReportRepository {
         header: (pw.Context context) => _buildHeader(config, "RELATÓRIO DE PERFORMANCE E METAS", logoImage),
         footer: (pw.Context context) => _buildFooter(config),
         build: (pw.Context context) => [
-          const pw.SizedBox(height: 10),
+          pw.SizedBox(height: 10),
           pw.Text("Período Principal: ${start.day}/${start.month}/${start.year} - ${end.day}/${end.month}/${end.year}", style: const pw.TextStyle(fontSize: 12)),
           if (periodoComparativo != null)
             pw.Text("Período Comparativo: ${periodoComparativo.start.day}/${periodoComparativo.start.month}/${periodoComparativo.start.year} - ${periodoComparativo.end.day}/${periodoComparativo.end.month}/${periodoComparativo.end.year}", style: const pw.TextStyle(fontSize: 12, color: PdfColors.grey)),
           
-          const pw.SizedBox(height: 20),
+          pw.SizedBox(height: 20),
           pw.TableHelper.fromTextArray(
             headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 10),
             headerDecoration: const pw.BoxDecoration(color: PdfColors.indigo900),
@@ -574,29 +574,29 @@ class ReportRepository {
                     'RONDAS', 
                     '${goals['rondas_mensal']}', 
                     '${perfPrincipal['rondas']}', 
-                    '${((perfPrincipal['rondas'] ?? 0) / (goals['rondas_mensal'] ?? 1) * 100).toStringAsFixed(1)}%'
+                    '${(((perfPrincipal['rondas'] as int?) ?? 0) / ((goals['rondas_mensal'] as int?) ?? 1) * 100).toStringAsFixed(1)}%'
                   ],
                   [
                     'ITENS AUDITADOS', 
                     '${goals['itens_mensal']}', 
                     '${perfPrincipal['itens']}', 
-                    '${((perfPrincipal['itens'] ?? 0) / (goals['itens_mensal'] ?? 1) * 100).toStringAsFixed(1)}%'
+                    '${(((perfPrincipal['itens'] as int?) ?? 0) / ((goals['itens_mensal'] as int?) ?? 1) * 100).toStringAsFixed(1)}%'
                   ],
                 ]
               : [
                   [
                     'RONDAS', 
                     '${goals['rondas_mensal']}', 
-                    '${perfComparativo['rondas']}', 
+                    '${perfComparativo!['rondas']}', 
                     '${perfPrincipal['rondas']}',
-                    "${(perfComparativo['rondas'] ?? 0) > 0 ? (((perfPrincipal['rondas'] ?? 0) - (perfComparativo['rondas'] ?? 0)) / (perfComparativo['rondas'] ?? 1) * 100).toStringAsFixed(1) : '---'}%"
+                    "${((perfComparativo!['rondas'] ?? 0) > 0) ? ((((perfPrincipal['rondas'] as int?) ?? 0) - (perfComparativo!['rondas'] ?? 0)) / (perfComparativo!['rondas'] ?? 1) * 100).toStringAsFixed(1) : '---'}%"
                   ],
                   [
                     'ITENS AUDITADOS', 
                     '${goals['itens_mensal']}', 
-                    '${perfComparativo['itens']}', 
+                    '${perfComparativo!['itens']}', 
                     '${perfPrincipal['itens']}',
-                    "${(perfComparativo['itens'] ?? 0) > 0 ? (((perfPrincipal['itens'] ?? 0) - (perfComparativo['itens'] ?? 0)) / (perfComparativo['itens'] ?? 1) * 100).toStringAsFixed(1) : '---'}%"
+                    "${((perfComparativo!['itens'] ?? 0) > 0) ? ((((perfPrincipal['itens'] as int?) ?? 0) - (perfComparativo!['itens'] ?? 0)) / (perfComparativo!['itens'] ?? 1) * 100).toStringAsFixed(1) : '---'}%"
                   ],
                 ],
           ),
