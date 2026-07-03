@@ -16,7 +16,8 @@ Esta versão consolida a integridade do banco de dados e traz ferramentas podero
 *   **Gestão Unificada de Ativos**: A aba de Locação no Dashboard evoluiu para **"Ativos"**, oferecendo uma visão 360º de todo o parque tecnológico, agrupando itens em "Patrimônio Próprio" ou por suas respectivas locadoras.
 *   **Conversão Inteligente de Ativos**: Sistema agora rastreia e deleta registros temporários (SP_...) quando um item recebe uma placa de patrimônio definitiva durante a ronda.
 
-### 📊 Relatórios de Auditoria
+### 📊 Relatórios de Auditoria e BI
+*   **Mapa de Incidências Críticas**: Nova ferramenta de BI que gera um ranking de ativos com maior recorrência de manutenções, divergências de setor e uso de Home Office, permitindo uma gestão preditiva de substituição de equipamentos.
 *   **Lógica de Filtros Combinados**: Implementada a lógica de UNIÃO para filtros de inventário. Agora, ao selecionar múltiplos problemas (ex: Defeitos + Obsoletos), o relatório traz todos os itens que se encaixam em QUALQUER uma das categorias críticas.
 *   **Correção de Exibição**: Solucionado definitivamente o problema de exibição de patrimônio nos relatórios técnicos.
 *   **Status Operacional Real**: Relatórios agora exibem o estado real do item (Home Office, Manutenção, Reservado) em vez de um status genérico.

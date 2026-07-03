@@ -18,6 +18,7 @@ O app foi desenvolvido para otimizar as rondas técnicas em ambiente corporativo
 ## 🚀 Série Histórica (Evolução)
 
 ### [3.2.2 Stable] - 2024-06-25
+- **BI Preditivo**: Implementado o "Mapa de Incidências Críticas" para rastreio de recorrência de manutenções e divergências por ativo.
 - **Inteligência de Auditoria**: Lógica de união de filtros (OU) implementada para relatórios complexos.
 - **Limpeza do Castelo**: Reativação segura da ferramenta de reset total do banco de dados para o nível Master.
 - **Gestão Unificada**: Expansão da aba de Locação no Dashboard para uma visão geral de todos os **Ativos**, agrupando por Propriedade Própria ou Locadora.

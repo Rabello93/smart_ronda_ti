@@ -127,4 +127,71 @@ class ReportController {
       await ReportRepository.exportarRelatorioMetasXML(context, periodo: periodo);
     }
   }
+
+  Future<void> gerarRelatorioIncidencias(BuildContext context, {required DateTimeRange periodo}) async {
+    try {
+      final QuerySnapshot rondasSnap = await _firestore.collection('rondas')
+          .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(periodo.start))
+          .where('timestamp', isLessThanOrEqualTo: Timestamp.fromDate(periodo.end))
+          .get();
+
+      Map<String, Map<String, dynamic>> agregador = {};
+
+      for (var doc in rondasSnap.docs) {
+        final QuerySnapshot equipsSnap = await doc.reference.collection('equipamentos').get();
+        
+        for (var eDoc in equipsSnap.docs) {
+          final data = eDoc.data() as Map<String, dynamic>;
+          if (data['is_troca'] == true) continue;
+
+          final String pat = data['patrimonio'] ?? eDoc.id;
+          
+          if (!agregador.containsKey(pat)) {
+            agregador[pat] = {
+              'patrimonio': pat,
+              'tipo': data['tipo'] ?? '---',
+              'modelo': data['modelo'] ?? '---',
+              'count_manutencao': 0,
+              'count_divergencia': 0,
+              'count_home_office': 0,
+            };
+          }
+
+          if (data['tem_defeito'] == true || data['status_operacional'] == 'Em manutenção') {
+            agregador[pat]!['count_manutencao']++;
+          }
+          if (data['setor_divergente'] == true) {
+            agregador[pat]!['count_divergencia']++;
+          }
+          if (data['is_home_office'] == true) {
+            agregador[pat]!['count_home_office']++;
+          }
+        }
+      }
+
+      // Filtra apenas itens que tiveram pelo menos uma incidência
+      final listaFinal = agregador.values.where((item) => 
+        item['count_manutencao'] > 0 || 
+        item['count_divergencia'] > 0 || 
+        item['count_home_office'] > 0
+      ).toList();
+
+      // Ordena por maior número de manutenções
+      listaFinal.sort((a, b) => b['count_manutencao'].compareTo(a['count_manutencao']));
+
+      if (context.mounted) {
+        if (listaFinal.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Nenhuma incidência crítica encontrada no período.")));
+          return;
+        }
+        await ReportRepository.exportarRelatorioIncidencias(
+          context: context, 
+          dados: listaFinal, 
+          periodo: periodo
+        );
+      }
+    } catch (e) {
+      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Erro: $e"), backgroundColor: Colors.red));
+    }
+  }
 }

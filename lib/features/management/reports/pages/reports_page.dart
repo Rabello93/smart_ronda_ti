@@ -196,6 +196,13 @@ class _ReportsPageState extends State<ReportsPage> {
               ),
             ],
           ),
+          const SizedBox(height: 20),
+          _actionButton(
+            onPressed: _periodoPrincipal == null ? null : () => _reportController.gerarRelatorioIncidencias(context, periodo: _periodoPrincipal!),
+            label: "MAPA DE INCIDÊNCIAS CRÍTICAS",
+            icon: Icons.analytics_outlined,
+            color: Colors.deepOrange.shade900,
+          ),
           const SizedBox(height: 40),
         ],
       ),

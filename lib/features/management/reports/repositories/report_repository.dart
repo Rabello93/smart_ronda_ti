@@ -116,6 +116,14 @@ class ReportRepository {
                 i['setor'] ?? '---',
               ]).toList(),
             ),
+            pw.SizedBox(height: 20),
+            pw.Container(
+              alignment: pw.Alignment.centerRight,
+              child: pw.Text(
+                "TOTAL DE ITENS NO RELATÓRIO: ${itens.length}",
+                style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12),
+              ),
+            ),
           ],
         ),
       );
@@ -172,8 +180,6 @@ class ReportRepository {
           
           bool semPlaca = equip['sem_patrimonio'] == true || equip['patrimonio']?.toString().toLowerCase().contains("sem patrimônio") == true;
           
-          // Se o usuário quer ver APENAS os sem patrimônio, filtramos. 
-          // Senão, mostramos tudo (com e sem placa).
           if (apenasSemPatrimonio == true && !semPlaca) continue;
 
           int? anoFab = equip['ano_fabricacao'];
@@ -185,7 +191,7 @@ class ReportRepository {
             ronda['data_inicio']?.toString().substring(0, 10) ?? '',
             ronda['setor']?.toString().toUpperCase() ?? '',
             equip['tipo'] ?? '',
-            equip['patrimonio'] ?? (equip['id'] ?? 'S/P'),
+            equip['patrimonio'] ?? (equipDoc.id.length > 15 ? 'S/P' : equipDoc.id),
             equip['modelo'] ?? '---',
             equip['locadora'] ?? 'PRÓPRIO',
             isObsoleto ? "SIM ($idade anos)" : 'NÃO',
@@ -239,6 +245,14 @@ class ReportRepository {
               headers: const ['DATA', 'SETOR', 'TIPO', 'PATRIMÔNIO', 'MODELO', 'LOCADORA', 'OBSOLETO', 'STATUS'],
               data: tableData,
             ),
+            pw.SizedBox(height: 20),
+            pw.Container(
+              alignment: pw.Alignment.centerRight,
+              child: pw.Text(
+                "TOTAL DE REGISTROS NA AUDITORIA: ${tableData.length}",
+                style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
+              ),
+            ),
           ],
         ),
       );
@@ -275,12 +289,74 @@ class ReportRepository {
             headers: const ['TIPO', 'PATRIMÔNIO', 'STATUS OP.', 'LOCADO'],
             data: itens.map((i) => [i['tipo'] ?? '', i['patrimonio'] ?? 'S/P', i['status_operacional'] ?? 'Em uso', (i['is_locado'] ?? false) ? 'Sim' : 'Não']).toList(),
           ),
+          pw.SizedBox(height: 20),
+          pw.Container(
+            alignment: pw.Alignment.centerRight,
+            child: pw.Text(
+              "TOTAL DE ATIVOS NO SETOR: ${itens.length}",
+              style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12),
+            ),
+          ),
         ]
       ));
       final output = await getTemporaryDirectory();
       final file = File("${output.path}/relatorio_${DateTime.now().millisecondsSinceEpoch}.pdf");
       await file.writeAsBytes(await pdf.save());
       await Share.shareXFiles([XFile(file.path)], text: 'Mapa de Ativos');
+    } catch (e) { messenger?.showSnackBar(SnackBar(content: Text("Erro: $e"), backgroundColor: Colors.red)); }
+  }
+
+  static Future<void> exportarRelatorioIncidencias({
+    required BuildContext context,
+    required List<Map<String, dynamic>> dados,
+    required DateTimeRange periodo,
+  }) async {
+    final messenger = (context.mounted) ? ScaffoldMessenger.of(context) : null;
+    try {
+      final pdf = pw.Document();
+      final firestore = FirebaseFirestore.instance;
+      DocumentSnapshot configDoc = await firestore.collection('config').doc('empresa').get();
+      Map<String, dynamic> config = configDoc.exists ? (configDoc.data() as Map<String, dynamic>) : {};
+      pw.MemoryImage? logoImage = await _fetchLogo(config);
+
+      final dateStr = "${DateFormat('dd/MM/yy').format(periodo.start)} - ${DateFormat('dd/MM/yy').format(periodo.end)}";
+
+      pdf.addPage(pw.MultiPage(
+        pageFormat: PdfPageFormat.a4.landscape,
+        header: (pw.Context context) => _buildHeader(config, "ANÁLISE DE INCIDÊNCIAS CRÍTICAS", logoImage),
+        footer: (pw.Context context) => _buildFooter(config),
+        build: (pw.Context context) => [
+          pw.Text("Período de Análise: $dateStr", style: const pw.TextStyle(fontSize: 12)),
+          pw.SizedBox(height: 15),
+          pw.TableHelper.fromTextArray(
+            headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 9),
+            cellStyle: const pw.TextStyle(fontSize: 8),
+            headerDecoration: const pw.BoxDecoration(color: PdfColors.red900),
+            headers: const ['PATRIMÔNIO', 'TIPO', 'MODELO', 'MANUTENÇÕES', 'DIVERGÊNCIAS', 'HOME OFFICE'],
+            data: dados.map((d) => [
+              d['patrimonio']?.toString() ?? '---',
+              d['tipo']?.toString() ?? '---',
+              d['modelo']?.toString() ?? '---',
+              d['count_manutencao'].toString(),
+              d['count_divergencia'].toString(),
+              d['count_home_office'].toString(),
+            ]).toList(),
+          ),
+          pw.SizedBox(height: 20),
+          pw.Container(
+            alignment: pw.Alignment.centerRight,
+            child: pw.Text(
+              "TOTAL DE ATIVOS COM INCIDÊNCIAS: ${dados.length}",
+              style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
+            ),
+          ),
+        ]
+      ));
+
+      final output = await getTemporaryDirectory();
+      final file = File("${output.path}/relatorio_incidencias_${DateTime.now().millisecondsSinceEpoch}.pdf");
+      await file.writeAsBytes(await pdf.save());
+      await Share.shareXFiles([XFile(file.path)], text: 'Relatório de Incidências');
     } catch (e) { messenger?.showSnackBar(SnackBar(content: Text("Erro: $e"), backgroundColor: Colors.red)); }
   }
 
@@ -359,8 +435,6 @@ class ReportRepository {
       await Share.shareXFiles([XFile(file.path)], text: 'Mapa de Ativos XML');
     } catch (e) { messenger?.showSnackBar(SnackBar(content: Text("Erro: $e"), backgroundColor: Colors.red)); }
   }
-
-  // --- OTHERS ---
 
   static Future<void> exportarLogsParaPDF(BuildContext context) async {
     final messenger = context.mounted ? ScaffoldMessenger.of(context) : null;
