@@ -593,9 +593,9 @@ class ReportRepository {
       }
 
       final perfPrincipal = await fetchPerformance(start, end);
-      Map<String, int>? perfComparativo;
+      Map<String, int>? perfComparativoDados;
       if (periodoComparativo != null) {
-        perfComparativo = await fetchPerformance(periodoComparativo.start, periodoComparativo.end);
+        perfComparativoDados = await fetchPerformance(periodoComparativo.start, periodoComparativo.end);
       }
 
       pdf.addPage(pw.MultiPage(
@@ -612,38 +612,38 @@ class ReportRepository {
           pw.TableHelper.fromTextArray(
             headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 10),
             headerDecoration: const pw.BoxDecoration(color: PdfColors.indigo900),
-            headers: periodoComparativo == null 
+            headers: perfComparativoDados == null 
               ? const ['INDICADOR', 'META', 'REALIZADO', 'ATINGIMENTO']
               : const ['INDICADOR', 'META', 'PERÍODO 1', 'PERÍODO 2', 'EVOLUÇÃO'],
-            data: periodoComparativo == null 
+            data: perfComparativoDados == null 
               ? [
                   [
                     'RONDAS', 
                     '${goals['rondas_mensal']}', 
                     '${perfPrincipal['rondas']}', 
-                    '${(((perfPrincipal['rondas']) ?? 0) / ((goals['rondas_mensal'] as int?) ?? 1) * 100).toStringAsFixed(1)}%'
+                    '${((perfPrincipal['rondas'] ?? 0) / ((goals['rondas_mensal'] as int?) ?? 1) * 100).toStringAsFixed(1)}%'
                   ],
                   [
                     'ITENS AUDITADOS', 
                     '${goals['itens_mensal']}', 
                     '${perfPrincipal['itens']}', 
-                    '${(((perfPrincipal['itens']) ?? 0) / ((goals['itens_mensal'] as int?) ?? 1) * 100).toStringAsFixed(1)}%'
+                    '${((perfPrincipal['itens'] ?? 0) / ((goals['itens_mensal'] as int?) ?? 1) * 100).toStringAsFixed(1)}%'
                   ],
                 ]
               : [
                   [
                     'RONDAS', 
                     '${goals['rondas_mensal']}', 
-                    '${perfComparativo['rondas']}', 
+                    '${perfComparativoDados['rondas']}', 
                     '${perfPrincipal['rondas']}',
-                    "${((perfComparativo['rondas'] ?? 0) > 0) ? ((((perfPrincipal['rondas']) ?? 0) - (perfComparativo['rondas'] ?? 0)) / (perfComparativo['rondas'] ?? 1) * 100).toStringAsFixed(1) : '---'}%"
+                    "${((perfComparativoDados['rondas'] ?? 0) > 0) ? ((((perfPrincipal['rondas']) ?? 0) - (perfComparativoDados['rondas'] ?? 0)) / (perfComparativoDados['rondas'] ?? 1) * 100).toStringAsFixed(1) : '---'}%"
                   ],
                   [
                     'ITENS AUDITADOS', 
                     '${goals['itens_mensal']}', 
-                    '${perfComparativo['itens']}', 
+                    '${perfComparativoDados['itens']}', 
                     '${perfPrincipal['itens']}',
-                    "${((perfComparativo['itens'] ?? 0) > 0) ? ((((perfPrincipal['itens']) ?? 0) - (perfComparativo['itens'] ?? 0)) / (perfComparativo['itens'] ?? 1) * 100).toStringAsFixed(1) : '---'}%"
+                    "${((perfComparativoDados['itens'] ?? 0) > 0) ? ((((perfPrincipal['itens']) ?? 0) - (perfComparativoDados['itens'] ?? 0)) / (perfComparativoDados['itens'] ?? 1) * 100).toStringAsFixed(1) : '---'}%"
                   ],
                 ],
           ),
