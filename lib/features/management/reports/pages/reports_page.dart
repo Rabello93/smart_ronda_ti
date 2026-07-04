@@ -131,19 +131,24 @@ class _ReportsPageState extends State<ReportsPage> {
             onChanged: (v) => setState(() => _tipoEquipamentoSelecionado = v),
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 25),
+          const Text("Formato de Saída:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.grey)),
+          const SizedBox(height: 10),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                _formatRadio("PDF", 'PDF'),
-                _formatRadio("CSV", 'CSV'),
-                _formatRadio("XLSX (Excel)", 'XLSX'),
-                _formatRadio("XML", 'XML'),
+                _formatChip("PDF", Icons.picture_as_pdf, Colors.red.shade900),
+                const SizedBox(width: 8),
+                _formatChip("XLSX", Icons.table_chart, Colors.green.shade900),
+                const SizedBox(width: 8),
+                _formatChip("CSV", Icons.grid_on, Colors.teal.shade900),
+                const SizedBox(width: 8),
+                _formatChip("XML", Icons.code, Colors.orange.shade900),
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 30),
           _actionButton(
             onPressed: _gerandoInventario ? null : _handleGerarInventario,
             label: _gerandoInventario ? "GERANDO..." : "GERAR RELATÓRIO DE INVENTÁRIO",
@@ -258,16 +263,15 @@ class _ReportsPageState extends State<ReportsPage> {
     );
   }
 
-  Widget _formatRadio(String label, String value) {
-    // ignore: deprecated_member_use
-    return RadioListTile<String>(
-      title: Text(label, style: const TextStyle(fontSize: 14)),
-      value: value,
-      // ignore: deprecated_member_use
-      groupValue: _formatoSelecionado,
-      // ignore: deprecated_member_use
-      onChanged: (v) => setState(() => _formatoSelecionado = v),
-      contentPadding: EdgeInsets.zero,
+  Widget _formatChip(String label, IconData icon, Color activeColor) {
+    final isSelected = _formatoSelecionado == label;
+    return ChoiceChip(
+      label: Text(label),
+      avatar: Icon(icon, size: 16, color: isSelected ? Colors.white : activeColor),
+      selected: isSelected,
+      onSelected: (v) => setState(() => _formatoSelecionado = label),
+      selectedColor: activeColor,
+      labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.black87, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal),
     );
   }
 

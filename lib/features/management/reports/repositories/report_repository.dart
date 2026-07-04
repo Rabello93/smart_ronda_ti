@@ -621,29 +621,29 @@ class ReportRepository {
                     'RONDAS', 
                     '${goals['rondas_mensal']}', 
                     '${perfPrincipal['rondas']}', 
-                    '${(((perfPrincipal['rondas'] as int?) ?? 0) / ((goals['rondas_mensal'] as int?) ?? 1) * 100).toStringAsFixed(1)}%'
+                    '${(((perfPrincipal['rondas']) ?? 0) / ((goals['rondas_mensal'] as int?) ?? 1) * 100).toStringAsFixed(1)}%'
                   ],
                   [
                     'ITENS AUDITADOS', 
                     '${goals['itens_mensal']}', 
                     '${perfPrincipal['itens']}', 
-                    '${(((perfPrincipal['itens'] as int?) ?? 0) / ((goals['itens_mensal'] as int?) ?? 1) * 100).toStringAsFixed(1)}%'
+                    '${(((perfPrincipal['itens']) ?? 0) / ((goals['itens_mensal'] as int?) ?? 1) * 100).toStringAsFixed(1)}%'
                   ],
                 ]
               : [
                   [
                     'RONDAS', 
                     '${goals['rondas_mensal']}', 
-                    '${perfComparativo!['rondas']}', 
+                    '${perfComparativo['rondas']}', 
                     '${perfPrincipal['rondas']}',
-                    "${((perfComparativo!['rondas'] ?? 0) > 0) ? ((((perfPrincipal['rondas'] as int?) ?? 0) - (perfComparativo!['rondas'] ?? 0)) / (perfComparativo!['rondas'] ?? 1) * 100).toStringAsFixed(1) : '---'}%"
+                    "${((perfComparativo['rondas'] ?? 0) > 0) ? ((((perfPrincipal['rondas']) ?? 0) - (perfComparativo['rondas'] ?? 0)) / (perfComparativo['rondas'] ?? 1) * 100).toStringAsFixed(1) : '---'}%"
                   ],
                   [
                     'ITENS AUDITADOS', 
                     '${goals['itens_mensal']}', 
-                    '${perfComparativo!['itens']}', 
+                    '${perfComparativo['itens']}', 
                     '${perfPrincipal['itens']}',
-                    "${((perfComparativo!['itens'] ?? 0) > 0) ? ((((perfPrincipal['itens'] as int?) ?? 0) - (perfComparativo!['itens'] ?? 0)) / (perfComparativo!['itens'] ?? 1) * 100).toStringAsFixed(1) : '---'}%"
+                    "${((perfComparativo['itens'] ?? 0) > 0) ? ((((perfPrincipal['itens']) ?? 0) - (perfComparativo['itens'] ?? 0)) / (perfComparativo['itens'] ?? 1) * 100).toStringAsFixed(1) : '---'}%"
                   ],
                 ],
           ),

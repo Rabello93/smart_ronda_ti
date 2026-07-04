@@ -520,7 +520,11 @@ class _RondaPageState extends State<RondaPage> {
   }
 
   void adicionarEquipamento() {
-    if (patrimonioController.text.trim().isEmpty) {
+    final String currentPat = patrimonioController.text.trim();
+    final bool isExistingNoPlate = _patrimonioOriginal != null && _patrimonioOriginal!.startsWith("SP_");
+
+    // Bloqueia apenas se não tiver patrimônio digitado E não for um item sem placa já existente selecionado na lupa
+    if (currentPat.isEmpty && !isExistingNoPlate && possuiPatrimonio) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Erro: O Patrimônio é obrigatório'), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
       );
@@ -548,10 +552,7 @@ class _RondaPageState extends State<RondaPage> {
       return;
     }
 
-    // Lógica de Setor: 
-    // Se em manutenção -> VAI PARA TI
-    // Se divergente -> VAI PARA O SETOR SELECIONADO
-    // Senão -> SETOR DA RONDA ATUAL
+    // Lógica de Setor
     String setorDestino = widget.setor;
     if (statusOperacional == 'Em manutenção') {
       setorDestino = 'TI';
@@ -559,10 +560,21 @@ class _RondaPageState extends State<RondaPage> {
       setorDestino = setorDivergenteSelecionado!;
     }
 
+    // Lógica de Identificação:
+    // 1. Se digitou algo -> Usa o digitado
+    // 2. Se selecionou um sem placa na lupa e não digitou nada -> Continua "SEM PATRIMÔNIO"
+    // 3. Se marcou a chave como "Não" -> "SEM PATRIMÔNIO"
+    String finalPatrimony = "SEM PATRIMÔNIO";
+    if (currentPat.isNotEmpty) {
+      finalPatrimony = currentPat;
+    } else if (isExistingNoPlate) {
+      finalPatrimony = "SEM PATRIMÔNIO";
+    }
+
     setState(() {
       equipamentos.insert(0, AssetModel(
         tipo: tipoEquipamento,
-        patrimonio: possuiPatrimonio ? patrimonioController.text.trim() : "SEM PATRIMÔNIO",
+        patrimonio: finalPatrimony,
         marca: marcaController.text.trim(),
         modelo: modeloController.text.trim(),
         serie: serieController.text.trim(),

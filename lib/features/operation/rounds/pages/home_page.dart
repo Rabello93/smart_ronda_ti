@@ -144,8 +144,8 @@ class _HomePageState extends State<HomePage> {
               if (isAdmin) const BottomNavigationBarItem(icon: Icon(Icons.admin_panel_settings), label: "Admin"),
             ],
           ),
-          persistentFooterButtons: [
-            const Center(
+          persistentFooterButtons: const [
+            Center(
               child: Text(
                 "Smart Ronda TI - v3.2.3",
                 style: TextStyle(fontSize: 10, color: Colors.grey),
