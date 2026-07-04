@@ -9,6 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:intl/intl.dart';
+import 'package:csv/csv.dart';
+import 'package:excel/excel.dart' as ex;
 
 class ReportRepository {
   // --- HELPERS ---
@@ -41,7 +43,7 @@ class ReportRepository {
           pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.Text(config['nome'] ?? "RONDA TI", style: const pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14)),
+              pw.Text(config['nome'] ?? "RONDA TI", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14)),
               pw.Text(title.toUpperCase(), style: const pw.TextStyle(fontSize: 10, color: PdfColors.blue900)),
             ]
           ),
@@ -66,7 +68,7 @@ class ReportRepository {
           pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.Text(config['nome'] ?? "SMART RONDA TI", style: const pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold)),
+              pw.Text(config['nome'] ?? "SMART RONDA TI", style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold)),
               if (config['cnpj'] != null && config['cnpj'].isNotEmpty)
                 pw.Text("CNPJ: ${config['cnpj']}", style: const pw.TextStyle(fontSize: 7)),
               if (config['contato'] != null && config['contato'].isNotEmpty)
@@ -106,7 +108,7 @@ class ReportRepository {
           build: (pw.Context context) => [
             pw.SizedBox(height: 10),
             pw.TableHelper.fromTextArray(
-              headerStyle: const pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 10),
+              headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 10),
               headerDecoration: const pw.BoxDecoration(color: PdfColors.indigo900),
               headers: const ['TIPO', 'PATRIMÔNIO', 'LOCADORA', 'SETOR ATUAL', 'DESCRIÇÃO DEFEITO'],
               data: itens.map((i) => [
@@ -219,6 +221,7 @@ class ReportRepository {
                 equip['processador'] ?? '---',
                 equip['mac_address'] ?? '---',
                 "SIM ($idade anos)",
+                "NÃO", // Defeito
                 equip['status_operacional'] ?? 'OK',
               ]);
             }
@@ -238,7 +241,7 @@ class ReportRepository {
           footer: (pw.Context context) => _buildFooter(config),
           build: (pw.Context context) => [
             pw.SizedBox(height: 10),
-            pw.Center(child: pw.Text(apenasObsoletos == true ? "RELATÓRIO DE OBSOLESCÊNCIA (+5 ANOS)" : "AUDITORIA DE RONDAS", style: const pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 16))),
+            pw.Center(child: pw.Text(apenasObsoletos == true ? "RELATÓRIO DE OBSOLESCÊNCIA (+5 ANOS)" : "AUDITORIA DE RONDAS", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 16))),
             pw.SizedBox(height: 20),
             pw.TableHelper.fromTextArray(
               headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 8),
@@ -265,6 +268,87 @@ class ReportRepository {
       await Share.shareXFiles([XFile(file.path)], text: 'Relatório PDF');
     } catch (e) {
       messenger?.showSnackBar(SnackBar(content: Text("Erro PDF: $e"), backgroundColor: Colors.red));
+    }
+  }
+
+  static Future<void> exportarInventarioParaCSV(List<Map<String, dynamic>> itens, String titulo) async {
+    try {
+      List<List<dynamic>> rows = [];
+      rows.add(["TIPO", "PATRIMONIO", "MARCA", "MODELO", "SERIE", "SETOR", "STATUS", "LOCADO", "LOCADORA", "DEFEITO", "HOME OFFICE", "RESPONSAVEL EXTERNO"]);
+
+      for (var i in itens) {
+        rows.add([
+          i['tipo'] ?? '',
+          i['patrimonio'] ?? '',
+          i['marca'] ?? '',
+          i['modelo'] ?? '',
+          i['serie'] ?? '',
+          i['setor'] ?? '',
+          i['status_operacional'] ?? '',
+          (i['is_locado'] ?? false) ? 'SIM' : 'NAO',
+          i['locadora'] ?? 'PROPRIO',
+          (i['tem_defeito'] ?? false) ? 'SIM' : 'NAO',
+          (i['is_home_office'] ?? false) ? 'SIM' : 'NAO',
+          i['responsavel_externo'] ?? '',
+        ]);
+      }
+
+      String csvData = const ListToCsvConverter(fieldDelimiter: ';').convert(rows);
+      final directory = await getTemporaryDirectory();
+      final file = File("${directory.path}/relatorio_${DateTime.now().millisecondsSinceEpoch}.csv");
+      await file.writeAsBytes([0xEF, 0xBB, 0xBF]); 
+      await file.writeAsString(csvData);
+      await Share.shareXFiles([XFile(file.path)], text: titulo);
+    } catch (e) {
+      debugPrint("Erro CSV: $e");
+    }
+  }
+
+  static Future<void> exportarInventarioParaXLSX(List<Map<String, dynamic>> itens, String titulo) async {
+    try {
+      var excel = ex.Excel.createExcel();
+      ex.Sheet sheet = excel['Inventario'];
+      excel.delete('Sheet1');
+
+      ex.CellStyle headerStyle = ex.CellStyle(
+        backgroundColorHex: '#1A237E',
+        fontColorHex: '#FFFFFF',
+        bold: true,
+        horizontalAlign: ex.HorizontalAlign.Center,
+      );
+
+      List<String> headers = ["TIPO", "PATRIMÔNIO", "MARCA", "MODELO", "SÉRIE", "SETOR", "STATUS", "LOCADORA", "DEFEITO", "HOME OFFICE", "RESPONSÁVEL"];
+      
+      for (int i = 0; i < headers.length; i++) {
+        var cell = sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0));
+        cell.value = ex.TextCellValue(headers[i]);
+        cell.cellStyle = headerStyle;
+      }
+
+      for (int r = 0; r < itens.length; r++) {
+        var item = itens[r];
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: r + 1)).value = ex.TextCellValue(item['tipo']?.toString() ?? '');
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: r + 1)).value = ex.TextCellValue(item['patrimonio']?.toString() ?? '');
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: r + 1)).value = ex.TextCellValue(item['marca']?.toString() ?? '');
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: r + 1)).value = ex.TextCellValue(item['modelo']?.toString() ?? '');
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: r + 1)).value = ex.TextCellValue(item['serie']?.toString() ?? '');
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: r + 1)).value = ex.TextCellValue(item['setor']?.toString() ?? '');
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: r + 1)).value = ex.TextCellValue(item['status_operacional']?.toString() ?? '');
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 7, rowIndex: r + 1)).value = ex.TextCellValue(item['locadora']?.toString() ?? 'PRÓPRIO');
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 8, rowIndex: r + 1)).value = ex.TextCellValue((item['tem_defeito'] == true) ? 'SIM' : 'NÃO');
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: r + 1)).value = ex.TextCellValue((item['is_home_office'] == true) ? 'SIM' : 'NÃO');
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 10, rowIndex: r + 1)).value = ex.TextCellValue(item['responsavel_externo']?.toString() ?? '');
+      }
+
+      final directory = await getTemporaryDirectory();
+      var fileBytes = excel.save();
+      final file = File("${directory.path}/relatorio_${DateTime.now().millisecondsSinceEpoch}.xlsx")
+        ..createSync(recursive: true)
+        ..writeAsBytesSync(fileBytes!);
+
+      await Share.shareXFiles([XFile(file.path)], text: titulo);
+    } catch (e) {
+      debugPrint("Erro XLSX: $e");
     }
   }
 

@@ -103,6 +103,10 @@ class ReportController {
             itens, 
             titulo
           );
+        } else if (formato == 'CSV') {
+          await ReportRepository.exportarInventarioParaCSV(itens, titulo);
+        } else if (formato == 'XLSX') {
+          await ReportRepository.exportarInventarioParaXLSX(itens, titulo);
         } else {
           await ReportRepository.exportarMapaAtivosSetorXML(
             setor: setor ?? "GERAL", 

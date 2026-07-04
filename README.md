@@ -17,6 +17,10 @@ O app foi desenvolvido para otimizar as rondas técnicas em ambiente corporativo
 
 ## 🚀 Série Histórica (Evolução)
 
+### [3.2.3 Stable] - 2024-06-25
+- **Flexibilidade de Dados**: Implementação de exportação nativa para **XLSX (Excel)** com formatação e **CSV** otimizado.
+- **Interface**: Novo seletor de formatos horizontal na Central de Relatórios para melhor usabilidade mobile.
+
 ### [3.2.2 Stable] - 2024-06-25
 - **BI Preditivo**: Implementado o "Mapa de Incidências Críticas" para rastreio de recorrência de manutenções e divergências por ativo.
 - **Inteligência de Auditoria**: Lógica de união de filtros (OU) implementada para relatórios complexos.

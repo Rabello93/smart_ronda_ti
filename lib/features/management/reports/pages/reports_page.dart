@@ -132,11 +132,16 @@ class _ReportsPageState extends State<ReportsPage> {
           ),
 
           const SizedBox(height: 20),
-          Row(
-            children: [
-              Expanded(child: _formatRadio("PDF", 'PDF')),
-              Expanded(child: _formatRadio("XML (Excel)", 'XML')),
-            ],
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _formatRadio("PDF", 'PDF'),
+                _formatRadio("CSV", 'CSV'),
+                _formatRadio("XLSX (Excel)", 'XLSX'),
+                _formatRadio("XML", 'XML'),
+              ],
+            ),
           ),
           const SizedBox(height: 20),
           _actionButton(

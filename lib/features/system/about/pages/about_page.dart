@@ -33,7 +33,7 @@ class AboutPage extends StatelessWidget {
                       Icon(Icons.checklist_rtl, size: 80, color: Colors.blue),
                       SizedBox(height: 10),
                       Text("Smart Ronda TI", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                  Text("Versão 3.2.2", style: TextStyle(color: Colors.grey)),
+                  Text("Versão 3.2.3", style: TextStyle(color: Colors.grey)),
                 ],
               ),
             ),
@@ -46,7 +46,11 @@ class AboutPage extends StatelessWidget {
             const SizedBox(height: 20),
             _sectionTitle("🚀 Log de Atualizações"),
             _buildUpdate(
-              "3.2.2 (Atual)",
+              "3.2.3 (Atual)",
+              "• RELATÓRIOS: Implementação de exportação nativa para Excel (XLSX) e CSV.\n• UI/UX: Menu de formatos deslizante na Central de Relatórios.\n• PERFORMANCE: Otimização de exportação de grandes volumes de dados.",
+            ),
+            _buildUpdate(
+              "3.2.2",
               "• RELATÓRIOS: Inteligência de união de filtros (OU) e novo Mapa de Incidências Críticas (Manutenções/Divergências).\n• GESTÃO: Reativação da vassourinha laranja e edição de Patrimônio direto no Castelo.\n• DASHBOARD: Expansão da aba Locação para 'Gestão de Ativos', incluindo patrimônio próprio.\n• OPERAÇÃO: Conversão automática de itens 'Sem Placa' para 'Com Patrimônio' via Lupa.\n• BI: Novo filtro e relatório exclusivo para itens sem patrimônio físico.",
             ),
             _buildUpdate(
