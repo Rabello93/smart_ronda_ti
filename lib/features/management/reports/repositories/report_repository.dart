@@ -560,6 +560,103 @@ class ReportRepository {
     } catch (e) { messenger?.showSnackBar(SnackBar(content: Text("Erro: $e"), backgroundColor: Colors.red)); }
   }
 
+  static Future<void> exportarRelatorioMetas(BuildContext context, {DateTimeRange? periodo, DateTimeRange? periodoComparativo}) async {
+    final messenger = (context.mounted) ? ScaffoldMessenger.of(context) : null;
+    try {
+      final pdf = pw.Document();
+      final firestore = FirebaseFirestore.instance;
+
+      DocumentSnapshot configDoc = await firestore.collection('config').doc('empresa').get();
+      Map<String, dynamic> config = configDoc.exists ? (configDoc.data() as Map<String, dynamic>) : {};
+      pw.MemoryImage? logoImage = await _fetchLogo(config);
+
+      DocumentSnapshot goalsDoc = await firestore.collection('config').doc('metas').get();
+      Map<String, dynamic> goals = goalsDoc.exists ? (goalsDoc.data() as Map<String, dynamic>) : {'rondas_mensal': 100, 'itens_mensal': 500};
+
+      final now = DateTime.now();
+      final start = periodo?.start ?? DateTime(now.year, now.month, 1);
+      final end = periodo?.end ?? DateTime(now.year, now.month + 1, 0, 23, 59, 59);
+
+      Future<Map<String, int>> fetchPerformance(DateTime start, DateTime end) async {
+        QuerySnapshot roundsSnap = await firestore.collection('rondas')
+            .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(start))
+            .where('timestamp', isLessThanOrEqualTo: Timestamp.fromDate(end))
+            .get();
+
+        int rondas = roundsSnap.docs.length;
+        int itens = 0;
+        for (var doc in roundsSnap.docs) {
+          final data = doc.data() as Map<String, dynamic>;
+          itens += (data['itens_total'] as int? ?? 0);
+        }
+        return {'rondas': rondas, 'itens': itens};
+      }
+
+      final perfPrincipal = await fetchPerformance(start, end);
+      Map<String, int>? perfComparativo;
+      if (periodoComparativo != null) {
+        perfComparativo = await fetchPerformance(periodoComparativo.start, periodoComparativo.end);
+      }
+
+      pdf.addPage(pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        header: (pw.Context context) => _buildHeader(config, "RELATÓRIO DE PERFORMANCE E METAS", logoImage),
+        footer: (pw.Context context) => _buildFooter(config),
+        build: (pw.Context context) => [
+          pw.SizedBox(height: 10),
+          pw.Text("Período Principal: ${start.day}/${start.month}/${start.year} - ${end.day}/${end.month}/${end.year}", style: const pw.TextStyle(fontSize: 12)),
+          if (periodoComparativo != null)
+            pw.Text("Período Comparativo: ${periodoComparativo.start.day}/${periodoComparativo.start.month}/${periodoComparativo.start.year} - ${periodoComparativo.end.day}/${periodoComparativo.end.month}/${periodoComparativo.end.year}", style: const pw.TextStyle(fontSize: 12, color: PdfColors.grey)),
+          
+          pw.SizedBox(height: 20),
+          pw.TableHelper.fromTextArray(
+            headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 10),
+            headerDecoration: const pw.BoxDecoration(color: PdfColors.indigo900),
+            headers: periodoComparativo == null 
+              ? const ['INDICADOR', 'META', 'REALIZADO', 'ATINGIMENTO']
+              : const ['INDICADOR', 'META', 'PERÍODO 1', 'PERÍODO 2', 'EVOLUÇÃO'],
+            data: periodoComparativo == null 
+              ? [
+                  [
+                    'RONDAS', 
+                    '${goals['rondas_mensal']}', 
+                    '${perfPrincipal['rondas']}', 
+                    '${(((perfPrincipal['rondas'] as int?) ?? 0) / ((goals['rondas_mensal'] as int?) ?? 1) * 100).toStringAsFixed(1)}%'
+                  ],
+                  [
+                    'ITENS AUDITADOS', 
+                    '${goals['itens_mensal']}', 
+                    '${perfPrincipal['itens']}', 
+                    '${(((perfPrincipal['itens'] as int?) ?? 0) / ((goals['itens_mensal'] as int?) ?? 1) * 100).toStringAsFixed(1)}%'
+                  ],
+                ]
+              : [
+                  [
+                    'RONDAS', 
+                    '${goals['rondas_mensal']}', 
+                    '${perfComparativo!['rondas']}', 
+                    '${perfPrincipal['rondas']}',
+                    "${((perfComparativo!['rondas'] ?? 0) > 0) ? ((((perfPrincipal['rondas'] as int?) ?? 0) - (perfComparativo!['rondas'] ?? 0)) / (perfComparativo!['rondas'] ?? 1) * 100).toStringAsFixed(1) : '---'}%"
+                  ],
+                  [
+                    'ITENS AUDITADOS', 
+                    '${goals['itens_mensal']}', 
+                    '${perfComparativo!['itens']}', 
+                    '${perfPrincipal['itens']}',
+                    "${((perfComparativo!['itens'] ?? 0) > 0) ? ((((perfPrincipal['itens'] as int?) ?? 0) - (perfComparativo!['itens'] ?? 0)) / (perfComparativo!['itens'] ?? 1) * 100).toStringAsFixed(1) : '---'}%"
+                  ],
+                ],
+          ),
+        ],
+      ));
+
+      final output = await getTemporaryDirectory();
+      final file = File("${output.path}/relatorio_${DateTime.now().millisecondsSinceEpoch}.pdf");
+      await file.writeAsBytes(await pdf.save());
+      await Share.shareXFiles([XFile(file.path)], text: 'Relatório de Metas');
+    } catch (e) { messenger?.showSnackBar(SnackBar(content: Text("Erro: $e"), backgroundColor: Colors.red)); }
+  }
+
   static Future<void> exportarRelatorioMetasXML(BuildContext context, {DateTimeRange? periodo}) async {
     final messenger = (context.mounted) ? ScaffoldMessenger.of(context) : null;
     try {
@@ -616,5 +713,66 @@ class ReportRepository {
       await file.writeAsString(xml.toString());
       await Share.shareXFiles([XFile(file.path)], text: 'Dados de Metas para Excel');
     } catch (e) { messenger?.showSnackBar(SnackBar(content: Text("Erro: $e"), backgroundColor: Colors.red)); }
+  }
+
+  static Future<void> exportarPropostaComercial(BuildContext context) async {
+    try {
+      final pdf = pw.Document();
+      final ByteData bytes = await rootBundle.load('assets/logo.png');
+      final Uint8List byteList = bytes.buffer.asUint8List();
+      final logoImage = pw.MemoryImage(byteList);
+      final now = DateTime.now();
+      final dateStr = DateFormat('dd/MM/yyyy HH:mm').format(now);
+
+      pdf.addPage(pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        build: (pw.Context context) => pw.Column(
+          children: [
+            pw.Expanded(
+              child: pw.Column(
+                mainAxisAlignment: pw.MainAxisAlignment.center,
+                children: [
+                  pw.Image(logoImage, height: 120),
+                  pw.SizedBox(height: 30),
+                  pw.Text("Smart Ronda TI", style: pw.TextStyle(fontSize: 28, fontWeight: pw.FontWeight.bold, color: PdfColors.blue900)),
+                  pw.Text("SOLUÇÃO EM GOVERNANÇA E AUDITORIA DE ATIVOS", style: const pw.TextStyle(fontSize: 12, color: PdfColors.blueGrey700)),
+                  pw.SizedBox(height: 50),
+                  pw.Container(
+                    padding: const pw.EdgeInsets.all(20),
+                    decoration: const pw.BoxDecoration(color: PdfColors.grey100, borderRadius: pw.BorderRadius.all(pw.Radius.circular(10))),
+                    child: pw.Text(
+                      "O Smart Ronda TI é uma solução definitiva para instituições que buscam excelência na governança de seus ativos tecnológicos.",
+                      textAlign: pw.TextAlign.center,
+                      style: const pw.TextStyle(fontSize: 11, lineSpacing: 1.5),
+                    ),
+                  ),
+                ]
+              )
+            ),
+            pw.Container(
+              padding: const pw.EdgeInsets.only(top: 10),
+              decoration: const pw.BoxDecoration(border: pw.Border(top: pw.BorderSide(width: 0.5, color: PdfColors.grey300))),
+              child: pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text("Desenvolvedor: Fabio Rabelo", style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                      pw.Text("Contato: fabiorabelosilva93@outlook.com", style: const pw.TextStyle(fontSize: 8)),
+                    ]
+                  ),
+                  pw.Text("Gerado em: $dateStr", style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
+                ]
+              )
+            ),
+          ]
+        )
+      ));
+      final output = await getTemporaryDirectory();
+      final file = File("${output.path}/relatorio_${DateTime.now().millisecondsSinceEpoch}.pdf");
+      await file.writeAsBytes(await pdf.save());
+      await Share.shareXFiles([XFile(file.path)], text: 'Apresentação Comercial');
+    } catch (e) { debugPrint("Erro ao gerar proposta: $e"); }
   }
 }
