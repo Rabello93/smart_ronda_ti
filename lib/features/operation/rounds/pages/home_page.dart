@@ -7,6 +7,7 @@ import 'package:smart_ronda_ti/features/system/auth/controllers/auth_controller.
 import 'package:smart_ronda_ti/features/operation/rounds/pages/ronda_page.dart';
 import 'package:smart_ronda_ti/features/operation/rounds/pages/history/history_page.dart';
 import 'package:smart_ronda_ti/features/system/about/pages/about_page.dart';
+import 'package:smart_ronda_ti/features/system/notifications/pages/notifications_page.dart';
 import 'package:smart_ronda_ti/features/management/admin/pages/admin_page.dart';
 import 'package:smart_ronda_ti/features/management/admin/controllers/admin_controller.dart';
 import 'package:smart_ronda_ti/features/system/auth/models/user_model.dart';
@@ -141,13 +142,14 @@ class _HomePageState extends State<HomePage> {
             items: [
               const BottomNavigationBarItem(icon: Icon(Icons.play_arrow), label: "Ronda"),
               const BottomNavigationBarItem(icon: Icon(Icons.history), label: "Histórico"),
+              const BottomNavigationBarItem(icon: Icon(Icons.notifications), label: "Alertas"),
               if (isAdmin) const BottomNavigationBarItem(icon: Icon(Icons.admin_panel_settings), label: "Admin"),
             ],
           ),
           persistentFooterButtons: const [
             Center(
               child: Text(
-                "Smart Ronda TI - v3.2.3",
+                "Smart Ronda TI - v3.2.4",
                 style: TextStyle(fontSize: 10, color: Colors.grey),
               ),
             ),
@@ -202,7 +204,8 @@ class _HomePageState extends State<HomePage> {
           ),
         );
       case 1: return const HistoryPage();
-      case 2: return isAdmin ? const AdminPage() : const HistoryPage();
+      case 2: return const NotificationsPage();
+      case 3: return isAdmin ? const AdminPage() : const HistoryPage();
       default: return const HistoryPage();
     }
   }

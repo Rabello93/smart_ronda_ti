@@ -287,7 +287,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
 
   Widget _buildFooter(Color textColor) {
-    const String version = '3.2.3';
+    const String version = '3.2.4';
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Center(
@@ -342,24 +342,31 @@ class _DashboardPageState extends State<DashboardPage> {
                 child: Row(
                   children: [
                     SummaryCard(
-                      title: "Rondas (Período)", 
-                      value: filteredRondas.length.toString(), 
-                      icon: Icons.assignment_turned_in, 
-                      color: Colors.blue,
+                      title: "Inventário Total", 
+                      value: allAssets.length.toString(), 
+                      icon: Icons.storage, 
+                      color: Colors.teal,
                     ),
                     const SizedBox(width: 12),
                     SummaryCard(
-                      title: "Itens Vistos", 
+                      title: "Auditados no Período", 
                       value: _dashboardController.getTotalItens(filteredRondas).toString(), 
                       icon: Icons.inventory_2, 
                       color: Colors.orange,
                     ),
                     const SizedBox(width: 12),
                     SummaryCard(
-                      title: "Defeitos", 
-                      value: _dashboardController.getTotalDefeitos(filteredRondas).toString(), 
+                      title: "Defeitos (Total)", 
+                      value: allAssets.where((a) => a.temDefeito || a.statusOperacional == 'Em manutenção').length.toString(), 
                       icon: Icons.error, 
                       color: Colors.red,
+                    ),
+                    const SizedBox(width: 12),
+                    SummaryCard(
+                      title: "Rondas (Período)", 
+                      value: filteredRondas.length.toString(), 
+                      icon: Icons.assignment_turned_in, 
+                      color: Colors.blue,
                     ),
                     const SizedBox(width: 12),
                     SummaryCard(

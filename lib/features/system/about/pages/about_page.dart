@@ -33,7 +33,7 @@ class AboutPage extends StatelessWidget {
                       Icon(Icons.checklist_rtl, size: 80, color: Colors.blue),
                       SizedBox(height: 10),
                       Text("Smart Ronda TI", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                  Text("Versão 3.2.3", style: TextStyle(color: Colors.grey)),
+                  Text("Versão 3.2.4", style: TextStyle(color: Colors.grey)),
                 ],
               ),
             ),
@@ -46,8 +46,12 @@ class AboutPage extends StatelessWidget {
             const SizedBox(height: 20),
             _sectionTitle("🚀 Log de Atualizações"),
             _buildUpdate(
-              "3.2.3 (Atual)",
-              "• RELATÓRIOS: Implementação de exportação nativa para Excel (XLSX) e CSV.\n• UI/UX: Menu de formatos deslizante na Central de Relatórios.\n• PERFORMANCE: Otimização de exportação de grandes volumes de dados.",
+              "3.2.4 (Atual)",
+              "• DASHBOARD: Sincronização de defeitos em valor absoluto e novo card de Inventário Total.\n• UI/UX: Renomeação estratégica de indicadores para maior clareza corporativa.\n• NOTIFICAÇÕES: Nova aba de alertas e notificações do sistema integrada ao app.",
+            ),
+            _buildUpdate(
+              "3.2.3",
+              "• RELATÓRIOS: Implementação de exportação nativa para Excel (XLSX) e CSV.\n• UI/UX: Menu de formatos deslizante na Central de Relatórios.\n• OPERAÇÃO: Melhoria na inclusão de itens sem patrimônio via busca contextual.",
             ),
             _buildUpdate(
               "3.2.2",
