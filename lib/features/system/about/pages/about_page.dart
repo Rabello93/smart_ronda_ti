@@ -47,7 +47,7 @@ class AboutPage extends StatelessWidget {
             _sectionTitle("🚀 Log de Atualizações"),
             _buildUpdate(
               "3.2.4 (Atual)",
-              "• DASHBOARD: Sincronização de defeitos em valor absoluto e novo card de Inventário Total.\n• UI/UX: Renomeação estratégica de indicadores para maior clareza corporativa.\n• NOTIFICAÇÕES: Nova aba de alertas e notificações do sistema integrada ao app.",
+              "• DASHBOARD: Sincronização de defeitos em valor absoluto e novo card de Inventário Total.\n• UI/UX: Renomeação estratégica de indicadores para maior clareza corporativa.\n• NOTIFICAÇÕES: Nova aba de alertas e notificações do sistema integrada ao app.\n• COMERCIAL: Nova Proposta Comercial Premium com detalhamento de governança e perfis.",
             ),
             _buildUpdate(
               "3.2.3",

@@ -715,6 +715,24 @@ class ReportRepository {
     } catch (e) { messenger?.showSnackBar(SnackBar(content: Text("Erro: $e"), backgroundColor: Colors.red)); }
   }
 
+  static pw.Widget _bulletPoint(String text) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.only(bottom: 5),
+      child: pw.Row(
+        crossAxisAlignment: pw.MainAxisAlignment.start,
+        children: [
+          pw.Container(
+            width: 5,
+            height: 5,
+            margin: const pw.EdgeInsets.only(top: 4, right: 8),
+            decoration: const pw.BoxDecoration(color: PdfColors.blue900, shape: pw.BoxShape.circle),
+          ),
+          pw.Expanded(child: pw.Text(text, style: const pw.TextStyle(fontSize: 10))),
+        ],
+      ),
+    );
+  }
+
   static Future<void> exportarPropostaComercial(BuildContext context) async {
     try {
       final pdf = pw.Document();
@@ -724,55 +742,110 @@ class ReportRepository {
       final now = DateTime.now();
       final dateStr = DateFormat('dd/MM/yyyy HH:mm').format(now);
 
-      pdf.addPage(pw.Page(
-        pageFormat: PdfPageFormat.a4,
-        build: (pw.Context context) => pw.Column(
-          children: [
-            pw.Expanded(
+      pdf.addPage(
+        pw.MultiPage(
+          pageFormat: PdfPageFormat.a4,
+          margin: const pw.EdgeInsets.all(32),
+          build: (pw.Context context) => [
+            // CAPA / CABEÇALHO
+            pw.Center(
               child: pw.Column(
-                mainAxisAlignment: pw.MainAxisAlignment.center,
                 children: [
-                  pw.Image(logoImage, height: 120),
+                  pw.Image(logoImage, height: 100),
+                  pw.SizedBox(height: 20),
+                  pw.Text("Smart Ronda TI", style: pw.TextStyle(fontSize: 26, fontWeight: pw.FontWeight.bold, color: PdfColors.blue900)),
+                  pw.Text("SOLUÇÃO INTELIGENTE EM GOVERNANÇA DE ATIVOS", style: const pw.TextStyle(fontSize: 11, color: PdfColors.blueGrey700)),
                   pw.SizedBox(height: 30),
-                  pw.Text("Smart Ronda TI", style: pw.TextStyle(fontSize: 28, fontWeight: pw.FontWeight.bold, color: PdfColors.blue900)),
-                  pw.Text("SOLUÇÃO EM GOVERNANÇA E AUDITORIA DE ATIVOS", style: const pw.TextStyle(fontSize: 12, color: PdfColors.blueGrey700)),
-                  pw.SizedBox(height: 50),
-                  pw.Container(
-                    padding: const pw.EdgeInsets.all(20),
-                    decoration: const pw.BoxDecoration(color: PdfColors.grey100, borderRadius: pw.BorderRadius.all(pw.Radius.circular(10))),
-                    child: pw.Text(
-                      "O Smart Ronda TI é uma solução definitiva para instituições que buscam excelência na governança de seus ativos tecnológicos.",
-                      textAlign: pw.TextAlign.center,
-                      style: const pw.TextStyle(fontSize: 11, lineSpacing: 1.5),
-                    ),
-                  ),
-                ]
-              )
+                  pw.Divider(thickness: 1, color: PdfColors.grey300),
+                ],
+              ),
             ),
-            pw.Container(
-              padding: const pw.EdgeInsets.only(top: 10),
-              decoration: const pw.BoxDecoration(border: pw.Border(top: pw.BorderSide(width: 0.5, color: PdfColors.grey300))),
-              child: pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                children: [
-                  pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
-                      pw.Text("Desenvolvedor: Fabio Rabelo", style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
-                      pw.Text("Contato: fabiorabelosilva93@outlook.com", style: const pw.TextStyle(fontSize: 8)),
-                    ]
-                  ),
-                  pw.Text("Gerado em: $dateStr", style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
-                ]
-              )
+
+            pw.SizedBox(height: 20),
+
+            // INTUITO E UTILIDADE
+            pw.Text("1. O CONCEITO", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: PdfColors.blue900)),
+            pw.SizedBox(height: 10),
+            pw.Text(
+              "O Smart Ronda TI nasceu da necessidade crítica de transformar a gestão de ativos tecnológicos de um processo passivo e manual em uma operação digital proativa. O intuito é fornecer uma 'fotografia' fiel e em tempo real de todo o parque computacional da instituição.",
+              textAlign: pw.TextAlign.justify,
+              style: const pw.TextStyle(fontSize: 11, lineSpacing: 1.5),
             ),
-          ]
-        )
-      ));
+            pw.SizedBox(height: 15),
+            pw.Text(
+              "Como ele pode ser útil?",
+              style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: PdfColors.blue800),
+            ),
+            pw.SizedBox(height: 8),
+            _bulletPoint("Redução de perdas através da rastreabilidade rigorosa de movimentações."),
+            _bulletPoint("Identificação automática de equipamentos obsoletos (+5 anos) para planejamento de trocas."),
+            _bulletPoint("Monitoramento de 'Equipamentos Críticos' com histórico de manutenções recorrentes."),
+            _bulletPoint("Saneamento de inventário físico com tecnologia de busca contextual e QR Code."),
+
+            pw.SizedBox(height: 25),
+
+            // PRINCIPAIS FUNÇÕES
+            pw.Text("2. FUNCIONALIDADES CHAVE", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: PdfColors.blue900)),
+            pw.SizedBox(height: 10),
+            _bulletPoint("Inventário Mestre (O Castelo): Base de dados centralizada e editável para todo o hardware."),
+            _bulletPoint("Rondas de Auditoria: Conferência setorizada com status operacional em tempo real."),
+            _bulletPoint("Gestão de Ativos Próprios e Locados: Visão unificada de toda a propriedade tecnológica."),
+            _bulletPoint("Mapa de Incidências: Relatório preditivo que aponta gargalos técnicos e falhas recorrentes."),
+            _bulletPoint("Exportação Avançada: Geração nativa de documentos em PDF, Excel (XLSX), CSV e XML."),
+            _bulletPoint("Rastreio de Home Office: Controle jurídico de ativos fora das dependências físicas."),
+
+            pw.SizedBox(height: 25),
+
+            // NÍVEIS DE ACESSO
+            pw.Text("3. GOVERNANÇA E SEGURANÇA (NÍVEIS DE ACESSO)", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: PdfColors.blue900)),
+            pw.SizedBox(height: 10),
+            pw.TableHelper.fromTextArray(
+              headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 10),
+              headerDecoration: const pw.BoxDecoration(color: PdfColors.blue900),
+              cellStyle: const pw.TextStyle(fontSize: 9),
+              headers: ['PERFIL', 'DESCRIÇÃO DAS ATRIBUIÇÕES'],
+              data: [
+                ['MASTER', 'Controle total do ecossistema, gestão de usuários, branding da empresa e reset de banco de dados.'],
+                ['GERENTE', 'Acesso completo ao Dashboard de BI, relatórios estratégicos e aprovação de novos técnicos.'],
+                ['NORMAL', 'Execução de rondas operacionais em campo, registro de defeitos e consulta de histórico.'],
+                ['ESPECTADOR', 'Acesso exclusivo para visualização de indicadores e KPIs (Ideal para conselhos e diretoria).'],
+              ],
+            ),
+
+            pw.Spacer(),
+
+            // RODAPÉ PROFISSIONAL
+            pw.Divider(thickness: 0.5, color: PdfColors.grey300),
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text("Desenvolvido por Fabio Rabelo", style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                    pw.Text("Especialista em Governança de TI", style: const pw.TextStyle(fontSize: 8)),
+                    pw.Text("Contato: fabiorabelosilva93@outlook.com", style: const pw.TextStyle(fontSize: 8)),
+                  ],
+                ),
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.end,
+                  children: [
+                    pw.Text("Gerado em: $dateStr", style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
+                    pw.Text("Smart Ronda TI v3.2.4", style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+
       final output = await getTemporaryDirectory();
-      final file = File("${output.path}/relatorio_${DateTime.now().millisecondsSinceEpoch}.pdf");
+      final file = File("${output.path}/proposta_comercial_smart_ronda.pdf");
       await file.writeAsBytes(await pdf.save());
-      await Share.shareXFiles([XFile(file.path)], text: 'Apresentação Comercial');
-    } catch (e) { debugPrint("Erro ao gerar proposta: $e"); }
+      await Share.shareXFiles([XFile(file.path)], text: 'Proposta Comercial Smart Ronda TI');
+    } catch (e) {
+      debugPrint("Erro ao gerar proposta: $e");
+    }
   }
 }
