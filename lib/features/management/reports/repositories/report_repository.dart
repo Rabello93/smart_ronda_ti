@@ -102,7 +102,7 @@ class ReportRepository {
 
       pdf.addPage(
         pw.MultiPage(
-          pageFormat: PdfPageFormat.a4,
+          pageFormat: PdfPageFormat.a4.landscape,
           header: (pw.Context context) => _buildHeader(config, titulo, logoImage),
           footer: (pw.Context context) => _buildFooter(config),
           build: (pw.Context context) => [
@@ -215,7 +215,9 @@ class ReportRepository {
             ronda['setor']?.toString().toUpperCase() ?? '',
             equip['tipo'] ?? '',
             equip['patrimonio'] ?? (equipDoc.id.length > 15 ? 'S/P' : equipDoc.id),
+            equip['marca'] ?? '---',
             equip['modelo'] ?? '---',
+            equip['serie'] ?? '---',
             equip['locadora'] ?? 'PRÓPRIO',
             isObsoleto ? "SIM ($idade anos)" : 'NÃO',
             (equip['tem_defeito'] == true || equip['status_operacional'] == 'Em manutenção') ? 'SIM' : 'NÃO',
@@ -238,8 +240,10 @@ class ReportRepository {
                 equip['setor']?.toString().toUpperCase() ?? '---',
                 equip['tipo'] ?? '',
                 doc.id,
-                equip['processador'] ?? '---',
-                equip['mac_address'] ?? '---',
+                equip['marca'] ?? '---',
+                equip['modelo'] ?? '---',
+                equip['serie'] ?? '---',
+                equip['locadora'] ?? 'PRÓPRIO',
                 "SIM ($idade anos)",
                 "NÃO", // Defeito
                 equip['status_operacional'] ?? 'OK',
@@ -267,7 +271,7 @@ class ReportRepository {
               headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 8),
               cellStyle: const pw.TextStyle(fontSize: 7),
               headerDecoration: const pw.BoxDecoration(color: PdfColors.blueGrey900),
-              headers: const ['DATA', 'SETOR', 'TIPO', 'PATRIMÔNIO', 'MODELO', 'LOCADORA', 'OBSOLETO', 'DEFEITO', 'STATUS'],
+              headers: const ['DATA', 'SETOR', 'TIPO', 'PATRIMÔNIO', 'MARCA', 'MODELO', 'SÉRIE', 'LOCADORA', 'OBSOLETO', 'DEFEITO', 'STATUS'],
               data: tableData,
             ),
             pw.SizedBox(height: 20),
@@ -389,7 +393,7 @@ class ReportRepository {
       pw.MemoryImage? logoImage = await _fetchLogo(config);
 
       pdf.addPage(pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
+        pageFormat: PdfPageFormat.a4.landscape,
         header: (pw.Context context) => _buildHeader(config, "MAPA DE ATIVOS", logoImage),
         footer: (pw.Context context) => _buildFooter(config),
         build: (pw.Context context) => [
@@ -397,14 +401,17 @@ class ReportRepository {
           pw.Header(level: 0, child: pw.Text("SETOR ${setor.toUpperCase()}")),
           pw.SizedBox(height: 10),
           pw.TableHelper.fromTextArray(
-            headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 10),
+            headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 8),
             headerDecoration: const pw.BoxDecoration(color: PdfColors.indigo900),
-            headers: const ['TIPO', 'PATRIMÔNIO', 'MARCA', 'MODELO', 'SÉRIE / MAC', 'LOCADORA', 'SETOR ATUAL', 'STATUS OP.'],
+            headers: const ['TIPO', 'PATRIMÔNIO', 'MARCA', 'MODELO', 'SÉRIE / MAC', 'LOCADORA', 'STATUS OP.', 'INFORMAÇÃO'],
             data: itens.map((i) {
               String serieMac = i['serie'] ?? '---';
               if (i['mac_address'] != null && i['mac_address'].toString().isNotEmpty && i['mac_address'] != '---') {
                 serieMac += "\nMAC: ${i['mac_address']}";
               }
+              String info = i['status_operacional'] ?? 'Em uso';
+              if (i['tem_defeito'] == true) info = "DEFEITO: ${i['descricao_defeito'] ?? 'Não inf.'}";
+
               return [
                 i['tipo'] ?? '', 
                 i['patrimonio'] ?? 'S/P', 
@@ -412,8 +419,8 @@ class ReportRepository {
                 i['modelo'] ?? '---',
                 serieMac,
                 i['locadora'] ?? 'PRÓPRIO',
-                i['setor'] ?? '---',
                 i['status_operacional'] ?? 'Em uso',
+                info.toUpperCase(),
               ];
             }).toList(),
           ),
@@ -460,17 +467,26 @@ class ReportRepository {
             headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 7),
             cellStyle: const pw.TextStyle(fontSize: 6),
             headerDecoration: const pw.BoxDecoration(color: PdfColors.red900),
-            headers: const ['TIPO', 'PATRIMÔNIO', 'MARCA', 'MODELO', 'SÉRIE / MAC', 'SITUAÇÃO / DEFEITO', 'TEMPO MAN.', 'DIV', 'HO', 'SETOR ATUAL'],
+            headers: const ['TIPO', 'PATRIMÔNIO', 'MARCA', 'MODELO', 'SÉRIE / MAC', 'LOCADORA', 'SITUAÇÃO / DEFEITO', 'SAÍDA MAN.', 'TEMPO MAN.', 'RETORNO MAN.', 'DIV', 'HO', 'SETOR ATUAL'],
             data: dados.map((d) {
               String tempoMan = '---';
+              String dataSaida = '---';
+              String dataRetorno = '---';
+
               if (d['data_entrada_manutencao'] != null) {
                 final DateTime dtEntrada = (d['data_entrada_manutencao'] is Timestamp) 
                     ? (d['data_entrada_manutencao'] as Timestamp).toDate() 
                     : d['data_entrada_manutencao'];
                 
+                dataSaida = DateFormat('dd/MM/yy HH:mm').format(dtEntrada);
+                
                 final DateTime dtFim = (d['data_saida_manutencao'] != null)
                     ? ((d['data_saida_manutencao'] is Timestamp) ? (d['data_saida_manutencao'] as Timestamp).toDate() : d['data_saida_manutencao'])
                     : DateTime.now();
+
+                if (d['data_saida_manutencao'] != null) {
+                  dataRetorno = DateFormat('dd/MM/yy HH:mm').format(dtFim);
+                }
 
                 final diff = dtFim.difference(dtEntrada);
                 tempoMan = "${diff.inDays}d ${diff.inHours % 24}h";
@@ -491,8 +507,11 @@ class ReportRepository {
                 d['marca']?.toString() ?? '---',
                 d['modelo']?.toString() ?? '---',
                 serieMac,
+                d['locadora']?.toString() ?? 'PRÓPRIO',
                 defeitoInfo,
+                dataSaida,
                 tempoMan,
+                dataRetorno,
                 d['count_divergencia'] > 0 ? 'SIM' : 'NÃO',
                 d['count_home_office'] > 0 ? 'SIM' : 'NÃO',
                 d['ultimo_setor']?.toString().toUpperCase() ?? '---',
@@ -515,6 +534,82 @@ class ReportRepository {
       await file.writeAsBytes(await pdf.save());
       await Share.shareXFiles([XFile(file.path)], text: 'Relatório de Incidências');
     } catch (e) { messenger?.showSnackBar(SnackBar(content: Text("Erro: $e"), backgroundColor: Colors.red)); }
+  }
+
+  static Future<void> exportarRelatorioIncidenciasXLSX({
+    required BuildContext context,
+    required List<Map<String, dynamic>> dados,
+    required DateTimeRange periodo,
+  }) async {
+    try {
+      var excel = ex.Excel.createExcel();
+      ex.Sheet sheet = excel['Incidencias'];
+      excel.delete('Sheet1');
+
+      ex.CellStyle headerStyle = ex.CellStyle(
+        backgroundColorHex: ex.ExcelColor.fromHexString('#B71C1C'),
+        fontColorHex: ex.ExcelColor.fromHexString('#FFFFFF'),
+        bold: true,
+        horizontalAlign: ex.HorizontalAlign.Center,
+      );
+
+      List<String> headers = ['TIPO', 'PATRIMÔNIO', 'MARCA', 'MODELO', 'SÉRIE', 'MAC', 'LOCADORA', 'SITUAÇÃO/DEFEITO', 'SAÍDA', 'TEMPO', 'RETORNO', 'DIV', 'HO', 'SETOR'];
+      
+      for (int i = 0; i < headers.length; i++) {
+        var cell = sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0));
+        cell.value = ex.TextCellValue(headers[i]);
+        cell.cellStyle = headerStyle;
+      }
+
+      for (int r = 0; r < dados.length; r++) {
+        final d = dados[r];
+        String tempoMan = '---';
+        String dataSaida = '---';
+        String dataRetorno = '---';
+
+        if (d['data_entrada_manutencao'] != null) {
+          final DateTime dtEntrada = (d['data_entrada_manutencao'] is Timestamp) 
+              ? (d['data_entrada_manutencao'] as Timestamp).toDate() 
+              : d['data_entrada_manutencao'];
+          dataSaida = DateFormat('dd/MM/yy HH:mm').format(dtEntrada);
+          final DateTime dtFim = (d['data_saida_manutencao'] != null)
+              ? ((d['data_saida_manutencao'] is Timestamp) ? (d['data_saida_manutencao'] as Timestamp).toDate() : d['data_saida_manutencao'])
+              : DateTime.now();
+          if (d['data_saida_manutencao'] != null) dataRetorno = DateFormat('dd/MM/yy HH:mm').format(dtFim);
+          final diff = dtFim.difference(dtEntrada);
+          tempoMan = "${diff.inDays}d ${diff.inHours % 24}h";
+        }
+
+        String defeitoInfo = (d['tem_defeito'] == true) 
+            ? "DEFEITO: ${d['descricao_defeito']}" 
+            : (d['ultimo_status'] == 'Descartado' ? "DESCARTADO" : (d['em_manutencao'] == true ? "EM MANUTENÇÃO" : "OK"));
+
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: r + 1)).value = ex.TextCellValue(d['tipo']?.toString() ?? '');
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: r + 1)).value = ex.TextCellValue(d['patrimonio']?.toString() ?? '');
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: r + 1)).value = ex.TextCellValue(d['marca']?.toString() ?? '');
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: r + 1)).value = ex.TextCellValue(d['modelo']?.toString() ?? '');
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: r + 1)).value = ex.TextCellValue(d['serie']?.toString() ?? '');
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: r + 1)).value = ex.TextCellValue(d['mac_address']?.toString() ?? '');
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: r + 1)).value = ex.TextCellValue(d['locadora']?.toString() ?? 'PRÓPRIO');
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 7, rowIndex: r + 1)).value = ex.TextCellValue(defeitoInfo);
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 8, rowIndex: r + 1)).value = ex.TextCellValue(dataSaida);
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: r + 1)).value = ex.TextCellValue(tempoMan);
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 10, rowIndex: r + 1)).value = ex.TextCellValue(dataRetorno);
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 11, rowIndex: r + 1)).value = ex.TextCellValue(d['count_divergencia'] > 0 ? 'SIM' : 'NÃO');
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 12, rowIndex: r + 1)).value = ex.TextCellValue(d['count_home_office'] > 0 ? 'SIM' : 'NÃO');
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 13, rowIndex: r + 1)).value = ex.TextCellValue(d['ultimo_setor']?.toString().toUpperCase() ?? '');
+      }
+
+      final directory = await getTemporaryDirectory();
+      var fileBytes = excel.save();
+      final file = File("${directory.path}/incidencias_${DateTime.now().millisecondsSinceEpoch}.xlsx")
+        ..createSync(recursive: true)
+        ..writeAsBytesSync(fileBytes!);
+
+      await Share.shareXFiles([XFile(file.path)], text: 'Mapa de Incidências Excel');
+    } catch (e) {
+      debugPrint("Erro Incidencias XLSX: $e");
+    }
   }
 
   // --- XML EXPORTS ---
@@ -605,19 +700,24 @@ class ReportRepository {
 
       QuerySnapshot logSnapshot = await firestore.collection('logs').orderBy('timestamp', descending: true).get();
       pdf.addPage(pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
+        pageFormat: PdfPageFormat.a4.landscape,
         header: (pw.Context context) => _buildHeader(config, "LOGS DO SISTEMA", logoImage),
         footer: (pw.Context context) => _buildFooter(config),
         build: (pw.Context context) => [
           pw.SizedBox(height: 20),
           pw.TableHelper.fromTextArray(
-            headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 10),
+            headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 9),
             headerDecoration: const pw.BoxDecoration(color: PdfColors.indigo900),
-            headers: const ['Data/Hora', 'Tecnico', 'Acao', 'Detalhes'],
+            headers: const ['DATA/HORA', 'TÉCNICO', 'AÇÃO', 'DETALHES'],
             data: logSnapshot.docs.map((doc) {
               final log = doc.data() as Map<String, dynamic>;
               final date = (log['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now();
-              return ["${date.day}/${date.month}/${date.year}", log['tecnico_nome'] ?? '---', log['acao'] ?? '---', log['detalhes'] ?? '---'];
+              return [
+                "${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}", 
+                log['tecnico_nome'] ?? '---', 
+                log['acao'] ?? '---', 
+                log['detalhes'] ?? '---'
+              ];
             }).toList(),
           ),
         ]
@@ -668,7 +768,7 @@ class ReportRepository {
       }
 
       pdf.addPage(pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
+        pageFormat: PdfPageFormat.a4.landscape,
         header: (pw.Context context) => _buildHeader(config, "RELATÓRIO DE PERFORMANCE E METAS", logoImage),
         footer: (pw.Context context) => _buildFooter(config),
         build: (pw.Context context) => [

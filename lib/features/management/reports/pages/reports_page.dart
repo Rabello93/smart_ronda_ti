@@ -214,11 +214,38 @@ class _ReportsPageState extends State<ReportsPage> {
             color: Colors.blueGrey.shade800,
           ),
           const SizedBox(height: 20),
-          _actionButton(
-            onPressed: _periodoPrincipal == null ? null : () => _reportController.gerarRelatorioIncidencias(context, periodo: _periodoPrincipal!),
-            label: "MAPA DE INCIDÊNCIAS CRÍTICAS",
-            icon: Icons.analytics_outlined,
-            color: Colors.deepOrange.shade900,
+          Row(
+            children: [
+              Expanded(
+                child: _actionButton(
+                  onPressed: _periodoPrincipal == null ? null : () => _reportController.gerarRelatorioIncidencias(
+                    context, 
+                    periodo: _periodoPrincipal!, 
+                    setor: _setorSelecionado,
+                    locadora: _locadoraSelecionada,
+                    formato: 'PDF',
+                  ),
+                  label: "PDF INCIDÊNCIAS",
+                  icon: Icons.picture_as_pdf,
+                  color: Colors.red.shade900,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _actionButton(
+                  onPressed: _periodoPrincipal == null ? null : () => _reportController.gerarRelatorioIncidencias(
+                    context, 
+                    periodo: _periodoPrincipal!, 
+                    setor: _setorSelecionado,
+                    locadora: _locadoraSelecionada,
+                    formato: 'XLSX',
+                  ),
+                  label: "XLSX INCIDÊNCIAS",
+                  icon: Icons.table_chart,
+                  color: Colors.green.shade900,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 40),
         ],
