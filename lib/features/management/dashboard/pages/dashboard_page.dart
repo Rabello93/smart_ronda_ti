@@ -420,7 +420,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         color: isInMaintenance ? Colors.orange : (hasDefect ? Colors.red : Colors.blue),
                       ),
                       title: Text("${i.tipo} - ${i.patrimonio}", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                      subtitle: Text("$statusInfo\nMarca: ${i.marca ?? '---'}", style: const TextStyle(fontSize: 11)),
+                      subtitle: Text("$statusInfo\nMarca: ${i.marca.isNotEmpty ? i.marca : '---'}", style: const TextStyle(fontSize: 11)),
                       trailing: isInMaintenance 
                         ? const Icon(Icons.timer_outlined, color: Colors.orange, size: 18)
                         : (hasDefect ? const Icon(Icons.warning, color: Colors.red, size: 18) : null),

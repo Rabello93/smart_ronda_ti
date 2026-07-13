@@ -10,6 +10,7 @@ import 'package:smart_ronda_ti/features/system/about/pages/about_page.dart';
 import 'package:smart_ronda_ti/features/system/notifications/pages/notifications_page.dart';
 import 'package:smart_ronda_ti/features/management/admin/pages/admin_page.dart';
 import 'package:smart_ronda_ti/features/management/admin/controllers/admin_controller.dart';
+import 'package:smart_ronda_ti/features/operation/rounds/controllers/round_controller.dart';
 import 'package:smart_ronda_ti/features/management/dashboard/controllers/dashboard_controller.dart';
 import 'package:smart_ronda_ti/shared/widgets/dashboard_widgets.dart';
 import 'package:smart_ronda_ti/features/system/auth/models/user_model.dart';
