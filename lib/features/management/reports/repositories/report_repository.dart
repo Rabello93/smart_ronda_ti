@@ -842,7 +842,7 @@ class ReportRepository {
                   crossAxisAlignment: pw.CrossAxisAlignment.end,
                   children: [
                     pw.Text("Gerado em: $dateStr", style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
-                    pw.Text("Smart Ronda TI v3.2.4", style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
+                    pw.Text("Smart Ronda TI v3.2.5", style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
                   ],
                 ),
               ],
