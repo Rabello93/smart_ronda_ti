@@ -108,16 +108,36 @@ class ReportRepository {
           build: (pw.Context context) => [
             pw.SizedBox(height: 10),
             pw.TableHelper.fromTextArray(
-              headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 10),
+              headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 8),
               headerDecoration: const pw.BoxDecoration(color: PdfColors.indigo900),
-              headers: const ['TIPO', 'PATRIMÔNIO', 'LOCADORA', 'SETOR ATUAL', 'DESCRIÇÃO DEFEITO'],
-              data: itens.map((i) => [
-                i['tipo'] ?? '',
-                i['patrimonio'] ?? (i['serie'] ?? 'S/P'),
-                i['locadora'] ?? 'Não inf.',
-                i['setor'] ?? '---',
-                i['descricao_defeito'] ?? '---',
-              ]).toList(),
+              headers: const ['TIPO', 'PATRIMÔNIO', 'MARCA', 'MODELO', 'SÉRIE', 'LOCADORA', 'SETOR ATUAL', 'INFORMAÇÃO'],
+              data: itens.map((i) {
+                String info = i['descricao_defeito'] ?? (i['status_operacional'] ?? 'OK');
+                
+                // Se for relatório de obsoletos (calculado pelo controller)
+                if (titulo.contains("OBSOLETOS")) {
+                  int? ano = i['ano_fabricacao'];
+                  if (ano != null) {
+                    int idade = DateTime.now().year - ano;
+                    info = "$idade ANOS";
+                  }
+                } else if (titulo.contains("DIVERGENTES")) {
+                  info = "ORIGEM: ${i['motivo_divergencia'] ?? 'NÃO INF.'}";
+                } else if (titulo.contains("HOME OFFICE")) {
+                  info = "RESP: ${i['responsavel_externo'] ?? 'NÃO INF.'}";
+                }
+
+                return [
+                  i['tipo'] ?? '',
+                  i['patrimonio'] ?? (i['serie'] ?? 'S/P'),
+                  i['marca'] ?? '---',
+                  i['modelo'] ?? '---',
+                  i['serie'] ?? '---',
+                  i['locadora'] ?? 'PRÓPRIO',
+                  i['setor'] ?? '---',
+                  info.toUpperCase(),
+                ];
+              }).toList(),
             ),
             pw.SizedBox(height: 20),
             pw.Container(
@@ -274,22 +294,26 @@ class ReportRepository {
   static Future<void> exportarInventarioParaCSV(List<Map<String, dynamic>> itens, String titulo) async {
     try {
       List<List<dynamic>> rows = [];
-      rows.add(["TIPO", "PATRIMONIO", "MARCA", "MODELO", "SERIE", "DEPARTAMENTO", "STATUS", "LOCADO", "LOCADORA", "DEFEITO", "HOME OFFICE", "RESPONSAVEL EXTERNO"]);
+      rows.add(["TIPO", "PATRIMONIO", "MARCA", "MODELO", "SERIE", "LOCADORA", "SETOR ATUAL", "INFORMACAO"]);
 
       for (var i in itens) {
+        String info = i['descricao_defeito'] ?? (i['status_operacional'] ?? 'OK');
+        if (titulo.contains("OBSOLETOS")) {
+          int? ano = i['ano_fabricacao'];
+          if (ano != null) info = "${DateTime.now().year - ano} ANOS";
+        } else if (titulo.contains("DIVERGENTES")) {
+          info = "ORIGEM: ${i['motivo_divergencia'] ?? 'NÃO INF.'}";
+        }
+
         rows.add([
           i['tipo'] ?? '',
           i['patrimonio'] ?? '',
           i['marca'] ?? '',
           i['modelo'] ?? '',
           i['serie'] ?? '',
-          i['setor'] ?? '',
-          i['status_operacional'] ?? '',
-          (i['is_locado'] ?? false) ? 'SIM' : 'NAO',
           i['locadora'] ?? 'PROPRIO',
-          (i['tem_defeito'] ?? false) ? 'SIM' : 'NAO',
-          (i['is_home_office'] ?? false) ? 'SIM' : 'NAO',
-          i['responsavel_externo'] ?? '',
+          i['setor'] ?? '',
+          info.toUpperCase(),
         ]);
       }
 
@@ -317,7 +341,7 @@ class ReportRepository {
         horizontalAlign: ex.HorizontalAlign.Center,
       );
 
-      List<String> headers = ["TIPO", "PATRIMÔNIO", "MARCA", "MODELO", "SÉRIE", "DEPARTAMENTO", "STATUS", "LOCADORA", "DEFEITO", "HOME OFFICE", "RESPONSÁVEL"];
+      List<String> headers = ["TIPO", "PATRIMÔNIO", "MARCA", "MODELO", "SÉRIE", "LOCADORA", "SETOR ATUAL", "INFORMAÇÃO"];
       
       for (int i = 0; i < headers.length; i++) {
         var cell = sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0));
@@ -327,17 +351,22 @@ class ReportRepository {
 
       for (int r = 0; r < itens.length; r++) {
         var item = itens[r];
+        String info = item['descricao_defeito'] ?? (item['status_operacional'] ?? 'OK');
+        if (titulo.contains("OBSOLETOS")) {
+          int? ano = item['ano_fabricacao'];
+          if (ano != null) info = "${DateTime.now().year - ano} ANOS";
+        } else if (titulo.contains("DIVERGENTES")) {
+          info = "ORIGEM: ${item['motivo_divergencia'] ?? 'NÃO INF.'}";
+        }
+
         sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: r + 1)).value = ex.TextCellValue(item['tipo']?.toString() ?? '');
         sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: r + 1)).value = ex.TextCellValue(item['patrimonio']?.toString() ?? '');
         sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: r + 1)).value = ex.TextCellValue(item['marca']?.toString() ?? '');
         sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: r + 1)).value = ex.TextCellValue(item['modelo']?.toString() ?? '');
         sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: r + 1)).value = ex.TextCellValue(item['serie']?.toString() ?? '');
-        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: r + 1)).value = ex.TextCellValue(item['setor']?.toString() ?? '');
-        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: r + 1)).value = ex.TextCellValue(item['status_operacional']?.toString() ?? '');
-        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 7, rowIndex: r + 1)).value = ex.TextCellValue(item['locadora']?.toString() ?? 'PRÓPRIO');
-        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 8, rowIndex: r + 1)).value = ex.TextCellValue((item['tem_defeito'] == true) ? 'SIM' : 'NÃO');
-        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: r + 1)).value = ex.TextCellValue((item['is_home_office'] == true) ? 'SIM' : 'NÃO');
-        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 10, rowIndex: r + 1)).value = ex.TextCellValue(item['responsavel_externo']?.toString() ?? '');
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: r + 1)).value = ex.TextCellValue(item['locadora']?.toString() ?? 'PRÓPRIO');
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: r + 1)).value = ex.TextCellValue(item['setor']?.toString() ?? '');
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 7, rowIndex: r + 1)).value = ex.TextCellValue(info.toUpperCase());
       }
 
       final directory = await getTemporaryDirectory();
@@ -372,8 +401,17 @@ class ReportRepository {
           pw.TableHelper.fromTextArray(
             headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 10),
             headerDecoration: const pw.BoxDecoration(color: PdfColors.indigo900),
-            headers: const ['TIPO', 'PATRIMÔNIO', 'STATUS OP.', 'LOCADO'],
-            data: itens.map((i) => [i['tipo'] ?? '', i['patrimonio'] ?? 'S/P', i['status_operacional'] ?? 'Em uso', (i['is_locado'] ?? false) ? 'Sim' : 'Não']).toList(),
+            headers: const ['TIPO', 'PATRIMÔNIO', 'MARCA', 'MODELO', 'SÉRIE', 'LOCADORA', 'SETOR ATUAL', 'STATUS OP.'],
+            data: itens.map((i) => [
+              i['tipo'] ?? '', 
+              i['patrimonio'] ?? 'S/P', 
+              i['marca'] ?? '---',
+              i['modelo'] ?? '---',
+              i['serie'] ?? '---',
+              i['locadora'] ?? 'PRÓPRIO',
+              i['setor'] ?? '---',
+              i['status_operacional'] ?? 'Em uso',
+            ]).toList(),
           ),
           pw.SizedBox(height: 20),
           pw.Container(
@@ -418,7 +456,7 @@ class ReportRepository {
             headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 8),
             cellStyle: const pw.TextStyle(fontSize: 7),
             headerDecoration: const pw.BoxDecoration(color: PdfColors.red900),
-            headers: const ['TIPO', 'PATRIMÔNIO', 'MODELO', 'SÉRIE', 'SITUAÇÃO / DEFEITO', 'TEMPO MAN.', 'DIV.', 'H.O.', 'SETOR ATUAL'],
+            headers: const ['TIPO', 'PATRIMÔNIO', 'MARCA', 'MODELO', 'SÉRIE', 'LOCADORA', 'SETOR ATUAL', 'SITUAÇÃO / DEFEITO', 'TEMPO MAN.'],
             data: dados.map((d) {
               String tempoMan = '---';
               if (d['data_entrada_manutencao'] != null) {
@@ -442,13 +480,13 @@ class ReportRepository {
               return [
                 d['tipo']?.toString() ?? '---',
                 d['patrimonio']?.toString() ?? '---',
+                d['marca']?.toString() ?? '---',
                 d['modelo']?.toString() ?? '---',
                 d['serie']?.toString() ?? '---',
+                d['locadora']?.toString() ?? 'PRÓPRIO',
+                d['ultimo_setor']?.toString().toUpperCase() ?? '---',
                 defeitoInfo,
                 tempoMan,
-                d['count_divergencia'] > 0 ? 'SIM (${d['count_divergencia']})' : 'NÃO',
-                d['count_home_office'] > 0 ? 'SIM (${d['count_home_office']})' : 'NÃO',
-                d['ultimo_setor']?.toString().toUpperCase() ?? '---',
               ];
             }).toList(),
           ),
@@ -677,6 +715,63 @@ class ReportRepository {
       await file.writeAsBytes(await pdf.save());
       await Share.shareXFiles([XFile(file.path)], text: 'Relatório de Metas');
     } catch (e) { messenger?.showSnackBar(SnackBar(content: Text("Erro: $e"), backgroundColor: Colors.red)); }
+  }
+
+  static Future<void> exportarRelatorioMetasXLSX(BuildContext context, {DateTimeRange? periodo}) async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+      DocumentSnapshot goalsDoc = await firestore.collection('config').doc('metas').get();
+      Map<String, dynamic> goals = goalsDoc.exists ? (goalsDoc.data() as Map<String, dynamic>) : {'rondas_mensal': 100, 'itens_mensal': 500};
+
+      final now = DateTime.now();
+      final start = periodo?.start ?? DateTime(now.year, now.month, 1);
+      final end = periodo?.end ?? DateTime(now.year, now.month + 1, 0, 23, 59, 59);
+
+      QuerySnapshot roundsSnap = await firestore.collection('rondas')
+          .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(start))
+          .where('timestamp', isLessThanOrEqualTo: Timestamp.fromDate(end))
+          .get();
+
+      var excel = ex.Excel.createExcel();
+      ex.Sheet sheet = excel['Metas'];
+      excel.delete('Sheet1');
+
+      sheet.appendRow([ex.TextCellValue("RELATÓRIO DE METAS E PERFORMANCE")]);
+      sheet.appendRow([ex.TextCellValue("Período: ${DateFormat('dd/MM/yyyy').format(start)} a ${DateFormat('dd/MM/yyyy').format(end)}")]);
+      sheet.appendRow([]);
+
+      sheet.appendRow([ex.TextCellValue("INDICADOR"), ex.TextCellValue("META"), ex.TextCellValue("REALIZADO"), ex.TextCellValue("ATINGIMENTO")]);
+      
+      int rondasRealizadas = roundsSnap.docs.length;
+      int itensVistos = 0;
+      for (var doc in roundsSnap.docs) {
+        itensVistos += (doc.data() as Map<String, dynamic>)['itens_total'] as int? ?? 0;
+      }
+
+      sheet.appendRow([
+        ex.TextCellValue("RONDAS"), 
+        ex.IntCellValue(goals['rondas_mensal']), 
+        ex.IntCellValue(rondasRealizadas),
+        ex.TextCellValue("${(rondasRealizadas / (goals['rondas_mensal'] as int) * 100).toStringAsFixed(1)}%")
+      ]);
+      
+      sheet.appendRow([
+        ex.TextCellValue("ITENS AUDITADOS"), 
+        ex.IntCellValue(goals['itens_mensal']), 
+        ex.IntCellValue(itensVistos),
+        ex.TextCellValue("${(itensVistos / (goals['itens_mensal'] as int) * 100).toStringAsFixed(1)}%")
+      ]);
+
+      final directory = await getTemporaryDirectory();
+      var fileBytes = excel.save();
+      final file = File("${directory.path}/metas_${DateTime.now().millisecondsSinceEpoch}.xlsx")
+        ..createSync(recursive: true)
+        ..writeAsBytesSync(fileBytes!);
+
+      await Share.shareXFiles([XFile(file.path)], text: 'Relatório de Metas Excel');
+    } catch (e) {
+      debugPrint("Erro Metas XLSX: $e");
+    }
   }
 
   static Future<void> exportarRelatorioMetasXML(BuildContext context, {DateTimeRange? periodo}) async {

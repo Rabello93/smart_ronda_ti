@@ -29,17 +29,19 @@ class RoundRepository {
     }
 
     for (var asset in assets) {
+      String inventoryId = _generateInventoryId(asset, round.setor);
+      Map<String, dynamic> assetData = asset.toMap();
+      assetData['patrimonio'] = inventoryId;
+
       DocumentReference assetRef = roundRef.collection('equipamentos').doc();
-      batch.set(assetRef, asset.toMap());
+      batch.set(assetRef, assetData);
       
       // Validação/Atualização no Castelo (Única fonte da verdade)
-      String inventoryId = _generateInventoryId(asset, round.setor);
       DocumentReference invRef = _firestore.collection('inventario_mestre').doc(inventoryId);
       
-      Map<String, dynamic> invData = asset.toMap();
+      Map<String, dynamic> invData = Map.from(assetData);
       invData['ultima_ronda_id'] = roundRef.id;
       invData['ultimo_tecnico'] = _auth.currentUser?.uid;
-      invData['patrimonio'] = inventoryId; // Garante que o ID final seja salvo dentro do doc
       
       batch.set(invRef, invData, SetOptions(merge: true));
 

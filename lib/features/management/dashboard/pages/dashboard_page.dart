@@ -881,7 +881,7 @@ class _DashboardPageState extends State<DashboardPage> {
           itemCount: itens.length,
           itemBuilder: (context, index) {
             final item = itens[index];
-            final displayPat = item.patrimonio.startsWith("SP_") ? "SEM PLACA" : item.patrimonio;
+            final displayPat = item.patrimonio;
 
             return Card(
               margin: const EdgeInsets.only(bottom: 12),

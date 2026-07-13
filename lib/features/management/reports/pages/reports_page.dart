@@ -198,13 +198,20 @@ class _ReportsPageState extends State<ReportsPage> {
               const SizedBox(width: 12),
               Expanded(
                 child: _actionButton(
-                  onPressed: () => _reportController.gerarRelatorioMetas(context, periodo: _periodoPrincipal, formato: 'XML'),
-                  label: "XML METAS",
-                  icon: Icons.code,
+                  onPressed: () => _reportController.gerarRelatorioMetas(context, periodo: _periodoPrincipal, formato: 'XLSX'),
+                  label: "XLSX METAS",
+                  icon: Icons.table_chart,
                   color: Colors.green.shade900,
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 12),
+          _actionButton(
+            onPressed: () => _reportController.gerarRelatorioMetas(context, periodo: _periodoPrincipal, formato: 'XML'),
+            label: "XML METAS ESTRATÉGICAS",
+            icon: Icons.code,
+            color: Colors.blueGrey.shade800,
           ),
           const SizedBox(height: 20),
           _actionButton(
