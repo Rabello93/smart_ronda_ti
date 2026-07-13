@@ -457,14 +457,10 @@ class ReportRepository {
           pw.Text("Período de Análise: $dateStr", style: const pw.TextStyle(fontSize: 12)),
           pw.SizedBox(height: 15),
           pw.TableHelper.fromTextArray(
-            headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 8),
-            cellStyle: const pw.TextStyle(fontSize: 7),
+            headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 7),
+            cellStyle: const pw.TextStyle(fontSize: 6),
             headerDecoration: const pw.BoxDecoration(color: PdfColors.red900),
-          pw.TableHelper.fromTextArray(
-            headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 8),
-            cellStyle: const pw.TextStyle(fontSize: 7),
-            headerDecoration: const pw.BoxDecoration(color: PdfColors.red900),
-            headers: const ['TIPO', 'PATRIMÔNIO', 'MODELO', 'SÉRIE', 'SITUAÇÃO / DEFEITO', 'TEMPO MAN.', 'DIV.', 'H.O.', 'SETOR ATUAL'],
+            headers: const ['TIPO', 'PATRIMÔNIO', 'MARCA', 'MODELO', 'SÉRIE / MAC', 'SITUAÇÃO / DEFEITO', 'TEMPO MAN.', 'DIV', 'HO', 'SETOR ATUAL'],
             data: dados.map((d) {
               String tempoMan = '---';
               if (d['data_entrada_manutencao'] != null) {
@@ -478,26 +474,30 @@ class ReportRepository {
 
                 final diff = dtFim.difference(dtEntrada);
                 tempoMan = "${diff.inDays}d ${diff.inHours % 24}h";
-                if (d['data_saida_manutencao'] != null) tempoMan += " (Concluída)";
               }
 
               String defeitoInfo = (d['tem_defeito'] == true) 
                   ? "DEFEITO: ${d['descricao_defeito']}" 
                   : (d['ultimo_status'] == 'Descartado' ? "DESCARTADO" : (d['em_manutencao'] == true ? "EM MANUTENÇÃO" : "OK"));
 
+              String serieMac = d['serie'] ?? '---';
+              if (d['mac_address'] != null && d['mac_address'].toString().isNotEmpty && d['mac_address'] != '---') {
+                serieMac += "\nMAC: ${d['mac_address']}";
+              }
+
               return [
                 d['tipo']?.toString() ?? '---',
                 d['patrimonio']?.toString() ?? '---',
+                d['marca']?.toString() ?? '---',
                 d['modelo']?.toString() ?? '---',
-                d['serie']?.toString() ?? '---',
+                serieMac,
                 defeitoInfo,
                 tempoMan,
-                d['count_divergencia'] > 0 ? 'SIM (${d['count_divergencia']})' : 'NÃO',
-                d['count_home_office'] > 0 ? 'SIM (${d['count_home_office']})' : 'NÃO',
+                d['count_divergencia'] > 0 ? 'SIM' : 'NÃO',
+                d['count_home_office'] > 0 ? 'SIM' : 'NÃO',
                 d['ultimo_setor']?.toString().toUpperCase() ?? '---',
               ];
             }).toList(),
-          ),
           ),
           pw.SizedBox(height: 20),
           pw.Container(

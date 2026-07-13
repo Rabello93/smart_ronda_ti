@@ -153,29 +153,30 @@ class ReportController {
           final data = eDoc.data() as Map<String, dynamic>;
           if (data['is_troca'] == true) continue;
 
-          final String patRaw = data['patrimonio'] ?? '';
-          final String modelRaw = data['modelo'] ?? '';
-          final String serieRaw = data['serie'] ?? '';
+          final String patRaw = (data['patrimonio'] ?? '').toString();
+          final String serieRaw = (data['serie'] ?? '').toString();
+          final String macRaw = (data['mac_address'] ?? '').toString();
           
-          // CHAVE ÚNICA ABSOLUTA: Impede que itens do RH com "SEM PATRIMÔNIO" se atropelem
-          // Usamos a combinação de todos os fatores físicos para garantir a individualidade
-          String key = "${patRaw}_${modelRaw}_${serieRaw}".toUpperCase();
-          if (key.length < 10) key = eDoc.id; // Fallback para ID do documento se os dados forem nulos
+          // NORMALIZAÇÃO DE IDENTIDADE: Se o dado for antigo ("SEM PATRIMÔNIO"), 
+          // tentamos reconstruir o ID técnico usando a Série ou o ID do documento.
+          String normalizedPat = patRaw;
+          if (patRaw == "SEM PATRIMÔNIO" || patRaw.isEmpty || patRaw == "null") {
+            normalizedPat = serieRaw.isNotEmpty ? "SP_$serieRaw" : "S/P_${eDoc.id.substring(0, 5)}";
+          }
+
+          // CHAVE ÚNICA: Usamos o Patrimônio Normalizado como chave primária.
+          // Isso garante que o mesmo item em rondas diferentes (mesmo que com nomes de modelo ligeiramente diferentes) 
+          // seja agrupado corretamente, mas itens sem placa com séries diferentes sejam separados.
+          String key = normalizedPat.toUpperCase();
 
           if (!agregador.containsKey(key)) {
-            // Normalização visual do patrimônio para o relatório
-            String displayPat = patRaw;
-            if (patRaw == "SEM PATRIMÔNIO" || patRaw.isEmpty) {
-              displayPat = serieRaw.isNotEmpty ? "SP_$serieRaw" : "S/P";
-            }
-
             agregador[key] = {
-              'patrimonio': displayPat,
+              'patrimonio': normalizedPat,
               'tipo': data['tipo'] ?? '---',
               'marca': data['marca'] ?? '---',
-              'modelo': modelRaw.isNotEmpty ? modelRaw : '---',
+              'modelo': data['modelo'] ?? '---',
               'serie': serieRaw.isNotEmpty ? serieRaw : '---',
-              'mac_address': data['mac_address'] ?? '---',
+              'mac_address': macRaw.isNotEmpty ? macRaw : '---',
               'locadora': data['locadora'] ?? 'PRÓPRIO',
               'tem_defeito': false,
               'descricao_defeito': '---',
@@ -194,7 +195,14 @@ class ReportController {
 
           final currentStatus = data['status_operacional'] ?? 'Em uso';
 
-          // LÓGICA DE INCIDÊNCIA: Se em qualquer ronda do período houve defeito ou manutenção
+          // ATUALIZAÇÃO DE INFORMAÇÕES: Se encontrarmos dados mais completos em rondas posteriores, atualizamos.
+          if (data['marca'] != null && data['marca'].toString().isNotEmpty && data['marca'] != '---') agregador[key]!['marca'] = data['marca'];
+          if (data['modelo'] != null && data['modelo'].toString().isNotEmpty && data['modelo'] != '---') agregador[key]!['modelo'] = data['modelo'];
+          if (data['serie'] != null && data['serie'].toString().isNotEmpty && data['serie'] != '---') agregador[key]!['serie'] = data['serie'];
+          if (data['mac_address'] != null && data['mac_address'].toString().isNotEmpty && data['mac_address'] != '---') agregador[key]!['mac_address'] = data['mac_address'];
+          if (data['locadora'] != null && data['locadora'].toString().isNotEmpty) agregador[key]!['locadora'] = data['locadora'];
+
+          // LÓGICA DE INCIDÊNCIA
           if (data['tem_defeito'] == true) {
             agregador[key]!['tem_defeito'] = true;
             agregador[key]!['descricao_defeito'] = data['descricao_defeito'] ?? 'Defeito sinalizado';
