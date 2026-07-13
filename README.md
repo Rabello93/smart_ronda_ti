@@ -17,9 +17,42 @@ O app foi desenvolvido para otimizar as rondas técnicas em ambiente corporativo
 
 ## 🚀 Série Histórica (Evolução)
 
-### [3.2.3 Stable] - 2024-06-25
-- **Flexibilidade de Dados**: Implementação de exportação nativa para **XLSX (Excel)** com formatação e **CSV** otimizado.
-- **Interface**: Novo seletor de formatos horizontal na Central de Relatórios para melhor usabilidade mobile.
+### 
+3.2.5 (Atual)
+
+DASHBOARD: Agrupamento de alertas críticos e pendentes em 'Central de Alertas' colapsável para maior limpeza visual.
+
+RELATÓRIOS: Ajuste no Mapa de Incidências Críticas - Exibição de 'SIM/NÃO' e descrição do defeito em vez de contagem acumulativa.
+
+RELATÓRIOS: Correção na normalização de itens 'Sem Placa' e ordenação cronológica para garantir setor e status mais recentes.
+
+GOVERNANÇA: Transição completa de 'Setores' para 'Departamentos' em todo o sistema.
+
+DASHBOARD: Nova aba de Departamentos com visão em cards e popups detalhados por ativo.
+
+SEGURANÇA: Regra de transferência automática de ativos para a TI ao excluir departamentos.
+
+COMPLIANCE: Sistema de autorização permanente para Home Office com rastreio de responsáveis.
+
+SLA: Cronômetro de tempo em manutenção integrado ao Dashboard e Relatórios Técnicos.
+
+3.2.4
+
+DASHBOARD: Sincronização de defeitos em valor absoluto e novo card de Inventário Total.
+
+UI/UX: Renomeação estratégica de indicadores para maior clareza corporativa.
+
+NOTIFICAÇÕES: Nova aba de alertas e notificações do sistema integrada ao app.
+
+COMERCIAL: Nova Proposta Comercial Premium com detalhamento de governança e perfis.
+
+3.2.3
+
+RELATÓRIOS: Implementação de exportação nativa para Excel (XLSX) e CSV.
+
+UI/UX: Menu de formatos deslizante na Central de Relatórios.
+
+OPERAÇÃO: Melhoria na inclusão de itens sem patrimônio via busca contextual.
 
 ### [3.2.2 Stable] - 2024-06-25
 - **BI Preditivo**: Implementado o "Mapa de Incidências Críticas" para rastreio de recorrência de manutenções e divergências por ativo.
