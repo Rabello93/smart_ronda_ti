@@ -158,6 +158,7 @@ class ReportController {
               'patrimonio': pat,
               'tipo': data['tipo'] ?? '---',
               'modelo': data['modelo'] ?? '---',
+              'serie': data['serie'] ?? '---',
               'tem_defeito': false,
               'descricao_defeito': '---',
               'em_manutencao': false,
@@ -212,7 +213,11 @@ class ReportController {
           
           agregador[pat]!['ultimo_status'] = currentStatus;
           agregador[pat]!['ultimo_setor'] = currentStatus == 'Descartado' ? 'BAIXA PATRIMONIAL' : (data['setor'] ?? '---');
-          agregador[pat]!['modelo'] = data['modelo'] ?? agregador[pat]!['modelo'];
+          
+          // ATUALIZAÇÃO SEGURA: Só atualiza se o dado na ronda não for vazio
+          if (data['tipo'] != null && data['tipo'].toString().isNotEmpty) agregador[pat]!['tipo'] = data['tipo'];
+          if (data['modelo'] != null && data['modelo'].toString().isNotEmpty) agregador[pat]!['modelo'] = data['modelo'];
+          if (data['serie'] != null && data['serie'].toString().isNotEmpty) agregador[pat]!['serie'] = data['serie'];
         }
       }
 

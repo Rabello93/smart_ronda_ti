@@ -418,7 +418,7 @@ class ReportRepository {
             headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 8),
             cellStyle: const pw.TextStyle(fontSize: 7),
             headerDecoration: const pw.BoxDecoration(color: PdfColors.red900),
-            headers: const ['PATRIMÔNIO', 'MODELO', 'SITUAÇÃO / DEFEITO', 'TEMPO MAN.', 'DIV.', 'H.O.', 'SETOR ATUAL'],
+            headers: const ['TIPO', 'PATRIMÔNIO', 'MODELO', 'SÉRIE', 'SITUAÇÃO / DEFEITO', 'TEMPO MAN.', 'DIV.', 'H.O.', 'SETOR ATUAL'],
             data: dados.map((d) {
               String tempoMan = '---';
               if (d['data_entrada_manutencao'] != null) {
@@ -440,8 +440,10 @@ class ReportRepository {
                   : (d['ultimo_status'] == 'Descartado' ? "DESCARTADO" : (d['em_manutencao'] == true ? "EM MANUTENÇÃO" : "OK"));
 
               return [
+                d['tipo']?.toString() ?? '---',
                 d['patrimonio']?.toString() ?? '---',
                 d['modelo']?.toString() ?? '---',
+                d['serie']?.toString() ?? '---',
                 defeitoInfo,
                 tempoMan,
                 d['count_divergencia'] > 0 ? 'SIM (${d['count_divergencia']})' : 'NÃO',
