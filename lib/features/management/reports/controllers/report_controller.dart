@@ -151,8 +151,7 @@ class ReportController {
           final data = eDoc.data() as Map<String, dynamic>;
           if (data['is_troca'] == true) continue;
 
-          String pat = data['patrimonio'] ?? eDoc.id;
-          if (pat.startsWith("SP_")) pat = "SEM PLACA";
+          final String pat = data['patrimonio'] ?? eDoc.id;
           
           if (!agregador.containsKey(pat)) {
             agregador[pat] = {
@@ -170,6 +169,7 @@ class ReportController {
               'ultimo_setor': data['setor'] ?? '---',
               'data_entrada_manutencao': data['data_entrada_manutencao'],
               'data_saida_manutencao': null,
+              'foi_descartado': false,
             };
           }
 
@@ -212,6 +212,7 @@ class ReportController {
           
           agregador[pat]!['ultimo_status'] = currentStatus;
           agregador[pat]!['ultimo_setor'] = currentStatus == 'Descartado' ? 'BAIXA PATRIMONIAL' : (data['setor'] ?? '---');
+          agregador[pat]!['modelo'] = data['modelo'] ?? agregador[pat]!['modelo'];
         }
       }
 
