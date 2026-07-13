@@ -143,6 +143,8 @@ class ReportController {
       Map<String, Map<String, dynamic>> agregador = {};
 
       for (var doc in rondasSnap.docs) {
+        final rondaData = doc.data() as Map<String, dynamic>;
+        final DateTime roundTimestamp = (rondaData['timestamp'] as Timestamp).toDate();
         final QuerySnapshot equipsSnap = await doc.reference.collection('equipamentos').get();
         
         for (var eDoc in equipsSnap.docs) {
@@ -150,7 +152,6 @@ class ReportController {
           if (data['is_troca'] == true) continue;
 
           String pat = data['patrimonio'] ?? eDoc.id;
-          // Normalização de Patrimônio para evitar duplicatas visuais
           if (pat.startsWith("SP_")) pat = "SEM PLACA";
           
           if (!agregador.containsKey(pat)) {
@@ -161,55 +162,67 @@ class ReportController {
               'tem_defeito': false,
               'descricao_defeito': '---',
               'em_manutencao': false,
+              'teve_manutencao_concluida': false,
               'count_manutencao': 0,
               'count_divergencia': 0,
               'count_home_office': 0,
               'ultimo_status': data['status_operacional'] ?? 'OK',
               'ultimo_setor': data['setor'] ?? '---',
               'data_entrada_manutencao': data['data_entrada_manutencao'],
+              'data_saida_manutencao': null,
             };
+          }
+
+          final currentStatus = data['status_operacional'] ?? 'Em uso';
+
+          // LÓGICA DE TEMPO: Se encontramos o item em manutenção
+          if (currentStatus == 'Em manutenção') {
+            agregador[pat]!['em_manutencao'] = true;
+            if (agregador[pat]!['data_entrada_manutencao'] == null) {
+              agregador[pat]!['data_entrada_manutencao'] = roundTimestamp;
+            }
+            agregador[pat]!['data_saida_manutencao'] = null;
+            agregador[pat]!['teve_manutencao_concluida'] = false;
+            agregador[pat]!['foi_descartado'] = false;
+          } 
+          // Se o item estava em manutenção e agora foi 'Descartado'
+          else if (currentStatus == 'Descartado' && (agregador[pat]!['em_manutencao'] == true || agregador[pat]!['data_entrada_manutencao'] != null)) {
+            if (agregador[pat]!['data_saida_manutencao'] == null) {
+              agregador[pat]!['data_saida_manutencao'] = roundTimestamp;
+              agregador[pat]!['teve_manutencao_concluida'] = true;
+              agregador[pat]!['foi_descartado'] = true;
+            }
+          }
+          // Se o item estava em manutenção e voltou para 'Em uso'
+          else if (currentStatus == 'Em uso' && (agregador[pat]!['em_manutencao'] == true || agregador[pat]!['data_entrada_manutencao'] != null)) {
+            if (agregador[pat]!['data_saida_manutencao'] == null) {
+              agregador[pat]!['data_saida_manutencao'] = roundTimestamp;
+              agregador[pat]!['teve_manutencao_concluida'] = true;
+              agregador[pat]!['foi_descartado'] = false;
+            }
           }
 
           if (data['tem_defeito'] == true) {
             agregador[pat]!['tem_defeito'] = true;
-            // Mantém a descrição do defeito mais recente relatado
             agregador[pat]!['descricao_defeito'] = data['descricao_defeito'] ?? 'Defeito sinalizado';
           }
-          if (data['status_operacional'] == 'Em manutenção') {
-            agregador[pat]!['em_manutencao'] = true;
-            agregador[pat]!['count_manutencao']++;
-            if (data['data_entrada_manutencao'] != null) {
-              agregador[pat]!['data_entrada_manutencao'] = data['data_entrada_manutencao'];
-            }
-          }
-          if (data['setor_divergente'] == true) {
-            agregador[pat]!['count_divergencia']++;
-          }
-          if (data['is_home_office'] == true) {
-            agregador[pat]!['count_home_office']++;
-          }
           
-          // Atualiza com o dado mais recente da ronda no período
-          agregador[pat]!['ultimo_status'] = data['status_operacional'] ?? 'OK';
-          agregador[pat]!['ultimo_setor'] = data['setor'] ?? '---';
-          agregador[pat]!['modelo'] = data['modelo'] ?? agregador[pat]!['modelo'];
+          if (data['setor_divergente'] == true) agregador[pat]!['count_divergencia']++;
+          if (data['is_home_office'] == true) agregador[pat]!['count_home_office']++;
+          
+          agregador[pat]!['ultimo_status'] = currentStatus;
+          agregador[pat]!['ultimo_setor'] = currentStatus == 'Descartado' ? 'BAIXA PATRIMONIAL' : (data['setor'] ?? '---');
         }
       }
 
-      // Filtra para remover itens que foram corrigidos (se não têm mais defeito e não estão em manutenção)
-      // O usuário mencionou que no Dashboard aparecem 4 e no relatório 5. 
-      // Provavelmente um item foi marcado com defeito e depois resolvido ou é um erro de duplicata.
-      
-      final listaFinal = agregador.values.where((item) {
-        // Se o último status no período for 'OK' e não houver mais defeito sinalizado, 
-        // talvez devêssemos ocultar? 
-        // Mas por padrão, incidência é o que aconteceu. 
-        // Vou manter a lógica de incidência, mas a normalização de "SEM PLACA" deve ajudar na contagem.
-        return item['tem_defeito'] == true ||
-               item['em_manutencao'] == true ||
-               item['count_divergencia'] > 0 || 
-               item['count_home_office'] > 0;
-      }).toList();
+      final listaFinal = agregador.values.where((item) => 
+        item['tem_defeito'] == true ||
+        item['em_manutencao'] == true ||
+        item['teve_manutencao_concluida'] == true ||
+        item['ultimo_status'] == 'Descartado' ||
+        item['count_divergencia'] > 0 || 
+        item['count_home_office'] > 0
+      ).toList();
 
       // Ordena por maior número de manutenções
       listaFinal.sort((a, b) => b['count_manutencao'].compareTo(a['count_manutencao']));

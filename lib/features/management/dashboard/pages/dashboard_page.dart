@@ -488,6 +488,8 @@ class _DashboardPageState extends State<DashboardPage> {
                 _buildUnifiedAlertsExpander(criticalAlerts, deptAlerts),
 
               const SizedBox(height: 20),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
                     SummaryCard(

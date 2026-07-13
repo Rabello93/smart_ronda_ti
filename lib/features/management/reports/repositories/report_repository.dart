@@ -422,16 +422,22 @@ class ReportRepository {
             data: dados.map((d) {
               String tempoMan = '---';
               if (d['data_entrada_manutencao'] != null) {
-                final DateTime dt = (d['data_entrada_manutencao'] is Timestamp) 
+                final DateTime dtEntrada = (d['data_entrada_manutencao'] is Timestamp) 
                     ? (d['data_entrada_manutencao'] as Timestamp).toDate() 
                     : d['data_entrada_manutencao'];
-                final diff = DateTime.now().difference(dt);
+                
+                final DateTime dtFim = (d['data_saida_manutencao'] != null)
+                    ? ((d['data_saida_manutencao'] is Timestamp) ? (d['data_saida_manutencao'] as Timestamp).toDate() : d['data_saida_manutencao'])
+                    : DateTime.now();
+
+                final diff = dtFim.difference(dtEntrada);
                 tempoMan = "${diff.inDays}d ${diff.inHours % 24}h";
+                if (d['data_saida_manutencao'] != null) tempoMan += " (Concluída)";
               }
 
               String defeitoInfo = (d['tem_defeito'] == true) 
                   ? "DEFEITO: ${d['descricao_defeito']}" 
-                  : (d['em_manutencao'] == true ? "EM MANUTENÇÃO" : "OK");
+                  : (d['ultimo_status'] == 'Descartado' ? "DESCARTADO" : (d['em_manutencao'] == true ? "EM MANUTENÇÃO" : "OK"));
 
               return [
                 d['patrimonio']?.toString() ?? '---',
