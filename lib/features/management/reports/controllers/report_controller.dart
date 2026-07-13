@@ -153,20 +153,29 @@ class ReportController {
           final data = eDoc.data() as Map<String, dynamic>;
           if (data['is_troca'] == true) continue;
 
-          String pat = data['patrimonio'] ?? eDoc.id;
+          final String patRaw = data['patrimonio'] ?? '';
+          final String modelRaw = data['modelo'] ?? '';
+          final String serieRaw = data['serie'] ?? '';
           
-          // Se for dado antigo com "SEM PATRIMÔNIO", tentamos usar a série para diferenciar
-          String key = pat;
-          if (pat == "SEM PATRIMÔNIO" || pat.isEmpty) {
-            key = "${pat}_${data['serie'] ?? eDoc.id}";
-          }
-          
+          // CHAVE ÚNICA ABSOLUTA: Impede que itens do RH com "SEM PATRIMÔNIO" se atropelem
+          // Usamos a combinação de todos os fatores físicos para garantir a individualidade
+          String key = "${patRaw}_${modelRaw}_${serieRaw}".toUpperCase();
+          if (key.length < 10) key = eDoc.id; // Fallback para ID do documento se os dados forem nulos
+
           if (!agregador.containsKey(key)) {
+            // Normalização visual do patrimônio para o relatório
+            String displayPat = patRaw;
+            if (patRaw == "SEM PATRIMÔNIO" || patRaw.isEmpty) {
+              displayPat = serieRaw.isNotEmpty ? "SP_$serieRaw" : "S/P";
+            }
+
             agregador[key] = {
-              'patrimonio': pat == "SEM PATRIMÔNIO" ? (data['serie'] != null ? "SP_${data['serie']}" : pat) : pat,
+              'patrimonio': displayPat,
               'tipo': data['tipo'] ?? '---',
-              'modelo': data['modelo'] ?? '---',
-              'serie': data['serie'] ?? '---',
+              'marca': data['marca'] ?? '---',
+              'modelo': modelRaw.isNotEmpty ? modelRaw : '---',
+              'serie': serieRaw.isNotEmpty ? serieRaw : '---',
+              'mac_address': data['mac_address'] ?? '---',
               'locadora': data['locadora'] ?? 'PRÓPRIO',
               'tem_defeito': false,
               'descricao_defeito': '---',
@@ -185,49 +194,34 @@ class ReportController {
 
           final currentStatus = data['status_operacional'] ?? 'Em uso';
 
-          // LÓGICA DE TEMPO: Se encontramos o item em manutenção
+          // LÓGICA DE INCIDÊNCIA: Se em qualquer ronda do período houve defeito ou manutenção
+          if (data['tem_defeito'] == true) {
+            agregador[key]!['tem_defeito'] = true;
+            agregador[key]!['descricao_defeito'] = data['descricao_defeito'] ?? 'Defeito sinalizado';
+          }
+
           if (currentStatus == 'Em manutenção') {
             agregador[key]!['em_manutencao'] = true;
             if (agregador[key]!['data_entrada_manutencao'] == null) {
               agregador[key]!['data_entrada_manutencao'] = roundTimestamp;
             }
             agregador[key]!['data_saida_manutencao'] = null;
-            agregador[key]!['teve_manutencao_concluida'] = false;
-            agregador[key]!['foi_descartado'] = false;
           } 
-          // Se o item estava em manutenção e agora foi 'Descartado'
           else if (currentStatus == 'Descartado' && (agregador[key]!['em_manutencao'] == true || agregador[key]!['data_entrada_manutencao'] != null)) {
-            if (agregador[key]!['data_saida_manutencao'] == null) {
-              agregador[key]!['data_saida_manutencao'] = roundTimestamp;
-              agregador[key]!['teve_manutencao_concluida'] = true;
-              agregador[key]!['foi_descartado'] = true;
-            }
+            agregador[key]!['data_saida_manutencao'] = roundTimestamp;
+            agregador[key]!['teve_manutencao_concluida'] = true;
+            agregador[key]!['foi_descartado'] = true;
           }
-          // Se o item estava em manutenção e voltou para 'Em uso'
           else if (currentStatus == 'Em uso' && (agregador[key]!['em_manutencao'] == true || agregador[key]!['data_entrada_manutencao'] != null)) {
-            if (agregador[key]!['data_saida_manutencao'] == null) {
-              agregador[key]!['data_saida_manutencao'] = roundTimestamp;
-              agregador[key]!['teve_manutencao_concluida'] = true;
-              agregador[key]!['foi_descartado'] = false;
-            }
+            agregador[key]!['data_saida_manutencao'] = roundTimestamp;
+            agregador[key]!['teve_manutencao_concluida'] = true;
           }
 
-          if (data['tem_defeito'] == true) {
-            agregador[key]!['tem_defeito'] = true;
-            agregador[key]!['descricao_defeito'] = data['descricao_defeito'] ?? 'Defeito sinalizado';
-          }
-          
           if (data['setor_divergente'] == true) agregador[key]!['count_divergencia']++;
           if (data['is_home_office'] == true) agregador[key]!['count_home_office']++;
           
           agregador[key]!['ultimo_status'] = currentStatus;
           agregador[key]!['ultimo_setor'] = currentStatus == 'Descartado' ? 'BAIXA PATRIMONIAL' : (data['setor'] ?? '---');
-          
-          // ATUALIZAÇÃO SEGURA: Só atualiza se o dado na ronda não for vazio
-          if (data['tipo'] != null && data['tipo'].toString().isNotEmpty) agregador[key]!['tipo'] = data['tipo'];
-          if (data['modelo'] != null && data['modelo'].toString().isNotEmpty) agregador[key]!['modelo'] = data['modelo'];
-          if (data['serie'] != null && data['serie'].toString().isNotEmpty) agregador[key]!['serie'] = data['serie'];
-          if (data['locadora'] != null && data['locadora'].toString().isNotEmpty) agregador[key]!['locadora'] = data['locadora'];
         }
       }
 

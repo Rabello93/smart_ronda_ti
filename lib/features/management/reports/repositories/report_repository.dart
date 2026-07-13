@@ -110,21 +110,21 @@ class ReportRepository {
             pw.TableHelper.fromTextArray(
               headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 8),
               headerDecoration: const pw.BoxDecoration(color: PdfColors.indigo900),
-              headers: const ['TIPO', 'PATRIMÔNIO', 'MARCA', 'MODELO', 'SÉRIE', 'LOCADORA', 'SETOR ATUAL', 'INFORMAÇÃO'],
+              headers: const ['TIPO', 'PATRIMÔNIO', 'MARCA', 'MODELO', 'SÉRIE / MAC', 'LOCADORA', 'SETOR ATUAL', 'INFORMAÇÃO'],
               data: itens.map((i) {
                 String info = i['descricao_defeito'] ?? (i['status_operacional'] ?? 'OK');
                 
-                // Se for relatório de obsoletos (calculado pelo controller)
+                // Se for relatório de obsoletos
                 if (titulo.contains("OBSOLETOS")) {
                   int? ano = i['ano_fabricacao'];
-                  if (ano != null) {
-                    int idade = DateTime.now().year - ano;
-                    info = "$idade ANOS";
-                  }
+                  if (ano != null) info = "${DateTime.now().year - ano} ANOS";
                 } else if (titulo.contains("DIVERGENTES")) {
                   info = "ORIGEM: ${i['motivo_divergencia'] ?? 'NÃO INF.'}";
-                } else if (titulo.contains("HOME OFFICE")) {
-                  info = "RESP: ${i['responsavel_externo'] ?? 'NÃO INF.'}";
+                }
+
+                String serieMac = i['serie'] ?? '---';
+                if (i['mac_address'] != null && i['mac_address'].toString().isNotEmpty && i['mac_address'] != '---') {
+                  serieMac += "\nMAC: ${i['mac_address']}";
                 }
 
                 return [
@@ -132,7 +132,7 @@ class ReportRepository {
                   i['patrimonio'] ?? (i['serie'] ?? 'S/P'),
                   i['marca'] ?? '---',
                   i['modelo'] ?? '---',
-                  i['serie'] ?? '---',
+                  serieMac,
                   i['locadora'] ?? 'PRÓPRIO',
                   i['setor'] ?? '---',
                   info.toUpperCase(),
@@ -294,15 +294,13 @@ class ReportRepository {
   static Future<void> exportarInventarioParaCSV(List<Map<String, dynamic>> itens, String titulo) async {
     try {
       List<List<dynamic>> rows = [];
-      rows.add(["TIPO", "PATRIMONIO", "MARCA", "MODELO", "SERIE", "LOCADORA", "SETOR ATUAL", "INFORMACAO"]);
+      rows.add(["TIPO", "PATRIMONIO", "MARCA", "MODELO", "SERIE", "MAC ADDRESS", "LOCADORA", "SETOR ATUAL", "INFORMACAO"]);
 
       for (var i in itens) {
         String info = i['descricao_defeito'] ?? (i['status_operacional'] ?? 'OK');
         if (titulo.contains("OBSOLETOS")) {
           int? ano = i['ano_fabricacao'];
           if (ano != null) info = "${DateTime.now().year - ano} ANOS";
-        } else if (titulo.contains("DIVERGENTES")) {
-          info = "ORIGEM: ${i['motivo_divergencia'] ?? 'NÃO INF.'}";
         }
 
         rows.add([
@@ -311,6 +309,7 @@ class ReportRepository {
           i['marca'] ?? '',
           i['modelo'] ?? '',
           i['serie'] ?? '',
+          i['mac_address'] ?? '---',
           i['locadora'] ?? 'PROPRIO',
           i['setor'] ?? '',
           info.toUpperCase(),
@@ -341,7 +340,7 @@ class ReportRepository {
         horizontalAlign: ex.HorizontalAlign.Center,
       );
 
-      List<String> headers = ["TIPO", "PATRIMÔNIO", "MARCA", "MODELO", "SÉRIE", "LOCADORA", "SETOR ATUAL", "INFORMAÇÃO"];
+      List<String> headers = ["TIPO", "PATRIMÔNIO", "MARCA", "MODELO", "SÉRIE", "MAC ADDRESS", "LOCADORA", "SETOR ATUAL", "INFORMAÇÃO"];
       
       for (int i = 0; i < headers.length; i++) {
         var cell = sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0));
@@ -355,8 +354,6 @@ class ReportRepository {
         if (titulo.contains("OBSOLETOS")) {
           int? ano = item['ano_fabricacao'];
           if (ano != null) info = "${DateTime.now().year - ano} ANOS";
-        } else if (titulo.contains("DIVERGENTES")) {
-          info = "ORIGEM: ${item['motivo_divergencia'] ?? 'NÃO INF.'}";
         }
 
         sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: r + 1)).value = ex.TextCellValue(item['tipo']?.toString() ?? '');
@@ -364,9 +361,10 @@ class ReportRepository {
         sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: r + 1)).value = ex.TextCellValue(item['marca']?.toString() ?? '');
         sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: r + 1)).value = ex.TextCellValue(item['modelo']?.toString() ?? '');
         sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: r + 1)).value = ex.TextCellValue(item['serie']?.toString() ?? '');
-        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: r + 1)).value = ex.TextCellValue(item['locadora']?.toString() ?? 'PRÓPRIO');
-        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: r + 1)).value = ex.TextCellValue(item['setor']?.toString() ?? '');
-        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 7, rowIndex: r + 1)).value = ex.TextCellValue(info.toUpperCase());
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: r + 1)).value = ex.TextCellValue(item['mac_address']?.toString() ?? '---');
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: r + 1)).value = ex.TextCellValue(item['locadora']?.toString() ?? 'PRÓPRIO');
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 7, rowIndex: r + 1)).value = ex.TextCellValue(item['setor']?.toString() ?? '');
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 8, rowIndex: r + 1)).value = ex.TextCellValue(info.toUpperCase());
       }
 
       final directory = await getTemporaryDirectory();
@@ -401,17 +399,23 @@ class ReportRepository {
           pw.TableHelper.fromTextArray(
             headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 10),
             headerDecoration: const pw.BoxDecoration(color: PdfColors.indigo900),
-            headers: const ['TIPO', 'PATRIMÔNIO', 'MARCA', 'MODELO', 'SÉRIE', 'LOCADORA', 'SETOR ATUAL', 'STATUS OP.'],
-            data: itens.map((i) => [
-              i['tipo'] ?? '', 
-              i['patrimonio'] ?? 'S/P', 
-              i['marca'] ?? '---',
-              i['modelo'] ?? '---',
-              i['serie'] ?? '---',
-              i['locadora'] ?? 'PRÓPRIO',
-              i['setor'] ?? '---',
-              i['status_operacional'] ?? 'Em uso',
-            ]).toList(),
+            headers: const ['TIPO', 'PATRIMÔNIO', 'MARCA', 'MODELO', 'SÉRIE / MAC', 'LOCADORA', 'SETOR ATUAL', 'STATUS OP.'],
+            data: itens.map((i) {
+              String serieMac = i['serie'] ?? '---';
+              if (i['mac_address'] != null && i['mac_address'].toString().isNotEmpty && i['mac_address'] != '---') {
+                serieMac += "\nMAC: ${i['mac_address']}";
+              }
+              return [
+                i['tipo'] ?? '', 
+                i['patrimonio'] ?? 'S/P', 
+                i['marca'] ?? '---',
+                i['modelo'] ?? '---',
+                serieMac,
+                i['locadora'] ?? 'PRÓPRIO',
+                i['setor'] ?? '---',
+                i['status_operacional'] ?? 'Em uso',
+              ];
+            }).toList(),
           ),
           pw.SizedBox(height: 20),
           pw.Container(
@@ -456,7 +460,11 @@ class ReportRepository {
             headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 8),
             cellStyle: const pw.TextStyle(fontSize: 7),
             headerDecoration: const pw.BoxDecoration(color: PdfColors.red900),
-            headers: const ['TIPO', 'PATRIMÔNIO', 'MARCA', 'MODELO', 'SÉRIE', 'LOCADORA', 'SETOR ATUAL', 'SITUAÇÃO / DEFEITO', 'TEMPO MAN.'],
+          pw.TableHelper.fromTextArray(
+            headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 8),
+            cellStyle: const pw.TextStyle(fontSize: 7),
+            headerDecoration: const pw.BoxDecoration(color: PdfColors.red900),
+            headers: const ['TIPO', 'PATRIMÔNIO', 'MODELO', 'SÉRIE', 'SITUAÇÃO / DEFEITO', 'TEMPO MAN.', 'DIV.', 'H.O.', 'SETOR ATUAL'],
             data: dados.map((d) {
               String tempoMan = '---';
               if (d['data_entrada_manutencao'] != null) {
@@ -480,15 +488,16 @@ class ReportRepository {
               return [
                 d['tipo']?.toString() ?? '---',
                 d['patrimonio']?.toString() ?? '---',
-                d['marca']?.toString() ?? '---',
                 d['modelo']?.toString() ?? '---',
                 d['serie']?.toString() ?? '---',
-                d['locadora']?.toString() ?? 'PRÓPRIO',
-                d['ultimo_setor']?.toString().toUpperCase() ?? '---',
                 defeitoInfo,
                 tempoMan,
+                d['count_divergencia'] > 0 ? 'SIM (${d['count_divergencia']})' : 'NÃO',
+                d['count_home_office'] > 0 ? 'SIM (${d['count_home_office']})' : 'NÃO',
+                d['ultimo_setor']?.toString().toUpperCase() ?? '---',
               ];
             }).toList(),
+          ),
           ),
           pw.SizedBox(height: 20),
           pw.Container(
