@@ -274,7 +274,7 @@ class ReportRepository {
   static Future<void> exportarInventarioParaCSV(List<Map<String, dynamic>> itens, String titulo) async {
     try {
       List<List<dynamic>> rows = [];
-      rows.add(["TIPO", "PATRIMONIO", "MARCA", "MODELO", "SERIE", "SETOR", "STATUS", "LOCADO", "LOCADORA", "DEFEITO", "HOME OFFICE", "RESPONSAVEL EXTERNO"]);
+      rows.add(["TIPO", "PATRIMONIO", "MARCA", "MODELO", "SERIE", "DEPARTAMENTO", "STATUS", "LOCADO", "LOCADORA", "DEFEITO", "HOME OFFICE", "RESPONSAVEL EXTERNO"]);
 
       for (var i in itens) {
         rows.add([
@@ -317,7 +317,7 @@ class ReportRepository {
         horizontalAlign: ex.HorizontalAlign.Center,
       );
 
-      List<String> headers = ["TIPO", "PATRIMÔNIO", "MARCA", "MODELO", "SÉRIE", "SETOR", "STATUS", "LOCADORA", "DEFEITO", "HOME OFFICE", "RESPONSÁVEL"];
+      List<String> headers = ["TIPO", "PATRIMÔNIO", "MARCA", "MODELO", "SÉRIE", "DEPARTAMENTO", "STATUS", "LOCADORA", "DEFEITO", "HOME OFFICE", "RESPONSÁVEL"];
       
       for (int i = 0; i < headers.length; i++) {
         var cell = sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0));
@@ -418,17 +418,28 @@ class ReportRepository {
             headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 8),
             cellStyle: const pw.TextStyle(fontSize: 7),
             headerDecoration: const pw.BoxDecoration(color: PdfColors.red900),
-            headers: const ['PATRIMÔNIO', 'MODELO', 'DEF.', 'MAN.', 'DIV.', 'H.O.', 'STATUS FINAL', 'SETOR ATUAL'],
-            data: dados.map((d) => [
-              d['patrimonio']?.toString() ?? '---',
-              d['modelo']?.toString() ?? '---',
-              d['count_defeito'].toString(),
-              d['count_manutencao'].toString(),
-              d['count_divergencia'].toString(),
-              d['count_home_office'].toString(),
-              d['ultimo_status']?.toString().toUpperCase() ?? '---',
-              d['ultimo_setor']?.toString().toUpperCase() ?? '---',
-            ]).toList(),
+            headers: const ['PATRIMÔNIO', 'MODELO', 'DEF.', 'MAN.', 'TEMPO MAN.', 'DIV.', 'H.O.', 'SETOR ATUAL'],
+            data: dados.map((d) {
+              String tempoMan = '---';
+              if (d['data_entrada_manutencao'] != null) {
+                final DateTime dt = (d['data_entrada_manutencao'] is Timestamp) 
+                    ? (d['data_entrada_manutencao'] as Timestamp).toDate() 
+                    : d['data_entrada_manutencao'];
+                final diff = DateTime.now().difference(dt);
+                tempoMan = "${diff.inDays}d ${diff.inHours % 24}h";
+              }
+
+              return [
+                d['patrimonio']?.toString() ?? '---',
+                d['modelo']?.toString() ?? '---',
+                d['count_defeito'].toString(),
+                d['count_manutencao'].toString(),
+                tempoMan,
+                d['count_divergencia'].toString(),
+                d['count_home_office'].toString(),
+                d['ultimo_setor']?.toString().toUpperCase() ?? '---',
+              ];
+            }).toList(),
           ),
           pw.SizedBox(height: 20),
           pw.Container(

@@ -161,6 +161,7 @@ class ReportController {
               'count_home_office': 0,
               'ultimo_status': data['status_operacional'] ?? 'OK',
               'ultimo_setor': data['setor'] ?? '---',
+              'data_entrada_manutencao': data['data_entrada_manutencao'], // Captura a data
             };
           }
 
@@ -169,6 +170,10 @@ class ReportController {
           }
           if (data['status_operacional'] == 'Em manutenção') {
             agregador[pat]!['count_manutencao']++;
+            // Atualiza a data se disponível
+            if (data['data_entrada_manutencao'] != null) {
+              agregador[pat]!['data_entrada_manutencao'] = data['data_entrada_manutencao'];
+            }
           }
           if (data['setor_divergente'] == true) {
             agregador[pat]!['count_divergencia']++;
@@ -177,14 +182,15 @@ class ReportController {
             agregador[pat]!['count_home_office']++;
           }
           
-          // Atualiza com o dado mais recente da ronda (como as rondas vêm ordenadas por tempo, o loop pega o rastro)
+          // Atualiza com o dado mais recente da ronda
           agregador[pat]!['ultimo_status'] = data['status_operacional'] ?? 'OK';
           agregador[pat]!['ultimo_setor'] = data['setor'] ?? '---';
         }
       }
 
-      // Filtra apenas itens que tiveram pelo menos uma incidência
+      // Filtra apenas itens que tiveram pelo menos uma incidência (Incluído defeito)
       final listaFinal = agregador.values.where((item) => 
+        item['count_defeito'] > 0 ||
         item['count_manutencao'] > 0 || 
         item['count_divergencia'] > 0 || 
         item['count_home_office'] > 0

@@ -8,6 +8,7 @@ class AdminController {
   Future<void> createSector(String name) => _repository.addSector(name);
   Stream<List<Map<String, dynamic>>> get sectorsStream => _repository.getSectorsStream();
   Future<void> removeSector(String id) => _repository.deleteSector(id);
+  Future<void> transferAssets(String from, String to) => _repository.transferAssetsBetweenSectors(from, to);
 
   Future<void> registerLog({required String action, required String details}) => 
       _repository.logAction(action: action, details: details);

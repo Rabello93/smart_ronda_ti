@@ -13,14 +13,17 @@ class DashboardController {
     }).toList();
   }
 
-  /// Calcula o ranking de rondas por setor.
-  List<MapEntry<String, int>> getRankingPorSetor(List<RoundModel> rounds) {
+  /// Calcula o ranking de rondas por departamento.
+  List<MapEntry<String, int>> getRankingPorDepartamento(List<RoundModel> rounds) {
     Map<String, int> counts = {};
     for (var r in rounds) {
       counts[r.setor] = (counts[r.setor] ?? 0) + 1;
     }
     return counts.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
   }
+
+  /// Calcula o ranking de rondas por setor. (Legado)
+  List<MapEntry<String, int>> getRankingPorSetor(List<RoundModel> rounds) => getRankingPorDepartamento(rounds);
 
   /// Calcula o ranking de rondas por técnico.
   List<MapEntry<String, int>> getRankingPorTecnico(List<RoundModel> rounds) {
@@ -134,6 +137,30 @@ class DashboardController {
       }
     }
 
+    return alerts;
+  }
+
+  /// Identifica departamentos sem rondas há mais de 15 dias.
+  List<String> getInactiveDepartmentAlerts(List<RoundModel> allRounds, List<Map<String, dynamic>> departamentos) {
+    List<String> alerts = [];
+    final now = DateTime.now();
+    
+    for (var dep in departamentos) {
+      final nome = dep['nome'] as String;
+      // Encontra a última ronda desse departamento
+      final rondasDoDep = allRounds.where((r) => r.setor == nome).toList()
+        ..sort((a, b) => b.dataInicio.compareTo(a.dataInicio));
+      
+      if (rondasDoDep.isEmpty) {
+        alerts.add("Departamento $nome nunca recebeu uma ronda!");
+      } else {
+        final lastRound = rondasDoDep.first.dataInicio;
+        final difference = now.difference(lastRound).inDays;
+        if (difference > 15) {
+          alerts.add("Atenção: $nome sem rondas há $difference dias!");
+        }
+      }
+    }
     return alerts;
   }
 }

@@ -33,7 +33,7 @@ class ExportRepository {
       QuerySnapshot rondasSnapshot = await query.get();
 
       List<List<dynamic>> rows = [];
-      rows.add(["Data", "Setor", "Responsável", "Tipo", "Patrimônio", "Marca", "Modelo", "Nº Série", "CPU", "MAC", "Obsoleto", "Status", "Locado", "Locadora", "Observação"]);
+      rows.add(["Data", "Departamento", "Responsável", "Tipo", "Patrimônio", "Marca", "Modelo", "Nº Série", "CPU", "MAC", "Obsoleto", "Status", "Locado", "Locadora", "Observação"]);
 
       int currentYear = DateTime.now().year;
 

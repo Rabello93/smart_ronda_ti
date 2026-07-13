@@ -83,7 +83,8 @@ class _DashboardPageState extends State<DashboardPage> {
               _buildDrawerItem(2, Icons.person, "Técnicos", isDark),
               _buildDrawerItem(3, Icons.warning_amber, "Defeitos", isDark),
               _buildDrawerItem(4, Icons.business, "Ativos", isDark),
-              _buildDrawerItem(5, Icons.analytics, "Status", isDark),
+              _buildDrawerItem(5, Icons.location_on, "Departamentos", isDark),
+              _buildDrawerItem(6, Icons.analytics, "Status", isDark),
               const Spacer(),
               const Divider(),
               ListTile(
@@ -172,6 +173,7 @@ class _DashboardPageState extends State<DashboardPage> {
         NavigationRailDestination(icon: Icon(Icons.person), label: Text("Técnicos")),
         NavigationRailDestination(icon: Icon(Icons.warning_amber), label: Text("Defeitos")),
         NavigationRailDestination(icon: Icon(Icons.business), label: Text("Ativos")),
+        NavigationRailDestination(icon: Icon(Icons.location_on), label: Text("Departamentos")),
         NavigationRailDestination(icon: Icon(Icons.analytics), label: Text("Status")),
       ],
       trailing: Expanded(
@@ -205,7 +207,8 @@ class _DashboardPageState extends State<DashboardPage> {
       case 2: return _buildTecnicosTab(rondas, textColor);
       case 3: return _buildDefeitosTab(textColor);
       case 4: return _buildAtivosTab(textColor);
-      case 5: return _buildStatusTab(textColor);
+      case 5: return _buildDepartamentosTab(textColor);
+      case 6: return _buildStatusTab(textColor);
       default: return _buildGeralTab(rondas, allRondas, textColor);
     }
   }
@@ -286,6 +289,153 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
 
+  Widget _buildDepartamentosTab(Color textColor) {
+    return StreamBuilder<List<Map<String, dynamic>>>(
+      stream: _adminController.sectorsStream,
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+        final departamentos = snapshot.data!;
+        
+        return StreamBuilder<List<AssetModel>>(
+          stream: _assetController.getAllAssetsStream(),
+          builder: (context, assetSnapshot) {
+            final allAssets = assetSnapshot.data ?? [];
+            
+            return GridView.builder(
+              padding: const EdgeInsets.all(16),
+              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                maxCrossAxisExtent: 300,
+                childAspectRatio: 1.5,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+              ),
+              itemCount: departamentos.length,
+              itemBuilder: (context, index) {
+                final dep = departamentos[index];
+                final itensDoDep = allAssets.where((a) => a.setor == dep['nome']).toList();
+                
+                return Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () => _showDepartamentoDetails(context, dep['nome'], itensDoDep),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.location_on, color: Colors.blue, size: 20),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  dep['nome'].toString().toUpperCase(),
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Spacer(),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "${itensDoDep.length}",
+                                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blue),
+                                  ),
+                                  const Text("Equipamentos", style: TextStyle(fontSize: 10, color: Colors.grey)),
+                                ],
+                              ),
+                              Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade400),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            );
+          }
+        );
+      }
+    );
+  }
+
+  void _showDepartamentoDetails(BuildContext context, String nome, List<AssetModel> itens) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            const Icon(Icons.business, color: Colors.blue),
+            const SizedBox(width: 10),
+            Text(nome, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: SizedBox(
+          width: 500,
+          child: itens.isEmpty 
+            ? const Padding(
+                padding: EdgeInsets.symmetric(vertical: 30),
+                child: Text("Nenhum equipamento alocado neste departamento.", textAlign: TextAlign.center),
+              )
+            : ListView.builder(
+                shrinkWrap: true,
+                itemCount: itens.length,
+                itemBuilder: (context, index) {
+                  final i = itens[index];
+                  final bool isInMaintenance = i.statusOperacional == 'Em manutenção';
+                  final bool hasDefect = i.temDefeito || isInMaintenance;
+
+                  String statusInfo = "Status: ${i.statusOperacional}";
+                  if (isInMaintenance && i.dataEntradaManutencao != null) {
+                    final diff = DateTime.now().difference(i.dataEntradaManutencao!);
+                    final days = diff.inDays;
+                    final hours = diff.inHours % 24;
+                    final minutes = diff.inMinutes % 60;
+                    statusInfo += "\nTempo: ${days}d ${hours}h ${minutes}m";
+                  }
+                  
+                  return Card(
+                    elevation: 0,
+                    color: Theme.of(context).brightness == Brightness.dark 
+                        ? Colors.white.withValues(alpha: 0.05) 
+                        : Colors.grey.shade50,
+                    margin: const EdgeInsets.symmetric(vertical: 4),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(color: Colors.grey.shade200),
+                    ),
+                    child: ListTile(
+                      leading: Icon(
+                        isInMaintenance ? Icons.build_circle : (i.tipo == 'Notebook' ? Icons.laptop : Icons.desktop_windows),
+                        color: isInMaintenance ? Colors.orange : (hasDefect ? Colors.red : Colors.blue),
+                      ),
+                      title: Text("${i.tipo} - ${i.patrimonio}", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                      subtitle: Text("$statusInfo\nMarca: ${i.marca ?? '---'}", style: const TextStyle(fontSize: 11)),
+                      trailing: isInMaintenance 
+                        ? const Icon(Icons.timer_outlined, color: Colors.orange, size: 18)
+                        : (hasDefect ? const Icon(Icons.warning, color: Colors.red, size: 18) : null),
+                    ),
+                  );
+                },
+              ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Fechar")),
+        ],
+      ),
+    );
+  }
+
   Widget _buildFooter(Color textColor) {
     const String version = '3.2.4';
     return Container(
@@ -310,15 +460,24 @@ class _DashboardPageState extends State<DashboardPage> {
       r.dataInicio.year == today.year
     ).toList();
     
-    final rankingSetoresHoje = _dashboardController.getRankingPorSetor(hojeRondas);
+    final rankingDepartamentosHoje = _dashboardController.getRankingPorDepartamento(hojeRondas);
     final trendData = _dashboardController.getRoundsTrend(allRondas);
 
-    return StreamBuilder<List<AssetModel>>(
-      stream: _assetController.getAllAssetsStream(),
-      builder: (context, assetSnapshot) {
-        final allAssets = assetSnapshot.data ?? [];
-        final alerts = _dashboardController.getCriticalAlerts(allRondas, allAssets);
-        final coverage = _dashboardController.getInventoryCoverage(allAssets, allRondas);
+    return StreamBuilder<List<Map<String, dynamic>>>(
+      stream: _adminController.sectorsStream,
+      builder: (context, sectorSnapshot) {
+        final departamentos = sectorSnapshot.data ?? [];
+        
+        return StreamBuilder<List<AssetModel>>(
+          stream: _assetController.getAllAssetsStream(),
+          builder: (context, assetSnapshot) {
+            final allAssets = assetSnapshot.data ?? [];
+            
+            // Unifica os alertas (Defeitos + Inatividade de Departamento)
+            final alerts = _dashboardController.getCriticalAlerts(allRondas, allAssets);
+            alerts.addAll(_dashboardController.getInactiveDepartmentAlerts(allRondas, departamentos));
+            
+            final coverage = _dashboardController.getInventoryCoverage(allAssets, allRondas);
         final categories = _dashboardController.getAssetCategorySummary(allAssets);
 
         return SingleChildScrollView(
@@ -377,8 +536,8 @@ class _DashboardPageState extends State<DashboardPage> {
                     ),
                     const SizedBox(width: 12),
                     SummaryCard(
-                      title: "Home Office", 
-                      value: allAssets.where((a) => a.isHomeOffice).length.toString(), 
+                      title: "Autorizados HO", 
+                      value: allAssets.where((a) => a.homeOfficeAutorizado).length.toString(),
                       icon: Icons.home_work, 
                       color: Colors.purple,
                     ),
@@ -458,22 +617,22 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
 
               const SizedBox(height: 32),
-              const SectionTitle(title: "Atividade por Setor (Hoje)"),
+              const SectionTitle(title: "Atividade por Departamento (Hoje)"),
               const SizedBox(height: 16),
               _buildRankingCard(
-                rankingSetoresHoje.take(5).toList(), 
-                rankingSetoresHoje.isNotEmpty ? rankingSetoresHoje.first.value : 0,
+                rankingDepartamentosHoje.take(5).toList(), 
+                rankingDepartamentosHoje.isNotEmpty ? rankingDepartamentosHoje.first.value : 0,
                 Colors.indigo,
               ),
               
               if (filteredRondas.length != hojeRondas.length) ...[
                 const SizedBox(height: 32),
-                const SectionTitle(title: "Top Setores (Período Selecionado)"),
+                const SectionTitle(title: "Top Departamentos (Período Selecionado)"),
                 const SizedBox(height: 16),
                 _buildRankingCard(
-                  _dashboardController.getRankingPorSetor(filteredRondas).take(5).toList(),
-                  _dashboardController.getRankingPorSetor(filteredRondas).isNotEmpty 
-                    ? _dashboardController.getRankingPorSetor(filteredRondas).first.value 
+                  _dashboardController.getRankingPorDepartamento(filteredRondas).take(5).toList(),
+                  _dashboardController.getRankingPorDepartamento(filteredRondas).isNotEmpty 
+                    ? _dashboardController.getRankingPorDepartamento(filteredRondas).first.value 
                     : 0,
                   Colors.blue,
                 ),
@@ -481,9 +640,11 @@ class _DashboardPageState extends State<DashboardPage> {
             ],
           ),
         );
-      }
+      },
     );
   }
+);
+}
 
   Widget _buildMetasTab(List<RoundModel> allRondas, Color textColor, UserModel? user) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -739,7 +900,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   child: Icon(Icons.warning_amber_rounded, color: Colors.white),
                 ),
                 title: Text("${item.tipo} - Pat: $displayPat", style: const TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: Text("Setor: ${item.setor}\nDefeito: ${item.descricaoDefeito ?? 'Não informado'}"),
+                subtitle: Text("Departamento: ${item.setor}\nDefeito: ${item.descricaoDefeito ?? 'Não informado'}"),
                 isThreeLine: true,
               ),
             );
@@ -828,7 +989,7 @@ class _DashboardPageState extends State<DashboardPage> {
             return ListTile(
               dense: true,
               title: Text("Pat: $pat", style: const TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Text("Setor: ${item['setor'] ?? '---'} | Status: ${item['status_operacional'] ?? 'Em uso'}"),
+              subtitle: Text("Departamento: ${item['setor'] ?? '---'} | Status: ${item['status_operacional'] ?? 'Em uso'}"),
             );
           }).toList(),
         ),
@@ -882,15 +1043,15 @@ class _DashboardPageState extends State<DashboardPage> {
           
           const SizedBox(height: 12),
           StreamBuilder<List<AssetModel>>(
-            stream: _assetController.getHomeOfficeStream(),
+            stream: _assetController.getAllAssetsStream().map((list) => list.where((a) => a.homeOfficeAutorizado).toList()),
             builder: (context, snapshot) {
               final count = snapshot.data?.length ?? 0;
               return StatusIndicatorCard(
-                title: "EM HOME OFFICE", 
+                title: "AUTORIZADOS HOME OFFICE", 
                 count: count.toString(), 
                 icon: Icons.home_work_outlined, 
                 color: Colors.blue, 
-                onTap: () => _showItensList(context, "Ativos em Home Office", snapshot.data ?? []),
+                onTap: () => _showItensList(context, "Ativos Autorizados Home Office", snapshot.data ?? []),
               );
             }
           ),
@@ -905,7 +1066,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 count: count.toString(), 
                 icon: Icons.wrong_location_outlined, 
                 color: Colors.purple, 
-                onTap: () => _showItensList(context, "Ativos em Setor Divergente", snapshot.data ?? []),
+                onTap: () => _showItensList(context, "Ativos em Departamento Divergente", snapshot.data ?? []),
               );
             }
           ),
@@ -971,12 +1132,16 @@ class _DashboardPageState extends State<DashboardPage> {
                 itemCount: itens.length,
                 itemBuilder: (context, index) {
                   final item = itens[index];
-                  String subtitulo = "Setor: ${item.setor}";
+                  String subtitulo = "Departamento: ${item.setor}";
                   if (item.setorDivergente) {
                     subtitulo += "\nOrigem: ${item.motivoDivergencia ?? 'Não inf.'}";
                   }
                   if (item.statusOperacional == 'Em manutenção') {
                     subtitulo += "\nDefeito: ${item.descricaoDefeito ?? 'Não inf.'}";
+                    if (item.dataEntradaManutencao != null) {
+                      final diff = DateTime.now().difference(item.dataEntradaManutencao!);
+                      subtitulo += "\nTempo: ${diff.inDays}d ${diff.inHours % 24}h ${diff.inMinutes % 60}m";
+                    }
                   }
                   if (item.isHomeOffice) {
                     subtitulo += "\nResponsável: ${item.responsavelExterno ?? 'Não inf.'}";

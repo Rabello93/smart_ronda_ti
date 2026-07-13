@@ -24,6 +24,8 @@ class AssetModel {
   final int? anoFabricacao;
   final int? anoEntradaUnidade;
   final bool isHomeOffice;
+  final bool homeOfficeAutorizado; // Novo: Autorização permanente
+  final DateTime? dataEntradaManutencao; // Novo: Para cálculo de tempo em reparo
   final String? responsavelExterno;
   final String? idAnterior; // Novo campo para rastrear conversões (Sem Placa -> Com Placa)
   final Map<String, bool> acessorios;
@@ -52,6 +54,8 @@ class AssetModel {
     this.anoFabricacao,
     this.anoEntradaUnidade,
     this.isHomeOffice = false,
+    this.homeOfficeAutorizado = false,
+    this.dataEntradaManutencao,
     this.responsavelExterno,
     this.idAnterior,
     this.acessorios = const {},
@@ -84,6 +88,10 @@ class AssetModel {
       anoFabricacao: map['ano_fabricacao'],
       anoEntradaUnidade: map['ano_entrada_unidade'],
       isHomeOffice: map['is_home_office'] ?? false,
+      homeOfficeAutorizado: map['home_office_autorizado'] ?? false,
+      dataEntradaManutencao: map['data_entrada_manutencao'] != null 
+          ? (map['data_entrada_manutencao'] as Timestamp).toDate() 
+          : null,
       responsavelExterno: map['responsavel_externo'],
       idAnterior: map['id_anterior'],
       acessorios: Map<String, bool>.from(map['acessorios'] ?? {}),
@@ -117,6 +125,10 @@ class AssetModel {
       'ano_fabricacao': anoFabricacao,
       'ano_entrada_unidade': anoEntradaUnidade,
       'is_home_office': isHomeOffice,
+      'home_office_autorizado': homeOfficeAutorizado,
+      'data_entrada_manutencao': dataEntradaManutencao != null 
+          ? Timestamp.fromDate(dataEntradaManutencao!) 
+          : null,
       'responsavel_externo': responsavelExterno,
       'id_anterior': idAnterior,
       'acessorios': acessorios,

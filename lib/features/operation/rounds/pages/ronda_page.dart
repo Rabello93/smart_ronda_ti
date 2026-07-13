@@ -68,6 +68,7 @@ class _RondaPageState extends State<RondaPage> {
   String? locadoraSelecionada;
   String? setorDivergenteSelecionado;
   String? _patrimonioOriginal; // Rastreia o ID original vindo da lupa
+  DateTime? _dataEntradaManutencaoOriginal; // Novo: Para cálculo de tempo em reparo
   bool houveTroca = false;
   bool buscandoInventario = false;
   UserModel? _usuarioLogado;
@@ -172,6 +173,7 @@ class _RondaPageState extends State<RondaPage> {
         responsavelHomeOfficeController.text = dados.responsavelExterno ?? "";
         defeito = dados.temDefeito;
         descricaoDefeitoController.text = dados.descricaoDefeito ?? "";
+        _dataEntradaManutencaoOriginal = dados.dataEntradaManutencao;
         
         // Se o item vem da lupa e é sem placa, o patrimonioController deve ficar vazio
         // para o técnico digitar a nova. Caso contrário, preenche com o patrimônio real.
@@ -572,6 +574,11 @@ class _RondaPageState extends State<RondaPage> {
     }
 
     setState(() {
+      DateTime? finalDataManutencao;
+      if (statusOperacional == 'Em manutenção') {
+        finalDataManutencao = _dataEntradaManutencaoOriginal ?? DateTime.now();
+      }
+
       equipamentos.insert(0, AssetModel(
         tipo: tipoEquipamento,
         patrimonio: finalPatrimony,
@@ -592,6 +599,8 @@ class _RondaPageState extends State<RondaPage> {
         status: 'Ativo',
         semPatrimonio: !possuiPatrimonio,
         isHomeOffice: isHomeOffice,
+        homeOfficeAutorizado: false, // Será editado no Castelo
+        dataEntradaManutencao: finalDataManutencao,
         responsavelExterno: isHomeOffice ? responsavelHomeOfficeController.text.trim() : null,
         idAnterior: _patrimonioOriginal, // Passa o ID original para o repositório
         acessorios: Map<String, bool>.from(acessoriosSelecionados),
@@ -599,6 +608,7 @@ class _RondaPageState extends State<RondaPage> {
 
       patrimonioController.clear();
       _patrimonioOriginal = null;
+      _dataEntradaManutencaoOriginal = null;
       marcaController.clear();
       modeloController.clear();
       serieController.clear();

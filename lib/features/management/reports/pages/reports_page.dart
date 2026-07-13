@@ -70,9 +70,9 @@ class _ReportsPageState extends State<ReportsPage> {
               final setores = snapshot.data ?? [];
               return DropdownButtonFormField<String>(
                 initialValue: _setorSelecionado,
-                decoration: const InputDecoration(labelText: "Filtrar por Setor (Opcional)", border: OutlineInputBorder()),
+                decoration: const InputDecoration(labelText: "Filtrar por Departamento (Opcional)", border: OutlineInputBorder()),
                 items: [
-                  const DropdownMenuItem(value: null, child: Text("Todos os Setores")),
+                  const DropdownMenuItem(value: null, child: Text("Todos os Departamentos")),
                   ...setores.map((s) => DropdownMenuItem(value: s['nome'], child: Text(s['nome']))),
                 ],
                 onChanged: (v) => setState(() => _setorSelecionado = v),
@@ -87,7 +87,7 @@ class _ReportsPageState extends State<ReportsPage> {
               _filterChip("Obsoletos (+5 anos)", _apenasObsoletos, (v) => setState(() => _apenasObsoletos = v)),
               _filterChip("Com Defeito", _apenasDefeitos, (v) => setState(() => _apenasDefeitos = v)),
               _filterChip("Em Manutenção", _emManutencao, (v) => setState(() => _emManutencao = v)),
-              _filterChip("Divergência Setor", _emDivergencia, (v) => setState(() => _emDivergencia = v)),
+              _filterChip("Divergência Departamento", _emDivergencia, (v) => setState(() => _emDivergencia = v)),
               _filterChip("Reservados", _reservados, (v) => setState(() => _reservados = v)),
               _filterChip("🏠 HOME OFFICE", _apenasHomeOffice, (v) => setState(() => _apenasHomeOffice = v), color: Colors.blue),
               _filterChip("🤝 LOCADOS", _apenasLocados, (v) => setState(() => _apenasLocados = v), color: Colors.orange.shade800),

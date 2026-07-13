@@ -6,7 +6,7 @@ class AdminRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // --- SECTORS ---
+  // --- DEPARTAMENTOS (Antigos Setores) ---
   Future<void> addSector(String name) async {
     await _firestore.collection('setores').doc(name.toLowerCase()).set({
       'nome': name,
@@ -22,6 +22,19 @@ class AdminRepository {
 
   Future<void> deleteSector(String id) async {
     await _firestore.collection('setores').doc(id).delete();
+  }
+
+  /// Transfere todos os ativos de um departamento para outro (geralmente para a TI antes de excluir)
+  Future<void> transferAssetsBetweenSectors(String sourceSector, String targetSector) async {
+    final snapshot = await _firestore.collection('inventario_mestre')
+        .where('setor', isEqualTo: sourceSector)
+        .get();
+    
+    final batch = _firestore.batch();
+    for (var doc in snapshot.docs) {
+      batch.update(doc.reference, {'setor': targetSector});
+    }
+    await batch.commit();
   }
 
   // --- LOGS ---

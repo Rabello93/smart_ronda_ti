@@ -10,6 +10,8 @@ import 'package:smart_ronda_ti/features/system/about/pages/about_page.dart';
 import 'package:smart_ronda_ti/features/system/notifications/pages/notifications_page.dart';
 import 'package:smart_ronda_ti/features/management/admin/pages/admin_page.dart';
 import 'package:smart_ronda_ti/features/management/admin/controllers/admin_controller.dart';
+import 'package:smart_ronda_ti/features/management/dashboard/controllers/dashboard_controller.dart';
+import 'package:smart_ronda_ti/shared/widgets/dashboard_widgets.dart';
 import 'package:smart_ronda_ti/features/system/auth/models/user_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -23,19 +25,46 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final AuthController _authController = AuthController();
   final AdminController _adminController = AdminController();
+  final RoundController _roundController = RoundController();
+  final DashboardController _dashboardController = DashboardController();
   int _selectedIndex = 0;
   StreamSubscription? _userSubscription;
+  StreamSubscription? _inactiveDepSubscription;
+  List<String> _departmentAlerts = [];
+
+  bool _hasShownInactiveAlert = false;
 
   @override
   void initState() {
     super.initState();
     _setupNotificationListener();
+    _setupInactiveDepartmentListener();
   }
 
   @override
   void dispose() {
     _userSubscription?.cancel();
+    _inactiveDepSubscription?.cancel();
     super.dispose();
+  }
+
+  void _setupInactiveDepartmentListener() {
+    _inactiveDepSubscription = _adminController.sectorsStream.listen((setores) {
+      _roundController.getHistoryStream().first.then((rondas) {
+        final alerts = _dashboardController.getInactiveDepartmentAlerts(rondas, setores);
+        if (mounted) {
+          setState(() => _departmentAlerts = alerts);
+          
+          if (alerts.isNotEmpty && !_hasShownInactiveAlert) {
+            NotificationService.showLocalNotification(
+              title: "⚠️ Auditoria Pendente",
+              body: "Existem ${alerts.length} departamentos precisando de ronda (há mais de 15 dias).",
+            );
+            _hasShownInactiveAlert = true; // Mostra apenas uma vez por sessão
+          }
+        }
+      });
+    });
   }
 
   void _setupNotificationListener() {
@@ -162,10 +191,16 @@ class _HomePageState extends State<HomePage> {
   Widget _buildBody(int index, bool isAdmin, UserModel user) {
     switch (index) {
       case 0: 
-        return Center(
+        return SingleChildScrollView(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              if (_departmentAlerts.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: CriticalAlertBanner(alerts: _departmentAlerts),
+                ),
+              const SizedBox(height: 40),
               const Icon(Icons.checklist_rtl, size: 100, color: Colors.blue),
               const SizedBox(height: 20),
               ElevatedButton.icon(
@@ -200,6 +235,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
               ],
+              const SizedBox(height: 40),
             ],
           ),
         );

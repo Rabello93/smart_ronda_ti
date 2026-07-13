@@ -85,7 +85,7 @@ class _AdminPageState extends State<AdminPage> {
                 tabs: [
                   Tab(icon: Icon(Icons.people), text: "Equipe"),
                   Tab(icon: Icon(Icons.castle), text: "O Castelo"),
-                  Tab(icon: Icon(Icons.location_on), text: "Setores"),
+                  Tab(icon: Icon(Icons.location_on), text: "Departamentos"),
                   Tab(icon: Icon(Icons.description), text: "Relatórios"),
                   Tab(icon: Icon(Icons.stars), text: "Metas"),
                   Tab(icon: Icon(Icons.business), text: "Empresa"),
@@ -113,7 +113,7 @@ class _AdminPageState extends State<AdminPage> {
               children: [
                 _EquipeTab(),
                 _CasteloTab(),
-                _SetoresTab(),
+                _DepartamentosTab(),
                 ReportsPage(embed: true),
                 _MetasAdminTab(),
                 _EmpresaTab(),
@@ -316,8 +316,71 @@ class _EquipeTab extends StatelessWidget {
   }
 }
 
-class _SetoresTab extends StatelessWidget {
-  const _SetoresTab();
+class _DepartamentosTab extends StatelessWidget {
+  const _DepartamentosTab();
+
+  Future<void> _handleDeleteDepartamento(BuildContext context, Map<String, dynamic> s, AdminController controller) async {
+    final String depNome = s['nome'];
+    
+    // 1. Verificar se existem equipamentos vinculados
+    final firestore = FirebaseFirestore.instance;
+    final querySnap = await firestore.collection('inventario_mestre')
+        .where('setor', isEqualTo: depNome)
+        .get();
+    
+    final int count = querySnap.docs.length;
+
+    if (!context.mounted) return;
+
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: count > 0 ? Colors.orange : Colors.red),
+            const SizedBox(width: 8),
+            const Text("Excluir Departamento"),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Confirma a exclusão do departamento '$depNome'?"),
+            if (count > 0) ...[
+              const SizedBox(height: 15),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(color: Colors.orange.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                child: Text(
+                  "⚠️ ATENÇÃO: Existem $count equipamentos registrados neste setor.\n\n"
+                  "Após a exclusão, estes itens serão vinculados automaticamente ao departamento TI.",
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.orange),
+                ),
+              ),
+            ],
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text("CANCELAR")),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true), 
+            child: Text(count > 0 ? "TRANSFERIR E EXCLUIR" : "EXCLUIR", style: const TextStyle(color: Colors.red))
+          ),
+        ],
+      )
+    );
+
+    if (confirmar == true) {
+      if (count > 0) {
+        // Garantir que o setor TI existe (ou apenas transfere, o sistema deve lidar com isso)
+        await controller.transferAssets(depNome, "TI");
+        await controller.registerLog(action: "TRANSFER ATIVOS", details: "Transferiu $count itens de $depNome para TI devido exclusão.");
+      }
+      await controller.removeSector(s['id']);
+      await controller.registerLog(action: "DEL DEPARTAMENTO", details: "Excluiu departamento: $depNome");
+    }
+  }
 
   void _abrirHistoricoSetor(BuildContext context, String setor, bool isAuthorized) {
     final AssetController controller = AssetController();
@@ -331,7 +394,7 @@ class _SetoresTab extends StatelessWidget {
             stream: controller.getSectorStream(setor),
             builder: (context, snapshot) {
               final itens = snapshot.data ?? [];
-              if (itens.isEmpty) return const Text("Nenhum item alocado neste setor atualmente.");
+              if (itens.isEmpty) return const Text("Nenhum item alocado neste departamento atualmente.");
               return ListView.builder(
                 shrinkWrap: true,
                 itemCount: itens.length,
@@ -401,7 +464,7 @@ class _SetoresTab extends StatelessWidget {
                     Expanded(
                       child: TextField(
                         controller: setorController,
-                        decoration: const InputDecoration(labelText: "Novo Setor", border: OutlineInputBorder()),
+                        decoration: const InputDecoration(labelText: "Novo Departamento", border: OutlineInputBorder()),
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -409,7 +472,7 @@ class _SetoresTab extends StatelessWidget {
                       onPressed: () async {
                         if (setorController.text.trim().isEmpty) return;
                         await controller.createSector(setorController.text.trim());
-                        await controller.registerLog(action: "ADD SETOR", details: "Criou setor: ${setorController.text}");
+                        await controller.registerLog(action: "ADD DEPARTAMENTO", details: "Criou departamento: ${setorController.text}");
                         setorController.clear();
                       },
                       child: const Icon(Icons.add),
@@ -438,26 +501,13 @@ class _SetoresTab extends StatelessWidget {
                               IconButton(
                                 icon: const Icon(Icons.history, color: Colors.blue), 
                                 onPressed: () => _abrirHistoricoSetor(context, s['nome'], isAuthorized),
-                                tooltip: "Mapa do Setor"
+                                tooltip: "Mapa do Departamento"
                               ),
                               if (canCreate)
                                 IconButton(
                                   icon: const Icon(Icons.delete, color: Colors.red), 
-                                  onPressed: () async {
-                                    final confirmar = await showDialog<bool>(
-                                      context: context,
-                                      builder: (ctx) => AlertDialog(
-                                        title: const Text("Excluir Setor"),
-                                        content: Text("Confirma a exclusão do setor '${s['nome']}'?"),
-                                        actions: [
-                                          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text("CANCELAR")),
-                                          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text("EXCLUIR", style: TextStyle(color: Colors.red))),
-                                        ],
-                                      )
-                                    );
-                                    if (confirmar == true) await controller.removeSector(s['id']);
-                                  }, 
-                                  tooltip: "Excluir Setor"
+                                  onPressed: () => _handleDeleteDepartamento(context, s, controller),
+                                  tooltip: "Excluir Departamento"
                                 ),
                             ],
                           ),
@@ -602,7 +652,7 @@ class _CasteloTabState extends State<_CasteloTab> {
                         color: i.patrimonio.startsWith("SP_") ? Colors.orange : Colors.blue
                       ),
                       title: Text("${i.tipo} - $displayPat"),
-                      subtitle: Text("Setor: ${i.setor}\nCPU: ${i.processador ?? '---'}"),
+                      subtitle: Text("Departamento: ${i.setor}\nCPU: ${i.processador ?? '---'}"),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
