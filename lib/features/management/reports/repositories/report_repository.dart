@@ -79,7 +79,7 @@ class ReportRepository {
             crossAxisAlignment: pw.CrossAxisAlignment.end,
             children: [
               pw.Text("Gerado em: $dateStr", style: const pw.TextStyle(fontSize: 7, color: PdfColors.grey700)),
-              pw.Text("Smart Ronda TI - Governança de Ativos", style: const pw.TextStyle(fontSize: 6, color: PdfColors.grey500)),
+              pw.Text("Smart Ronda TI v3.2.5 - Governança de Ativos", style: const pw.TextStyle(fontSize: 6, color: PdfColors.grey500)),
             ]
           ),
         ]
@@ -418,7 +418,7 @@ class ReportRepository {
             headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 8),
             cellStyle: const pw.TextStyle(fontSize: 7),
             headerDecoration: const pw.BoxDecoration(color: PdfColors.red900),
-            headers: const ['PATRIMÔNIO', 'MODELO', 'DEF.', 'MAN.', 'TEMPO MAN.', 'DIV.', 'H.O.', 'SETOR ATUAL'],
+            headers: const ['PATRIMÔNIO', 'MODELO', 'SITUAÇÃO / DEFEITO', 'TEMPO MAN.', 'DIV.', 'H.O.', 'SETOR ATUAL'],
             data: dados.map((d) {
               String tempoMan = '---';
               if (d['data_entrada_manutencao'] != null) {
@@ -429,14 +429,17 @@ class ReportRepository {
                 tempoMan = "${diff.inDays}d ${diff.inHours % 24}h";
               }
 
+              String defeitoInfo = (d['tem_defeito'] == true) 
+                  ? "DEFEITO: ${d['descricao_defeito']}" 
+                  : (d['em_manutencao'] == true ? "EM MANUTENÇÃO" : "OK");
+
               return [
                 d['patrimonio']?.toString() ?? '---',
                 d['modelo']?.toString() ?? '---',
-                d['count_defeito'].toString(),
-                d['count_manutencao'].toString(),
+                defeitoInfo,
                 tempoMan,
-                d['count_divergencia'].toString(),
-                d['count_home_office'].toString(),
+                d['count_divergencia'] > 0 ? 'SIM (${d['count_divergencia']})' : 'NÃO',
+                d['count_home_office'] > 0 ? 'SIM (${d['count_home_office']})' : 'NÃO',
                 d['ultimo_setor']?.toString().toUpperCase() ?? '---',
               ];
             }).toList(),

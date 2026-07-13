@@ -473,9 +473,8 @@ class _DashboardPageState extends State<DashboardPage> {
           builder: (context, assetSnapshot) {
             final allAssets = assetSnapshot.data ?? [];
             
-            // Unifica os alertas (Defeitos + Inatividade de Departamento)
-            final alerts = _dashboardController.getCriticalAlerts(allRondas, allAssets);
-            alerts.addAll(_dashboardController.getInactiveDepartmentAlerts(allRondas, departamentos));
+            final criticalAlerts = _dashboardController.getCriticalAlerts(allRondas, allAssets);
+            final deptAlerts = _dashboardController.getInactiveDepartmentAlerts(allRondas, departamentos);
             
             final coverage = _dashboardController.getInventoryCoverage(allAssets, allRondas);
         final categories = _dashboardController.getAssetCategorySummary(allAssets);
@@ -485,19 +484,10 @@ class _DashboardPageState extends State<DashboardPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (alerts.isNotEmpty) CriticalAlertBanner(alerts: alerts),
-              
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const SectionTitle(title: "Resumo Operacional"),
-                  _buildFiltroData(),
-                ],
-              ),
-              const SizedBox(height: 16),
-              
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
+              if (criticalAlerts.isNotEmpty || deptAlerts.isNotEmpty)
+                _buildUnifiedAlertsExpander(criticalAlerts, deptAlerts),
+
+              const SizedBox(height: 20),
                 child: Row(
                   children: [
                     SummaryCard(
@@ -1112,6 +1102,78 @@ class _DashboardPageState extends State<DashboardPage> {
         );
         if (picked != null) setState(() => dataFiltro = picked);
       },
+    );
+  }
+
+  Widget _buildUnifiedAlertsExpander(List<String> critical, List<String> inactive) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final totalCount = critical.length + inactive.length;
+    
+    return Card(
+      elevation: 0,
+      margin: const EdgeInsets.only(bottom: 20),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.orange.withValues(alpha: 0.3)),
+      ),
+      color: Colors.orange.withValues(alpha: 0.05),
+      child: ExpansionTile(
+        leading: Icon(
+          critical.isNotEmpty ? Icons.report_problem : Icons.warning_amber_rounded, 
+          color: critical.isNotEmpty ? Colors.red : Colors.orange,
+        ),
+        title: Text(
+          "⚠️ CENTRAL DE ALERTAS ($totalCount)",
+          style: TextStyle(
+            color: critical.isNotEmpty ? Colors.red : Colors.orange.shade900, 
+            fontWeight: FontWeight.bold, 
+            fontSize: 13,
+          ),
+        ),
+        subtitle: Text(
+          "${critical.length} críticos | ${inactive.length} pendentes",
+          style: const TextStyle(fontSize: 10, color: Colors.blueGrey),
+        ),
+        children: [
+          if (critical.isNotEmpty) ...[
+            const Divider(height: 1),
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                children: critical.map((a) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.error_outline, size: 16, color: Colors.red),
+                      const SizedBox(width: 8),
+                      Expanded(child: Text(a, style: const TextStyle(fontSize: 12, color: Colors.red, fontWeight: FontWeight.bold))),
+                    ],
+                  ),
+                )).toList(),
+              ),
+            ),
+          ],
+          if (inactive.isNotEmpty) ...[
+            const Divider(height: 1),
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                children: inactive.map((a) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.history_toggle_off, size: 16, color: Colors.orange),
+                      const SizedBox(width: 8),
+                      Expanded(child: Text(a, style: TextStyle(fontSize: 12, color: isDark ? Colors.white70 : Colors.black87))),
+                    ],
+                  ),
+                )).toList(),
+              ),
+            ),
+          ],
+          const SizedBox(height: 8),
+        ],
+      ),
     );
   }
 

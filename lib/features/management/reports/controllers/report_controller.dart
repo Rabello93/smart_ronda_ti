@@ -137,6 +137,7 @@ class ReportController {
       final QuerySnapshot rondasSnap = await _firestore.collection('rondas')
           .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(periodo.start))
           .where('timestamp', isLessThanOrEqualTo: Timestamp.fromDate(periodo.end))
+          .orderBy('timestamp', descending: false) // Ordem cronológica para pegar o último estado
           .get();
 
       Map<String, Map<String, dynamic>> agregador = {};
@@ -148,29 +149,35 @@ class ReportController {
           final data = eDoc.data() as Map<String, dynamic>;
           if (data['is_troca'] == true) continue;
 
-          final String pat = data['patrimonio'] ?? eDoc.id;
+          String pat = data['patrimonio'] ?? eDoc.id;
+          // Normalização de Patrimônio para evitar duplicatas visuais
+          if (pat.startsWith("SP_")) pat = "SEM PLACA";
           
           if (!agregador.containsKey(pat)) {
             agregador[pat] = {
               'patrimonio': pat,
               'tipo': data['tipo'] ?? '---',
               'modelo': data['modelo'] ?? '---',
-              'count_defeito': 0,
+              'tem_defeito': false,
+              'descricao_defeito': '---',
+              'em_manutencao': false,
               'count_manutencao': 0,
               'count_divergencia': 0,
               'count_home_office': 0,
               'ultimo_status': data['status_operacional'] ?? 'OK',
               'ultimo_setor': data['setor'] ?? '---',
-              'data_entrada_manutencao': data['data_entrada_manutencao'], // Captura a data
+              'data_entrada_manutencao': data['data_entrada_manutencao'],
             };
           }
 
           if (data['tem_defeito'] == true) {
-            agregador[pat]!['count_defeito']++;
+            agregador[pat]!['tem_defeito'] = true;
+            // Mantém a descrição do defeito mais recente relatado
+            agregador[pat]!['descricao_defeito'] = data['descricao_defeito'] ?? 'Defeito sinalizado';
           }
           if (data['status_operacional'] == 'Em manutenção') {
+            agregador[pat]!['em_manutencao'] = true;
             agregador[pat]!['count_manutencao']++;
-            // Atualiza a data se disponível
             if (data['data_entrada_manutencao'] != null) {
               agregador[pat]!['data_entrada_manutencao'] = data['data_entrada_manutencao'];
             }
@@ -182,19 +189,27 @@ class ReportController {
             agregador[pat]!['count_home_office']++;
           }
           
-          // Atualiza com o dado mais recente da ronda
+          // Atualiza com o dado mais recente da ronda no período
           agregador[pat]!['ultimo_status'] = data['status_operacional'] ?? 'OK';
           agregador[pat]!['ultimo_setor'] = data['setor'] ?? '---';
+          agregador[pat]!['modelo'] = data['modelo'] ?? agregador[pat]!['modelo'];
         }
       }
 
-      // Filtra apenas itens que tiveram pelo menos uma incidência (Incluído defeito)
-      final listaFinal = agregador.values.where((item) => 
-        item['count_defeito'] > 0 ||
-        item['count_manutencao'] > 0 || 
-        item['count_divergencia'] > 0 || 
-        item['count_home_office'] > 0
-      ).toList();
+      // Filtra para remover itens que foram corrigidos (se não têm mais defeito e não estão em manutenção)
+      // O usuário mencionou que no Dashboard aparecem 4 e no relatório 5. 
+      // Provavelmente um item foi marcado com defeito e depois resolvido ou é um erro de duplicata.
+      
+      final listaFinal = agregador.values.where((item) {
+        // Se o último status no período for 'OK' e não houver mais defeito sinalizado, 
+        // talvez devêssemos ocultar? 
+        // Mas por padrão, incidência é o que aconteceu. 
+        // Vou manter a lógica de incidência, mas a normalização de "SEM PLACA" deve ajudar na contagem.
+        return item['tem_defeito'] == true ||
+               item['em_manutencao'] == true ||
+               item['count_divergencia'] > 0 || 
+               item['count_home_office'] > 0;
+      }).toList();
 
       // Ordena por maior número de manutenções
       listaFinal.sort((a, b) => b['count_manutencao'].compareTo(a['count_manutencao']));

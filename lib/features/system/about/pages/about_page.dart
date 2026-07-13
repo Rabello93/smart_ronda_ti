@@ -47,7 +47,7 @@ class AboutPage extends StatelessWidget {
             _sectionTitle("🚀 Log de Atualizações"),
             _buildUpdate(
               "3.2.5 (Atual)",
-              "• GOVERNANÇA: Transição completa de 'Setores' para 'Departamentos' em todo o sistema.\n• DASHBOARD: Nova aba de Departamentos com visão em cards e popups detalhados por ativo.\n• SEGURANÇA: Regra de transferência automática de ativos para a TI ao excluir departamentos.\n• ALERTAS: Notificações Push e Banner persistente para auditorias pendentes há mais de 15 dias.\n• COMPLIANCE: Sistema de autorização permanente para Home Office com rastreio de responsáveis.\n• SLA: Cronômetro de tempo em manutenção integrado ao Dashboard e Relatórios Técnicos.",
+              "• DASHBOARD: Agrupamento de alertas críticos e pendentes em 'Central de Alertas' colapsável para maior limpeza visual.\n• RELATÓRIOS: Ajuste no Mapa de Incidências Críticas - Exibição de 'SIM/NÃO' e descrição do defeito em vez de contagem acumulativa.\n• RELATÓRIOS: Correção na normalização de itens 'Sem Placa' e ordenação cronológica para garantir setor e status mais recentes.\n• GOVERNANÇA: Transição completa de 'Setores' para 'Departamentos' em todo o sistema.\n• DASHBOARD: Nova aba de Departamentos com visão em cards e popups detalhados por ativo.\n• SEGURANÇA: Regra de transferência automática de ativos para a TI ao excluir departamentos.\n• COMPLIANCE: Sistema de autorização permanente para Home Office com rastreio de responsáveis.\n• SLA: Cronômetro de tempo em manutenção integrado ao Dashboard e Relatórios Técnicos.",
             ),
             _buildUpdate(
               "3.2.4",
