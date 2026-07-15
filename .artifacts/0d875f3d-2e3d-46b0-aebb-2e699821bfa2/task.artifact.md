@@ -7,3 +7,4 @@
 - [x] Dashboard: Validar contagem e exibição dos itens autorizados
 - [x] QR Code: Adicionar dependência `image`
 - [x] QR Code: Alterar exportação para JPG na `RondaPage`
+- [x] QR Code: Alterar exportação para JPG na `RondaDetailsPage` (Histórico)

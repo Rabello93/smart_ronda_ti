@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'dart:ui' as ui;
 import 'dart:io';
+import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter/rendering.dart';
@@ -137,11 +138,24 @@ class RondaDetailsPage extends StatelessWidget {
                 var byteData = await image.toByteData(format: ui.ImageByteFormat.png);
                 var pngBytes = byteData!.buffer.asUint8List();
 
-                final tempDir = await getTemporaryDirectory();
-                final file = await File('${tempDir.path}/qr_$patrimonio.png').create();
-                await file.writeAsBytes(pngBytes);
+                // Converte PNG para JPG para otimizar impressão térmica
+                img.Image? decodedImage = img.decodePng(pngBytes);
+                if (decodedImage != null) {
+                  // Garante fundo branco (remover transparência se houver)
+                  var jpgImage = img.Image(
+                    width: decodedImage.width, 
+                    height: decodedImage.height,
+                  )..clear(img.ColorRgb8(255, 255, 255));
+                  
+                  img.compositeImage(jpgImage, decodedImage);
+                  var jpgBytes = img.encodeJpg(jpgImage, quality: 95);
 
-                await Share.shareXFiles([XFile(file.path)], text: 'QR Code Patrimônio $patrimonio');
+                  final tempDir = await getTemporaryDirectory();
+                  final file = await File('${tempDir.path}/qr_$patrimonio.jpg').create();
+                  await file.writeAsBytes(jpgBytes);
+
+                  await Share.shareXFiles([XFile(file.path)], text: 'QR Code Patrimônio $patrimonio');
+                }
               } catch (e) {
                 debugPrint("Erro imagem QR: $e");
               }
