@@ -33,7 +33,7 @@ class AboutPage extends StatelessWidget {
                       Icon(Icons.checklist_rtl, size: 80, color: Colors.blue),
                       SizedBox(height: 10),
                       Text("Smart Ronda TI", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                  Text("Versão 3.2.5", style: TextStyle(color: Colors.grey)),
+                  Text("Versão 3.2.6", style: TextStyle(color: Colors.grey)),
                 ],
               ),
             ),
@@ -46,8 +46,12 @@ class AboutPage extends StatelessWidget {
             const SizedBox(height: 20),
             _sectionTitle("🚀 Log de Atualizações"),
             _buildUpdate(
-              "3.2.5 (Atual)",
-              "• DASHBOARD: Agrupamento de alertas críticos e pendentes em 'Central de Alertas' colapsável para maior limpeza visual.\n• RELATÓRIOS: Ajuste no Mapa de Incidências Críticas - Exibição de 'SIM/NÃO' e descrição do defeito em vez de contagem acumulativa.\n• RELATÓRIOS: Correção na normalização de itens 'Sem Placa' e ordenação cronológica para garantir setor e status mais recentes.\n• GOVERNANÇA: Transição completa de 'Setores' para 'Departamentos' em todo o sistema.\n• DASHBOARD: Nova aba de Departamentos com visão em cards e popups detalhados por ativo.\n• SEGURANÇA: Regra de transferência automática de ativos para a TI ao excluir departamentos.\n• COMPLIANCE: Sistema de autorização permanente para Home Office com rastreio de responsáveis.\n• SLA: Cronômetro de tempo em manutenção integrado ao Dashboard e Relatórios Técnicos.",
+              "3.2.6 (Atual)",
+              "• COMPLIANCE: Novo sistema de autorização permanente para Home Office com chave (Switch) persistente entre rondas.\n• IMPRESSÃO: Otimização de QR Codes para JPG com fundo branco sólido, reduzindo drasticamente o gasto de fita em impressoras portáteis.\n• UI/UX: Novo botão 'Salvar na Galeria' para QR Codes, facilitando o gerenciamento de etiquetas.\n• RELATÓRIOS: Exibição automática do nome do Responsável em exportações PDF/Excel ao filtrar por Home Office.\n• ESTABILIDADE: Sincronização global da versão 3.2.6 em todos os módulos e documentos gerados.",
+            ),
+            _buildUpdate(
+              "3.2.5",
+              "• DASHBOARD: Agrupamento de alertas críticos e pendentes em 'Central de Alertas' colapsável.\n• RELATÓRIOS: Ajuste no Mapa de Incidências Críticas - Exibição de 'SIM/NÃO' e descrição do defeito.\n• GOVERNANÇA: Transição completa de 'Setores' para 'Departamentos' em todo o sistema.\n• DASHBOARD: Nova aba de Departamentos com visão em cards detalhados por ativo.\n• SLA: Cronômetro de tempo em manutenção integrado ao Dashboard e Relatórios Técnicos.",
             ),
             _buildUpdate(
               "3.2.4",

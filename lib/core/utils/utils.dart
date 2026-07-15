@@ -18,7 +18,7 @@ class NotificationService {
         InitializationSettings(android: initializationSettingsAndroid);
     
     await _localNotifications.initialize(
-      initializationSettings,
+      settings: initializationSettings,
       onDidReceiveNotificationResponse: (details) {
         // Lógica quando o usuário clica na notificação
       },
@@ -53,10 +53,10 @@ class NotificationService {
 
         if (notification != null && android != null) {
           _localNotifications.show(
-            notification.hashCode,
-            notification.title,
-            notification.body,
-            NotificationDetails(
+            id: notification.hashCode,
+            title: notification.title,
+            body: notification.body,
+            notificationDetails: NotificationDetails(
               android: AndroidNotificationDetails(
                 channel.id,
                 channel.name,
@@ -100,7 +100,7 @@ class NotificationService {
       showWhen: true,
     );
     const NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
-    await _localNotifications.show(0, title, body, platformChannelSpecifics);
+    await _localNotifications.show(id: 0, title: title, body: body, notificationDetails: platformChannelSpecifics);
   }
 
   static Future<void> clearNotifications() async {

@@ -1,0 +1,15 @@
+- [x] Fix version mismatches in build configuration
+    - [x] Update `gradle-wrapper.properties` (Gradle 8.10.2)
+    - [x] Update `settings.gradle.kts` (AGP 8.7.0, Kotlin 2.1.0)
+    - [x] Update `android/app/build.gradle.kts` (compileSdk 36)
+- [x] Update dependencies in `pubspec.yaml`
+    - [x] Update `share_plus` to `^13.0.0`
+    - [x] Update `flutter_secure_storage` to `^10.0.0`
+    - [x] Resolve other outdated packages (flutter pub upgrade --major-versions)
+- [x] Cleanup
+    - [x] Remove conflicting MainActivity.kt
+    - [x] Simplify build.gradle.kts
+- [/] Verification
+    - [x] Run `flutter pub get`
+    - [x] Run `flutter build web --release`
+    - [!] Run `flutter build apk --release` (Failing with environmental service error)

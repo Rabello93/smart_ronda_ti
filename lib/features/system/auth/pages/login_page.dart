@@ -43,10 +43,8 @@ class _LoginPageState extends State<LoginPage> {
     try {
       final authenticated = await _localAuth.authenticate(
         localizedReason: 'Autentique-se para entrar no Smart Ronda TI',
-        options: const AuthenticationOptions(
-          stickyAuth: true,
-          biometricOnly: true,
-        ),
+        biometricOnly: true,
+        persistAcrossBackgrounding: true,
       );
 
       if (authenticated) {

@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'dart:ui' as ui;
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:image/image.dart' as img;
+import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter/rendering.dart';
 import 'package:smart_ronda_ti/features/operation/rounds/controllers/round_controller.dart';
@@ -138,29 +142,71 @@ class RondaDetailsPage extends StatelessWidget {
                 var byteData = await image.toByteData(format: ui.ImageByteFormat.png);
                 var pngBytes = byteData!.buffer.asUint8List();
 
-                // Converte PNG para JPG para otimizar impressão térmica
-                img.Image? decodedImage = img.decodePng(pngBytes);
-                if (decodedImage != null) {
-                  // Garante fundo branco (remover transparência se houver)
-                  var jpgImage = img.Image(
-                    width: decodedImage.width, 
-                    height: decodedImage.height,
-                  )..clear(img.ColorRgb8(255, 255, 255));
-                  
-                  img.compositeImage(jpgImage, decodedImage);
-                  var jpgBytes = img.encodeJpg(jpgImage, quality: 95);
+                final pdf = pw.Document();
+                pdf.addPage(
+                  pw.Page(
+                    pageFormat: PdfPageFormat.a6,
+                    build: (pw.Context context) {
+                      return pw.Center(
+                        child: pw.Column(
+                          mainAxisAlignment: pw.MainAxisAlignment.center,
+                          children: [
+                            pw.Image(pw.MemoryImage(pngBytes), height: 300),
+                            pw.SizedBox(height: 20),
+                            pw.Text(patrimonio, style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold)),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                );
 
-                  final tempDir = await getTemporaryDirectory();
-                  final file = await File('${tempDir.path}/qr_$patrimonio.jpg').create();
-                  await file.writeAsBytes(jpgBytes);
+                final tempDir = await getTemporaryDirectory();
+                final file = await File('${tempDir.path}/qr_$patrimonio.pdf').create();
+                await file.writeAsBytes(await pdf.save());
 
-                  await Share.shareXFiles([XFile(file.path)], text: 'QR Code Patrimônio $patrimonio');
-                }
+                await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: 'QR Code Patrimônio $patrimonio (PDF)'));
               } catch (e) {
-                debugPrint("Erro imagem QR: $e");
+                debugPrint("Erro ao gerar PDF do QR: $e");
               }
             },
-            child: const Text("COMPARTILHAR / IMPRIMIR"),
+            child: const Text("COMPARTILHAR (PDF)"),
+          ),
+          TextButton(
+            onPressed: () async {
+              try {
+                RenderRepaintBoundary boundary = globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+                ui.Image image = await boundary.toImage(pixelRatio: 3.0);
+                var byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+                var pngBytes = byteData!.buffer.asUint8List();
+
+                img.Image? decodedImage = img.decodePng(pngBytes);
+                if (decodedImage != null) {
+                  var jpgImage = img.Image(width: decodedImage.width, height: decodedImage.height)
+                    ..clear(img.ColorRgb8(255, 255, 255));
+                  img.compositeImage(jpgImage, decodedImage);
+                  var jpgBytes = img.encodeJpg(jpgImage, quality: 100);
+
+                  final result = await ImageGallerySaverPlus.saveImage(
+                    Uint8List.fromList(jpgBytes),
+                    quality: 100,
+                    name: "qr_$patrimonio",
+                  );
+
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(result['isSuccess'] ? "Salvo na galeria!" : "Erro ao salvar"),
+                        backgroundColor: result['isSuccess'] ? Colors.green : Colors.red,
+                      ),
+                    );
+                  }
+                }
+              } catch (e) {
+                debugPrint("Erro ao salvar QR: $e");
+              }
+            },
+            child: const Text("SALVAR NA GALERIA"),
           ),
           TextButton(onPressed: () => Navigator.pop(context), child: const Text("Fechar")),
         ],

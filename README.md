@@ -17,34 +17,19 @@ O app foi desenvolvido para otimizar as rondas técnicas em ambiente corporativo
 
 ## 🚀 Série Histórica (Evolução)
 
-### 
-3.2.5 (Atual)
+### [3.2.6 Stable] - 2024-07-15
+- **Home Office 2.0**: Chave de autorização permanente que preserva o estado entre rondas.
+- **Economia de Ribbon**: QR Codes exportados em JPG com fundo sólido para otimização térmica.
+- **Gestão de Galeria**: Novo botão para salvar etiquetas diretamente no dispositivo.
+- **Sincronização Global**: Alinhamento de versão 3.2.6 e build 42 em todo o ecossistema.
 
-DASHBOARD: Agrupamento de alertas críticos e pendentes em 'Central de Alertas' colapsável para maior limpeza visual.
+### [3.2.5 Stable] - 2024-07-15
+- **DASHBOARD**: Agrupamento de alertas críticos em 'Central de Alertas' colapsável.
+- **RELATÓRIOS**: Ajuste no Mapa de Incidências Críticas com indicadores de SIM/NÃO.
+- **GOVERNANÇA**: Transição completa de 'Setores' para 'Departamentos'.
+- **SLA**: Cronômetro de tempo em manutenção integrado ao Dashboard.
 
-RELATÓRIOS: Ajuste no Mapa de Incidências Críticas - Exibição de 'SIM/NÃO' e descrição do defeito em vez de contagem acumulativa.
-
-RELATÓRIOS: Correção na normalização de itens 'Sem Placa' e ordenação cronológica para garantir setor e status mais recentes.
-
-GOVERNANÇA: Transição completa de 'Setores' para 'Departamentos' em todo o sistema.
-
-DASHBOARD: Nova aba de Departamentos com visão em cards e popups detalhados por ativo.
-
-SEGURANÇA: Regra de transferência automática de ativos para a TI ao excluir departamentos.
-
-COMPLIANCE: Sistema de autorização permanente para Home Office com rastreio de responsáveis.
-
-SLA: Cronômetro de tempo em manutenção integrado ao Dashboard e Relatórios Técnicos.
-
-3.2.4
-
-DASHBOARD: Sincronização de defeitos em valor absoluto e novo card de Inventário Total.
-
-UI/UX: Renomeação estratégica de indicadores para maior clareza corporativa.
-
-NOTIFICAÇÕES: Nova aba de alertas e notificações do sistema integrada ao app.
-
-COMERCIAL: Nova Proposta Comercial Premium com detalhamento de governança e perfis.
+### [3.2.4 Stable] - 2024-06-25
 
 3.2.3
 

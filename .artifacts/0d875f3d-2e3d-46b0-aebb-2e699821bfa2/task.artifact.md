@@ -1,10 +1,9 @@
-# TODO: Revisão Home Office
+# TODO: Finalização v3.2.6
 
-- [x] UI: Mover a chave de Home Office para o topo da `RondaPage` (perto de Patrimônio)
-- [x] Lógica: Carregar `homeOfficeAutorizado` do banco ao escanear/buscar item
-- [x] Lógica: Preservar o estado da autorização ao adicionar item na lista de ronda
-- [x] Relatórios: Corrigir filtro no `ReportController` para usar `home_office_autorizado`
-- [x] Dashboard: Validar contagem e exibição dos itens autorizados
-- [x] QR Code: Adicionar dependência `image`
-- [x] QR Code: Alterar exportação para JPG na `RondaPage`
-- [x] QR Code: Alterar exportação para JPG na `RondaDetailsPage` (Histórico)
+- [x] Build: Upgrade Gradle para 8.14.0
+- [x] Build: Upgrade AGP para 8.11.1 e Kotlin para 2.2.20
+- [x] Build: Forçar JVM Target 17 em todos os subprojetos (Java/Kotlin)
+- [x] Build: Ajustar targetSdk para 34 (Android 14) para estabilidade
+- [x] Permissões: Adicionar WRITE_EXTERNAL_STORAGE no Manifest
+- [x] Documentação: Organizar histórico de versões no README.md
+- [ ] Deploy: Executar Supercombo Final

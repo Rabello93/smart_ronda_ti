@@ -114,12 +114,12 @@ class ExportRepository {
         return;
       }
 
-      String csvData = const ListToCsvConverter(fieldDelimiter: ';').convert(rows);
+      String csvData = const CsvEncoder(fieldDelimiter: ';').convert(rows);
       final directory = await getTemporaryDirectory();
       final file = File("${directory.path}/relatorio_${DateTime.now().millisecondsSinceEpoch}.csv");
       await file.writeAsBytes([0xEF, 0xBB, 0xBF]); // UTF-8 BOM
       await file.writeAsString(csvData);
-      await Share.shareXFiles([XFile(file.path)], text: 'Exportação CSV');
+      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: 'Exportação CSV'));
     } catch (e) { messenger?.showSnackBar(SnackBar(content: Text("Erro CSV: $e"), backgroundColor: Colors.red)); }
   }
 }
