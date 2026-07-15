@@ -79,7 +79,7 @@ class ReportRepository {
             crossAxisAlignment: pw.CrossAxisAlignment.end,
             children: [
               pw.Text("Gerado em: $dateStr", style: const pw.TextStyle(fontSize: 7, color: PdfColors.grey700)),
-              pw.Text("Smart Ronda TI v3.2.5 - Governança de Ativos", style: const pw.TextStyle(fontSize: 6, color: PdfColors.grey500)),
+              pw.Text("Smart Ronda TI v3.2.6 - Governança de Ativos", style: const pw.TextStyle(fontSize: 6, color: PdfColors.grey500)),
             ]
           ),
         ]
@@ -120,6 +120,8 @@ class ReportRepository {
                   if (ano != null) info = "${DateTime.now().year - ano} ANOS";
                 } else if (titulo.contains("DIVERGENTES")) {
                   info = "ORIGEM: ${i['motivo_divergencia'] ?? 'NÃO INF.'}";
+                } else if (titulo.contains("HOME OFFICE")) {
+                  info = "RESP: ${i['responsavel_externo'] ?? 'NÃO INF.'}";
                 }
 
                 String serieMac = i['serie'] ?? '---';
@@ -305,6 +307,8 @@ class ReportRepository {
         if (titulo.contains("OBSOLETOS")) {
           int? ano = i['ano_fabricacao'];
           if (ano != null) info = "${DateTime.now().year - ano} ANOS";
+        } else if (titulo.contains("HOME OFFICE")) {
+          info = "RESPONSAVEL: ${i['responsavel_externo'] ?? 'NAO INF.'}";
         }
 
         rows.add([
@@ -358,6 +362,8 @@ class ReportRepository {
         if (titulo.contains("OBSOLETOS")) {
           int? ano = item['ano_fabricacao'];
           if (ano != null) info = "${DateTime.now().year - ano} ANOS";
+        } else if (titulo.contains("HOME OFFICE")) {
+          info = "RESPONSÁVEL: ${item['responsavel_externo'] ?? 'NÃO INF.'}";
         }
 
         sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: r + 1)).value = ex.TextCellValue(item['tipo']?.toString() ?? '');
@@ -1057,7 +1063,7 @@ class ReportRepository {
                   crossAxisAlignment: pw.CrossAxisAlignment.end,
                   children: [
                     pw.Text("Gerado em: $dateStr", style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
-                    pw.Text("Smart Ronda TI v3.2.5", style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
+                    pw.Text("Smart Ronda TI v3.2.6", style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
                   ],
                 ),
               ],

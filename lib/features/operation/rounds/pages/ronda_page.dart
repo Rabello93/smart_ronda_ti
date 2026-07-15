@@ -4,6 +4,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'dart:ui' as ui;
 import 'dart:io';
+import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter/rendering.dart';
@@ -169,7 +170,7 @@ class _RondaPageState extends State<RondaPage> {
         anoFabricacaoController.text = dados.anoFabricacao?.toString() ?? "";
         isLocado = dados.isLocado;
         locadoraSelecionada = dados.locadora;
-        isHomeOffice = dados.isHomeOffice;
+        isHomeOffice = dados.homeOfficeAutorizado; // Usa a autorização permanente
         responsavelHomeOfficeController.text = dados.responsavelExterno ?? "";
         defeito = dados.temDefeito;
         descricaoDefeitoController.text = dados.descricaoDefeito ?? "";
@@ -273,7 +274,7 @@ class _RondaPageState extends State<RondaPage> {
         anoFabricacaoController.text = dados.anoFabricacao?.toString() ?? "";
         isLocado = dados.isLocado;
         locadoraSelecionada = dados.locadora;
-        isHomeOffice = dados.isHomeOffice;
+        isHomeOffice = dados.homeOfficeAutorizado; // Usa a autorização permanente
         responsavelHomeOfficeController.text = dados.responsavelExterno ?? "";
       });
     }
@@ -319,11 +320,24 @@ class _RondaPageState extends State<RondaPage> {
                 var byteData = await image.toByteData(format: ui.ImageByteFormat.png);
                 var pngBytes = byteData!.buffer.asUint8List();
 
-                final tempDir = await getTemporaryDirectory();
-                final file = await File('${tempDir.path}/qr_$patrimonio.png').create();
-                await file.writeAsBytes(pngBytes);
+                // Converte PNG para JPG para otimizar impressão térmica
+                img.Image? decodedImage = img.decodePng(pngBytes);
+                if (decodedImage != null) {
+                  // Garante fundo branco (remover transparência se houver)
+                  var jpgImage = img.Image(
+                    width: decodedImage.width, 
+                    height: decodedImage.height,
+                  )..clear(img.ColorRgb8(255, 255, 255));
+                  
+                  img.compositeImage(jpgImage, decodedImage);
+                  var jpgBytes = img.encodeJpg(jpgImage, quality: 95);
 
-                await Share.shareXFiles([XFile(file.path)], text: 'QR Code Patrimônio $patrimonio');
+                  final tempDir = await getTemporaryDirectory();
+                  final file = await File('${tempDir.path}/qr_$patrimonio.jpg').create();
+                  await file.writeAsBytes(jpgBytes);
+
+                  await Share.shareXFiles([XFile(file.path)], text: 'QR Code Patrimônio $patrimonio');
+                }
               } catch (e) {
                 debugPrint("Erro ao gerar imagem QR: $e");
               }
@@ -599,7 +613,7 @@ class _RondaPageState extends State<RondaPage> {
         status: 'Ativo',
         semPatrimonio: !possuiPatrimonio,
         isHomeOffice: isHomeOffice,
-        homeOfficeAutorizado: false, // Será editado no Castelo
+        homeOfficeAutorizado: isHomeOffice, // Sincroniza com o estado da chave
         dataEntradaManutencao: finalDataManutencao,
         responsavelExterno: isHomeOffice ? responsavelHomeOfficeController.text.trim() : null,
         idAnterior: _patrimonioOriginal, // Passa o ID original para o repositório
@@ -773,6 +787,13 @@ class _RondaPageState extends State<RondaPage> {
                       patrimonioController.clear();
                     }
                   }),
+                ),
+                const Spacer(),
+                const Text("Home Office?", style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(width: 10),
+                Switch(
+                  value: isHomeOffice,
+                  onChanged: (v) => setState(() => isHomeOffice = v),
                 )
               ],
             ),
@@ -870,8 +891,6 @@ class _RondaPageState extends State<RondaPage> {
                 // STATUS FIXOS (AUDITORIA)
                 FilterChip(label: const Text('Defeito'), selected: defeito, selectedColor: Colors.red.withAlpha(80), onSelected: (v) => setState(() => defeito = v)),
                 FilterChip(label: const Text('Locado?'), selected: isLocado, selectedColor: Colors.orange.withAlpha(80), onSelected: (v) => setState(() => isLocado = v)),
-                if (tipoEquipamento == 'Notebook' || tipoEquipamento == 'Smartphone' || tipoEquipamento == 'Tablet')
-                  FilterChip(label: const Text('Home Office?'), selected: isHomeOffice, selectedColor: Colors.blue.withAlpha(80), onSelected: (v) => setState(() => isHomeOffice = v)),
                 FilterChip(label: const Text('Em outro setor?'), selected: setorDivergente, selectedColor: Colors.purple.withAlpha(80), onSelected: (v) => setState(() => setorDivergente = v)),
               ],
             ),

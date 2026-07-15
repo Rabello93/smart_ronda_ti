@@ -83,6 +83,11 @@ OPERAÇÃO: Melhoria na inclusão de itens sem patrimônio via busca contextual.
 - **Branding Premium**: Logo da empresa de **100px** no Dashboard com container de alto contraste.
 - **Correção de Legibilidade**: Ajuste global de contraste no modo claro para títulos e cards.
 
+### [3.2.6 Stable] - 2024-07-15
+- **Revisão Home Office**: Substituição de FilterChip por Switch e preservação de autorização permanente entre rondas.
+- **Otimização de Impressão**: Exportação de QR Code em formato JPG com fundo branco sólido para economia de fita em impressoras portáteis.
+- **Sincronização Global**: Alinhamento de versão 3.2.6 em todos os módulos e rodapés de relatórios.
+
 ### [3.1.1 Stable] - 2024-06-25
 - **Inteligência de Metas**: Aba de Metas com KPIs, gráficos de tendência e comparativos.
 - **BI & Analytics**: Filtros de data customizados e análise de evolução entre períodos.

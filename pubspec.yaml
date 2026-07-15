@@ -2,7 +2,7 @@ name: smart_ronda_ti
 description: Smart Ronda TI - Sistema de Governança e Auditoria de Ativos
 publish_to: 'none'
 
-version: 3.2.5+9
+version: 3.2.6+10
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
@@ -29,6 +29,7 @@ dependencies:
 
   intl: ^0.19.0
   qr_flutter: ^4.1.0
+  image: ^4.1.7
   mobile_scanner: ^5.0.0
   pdf: ^3.11.1
   printing: ^5.13.2

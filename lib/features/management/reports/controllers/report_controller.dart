@@ -63,7 +63,7 @@ class ReportController {
           if (emManutencao && status == 'Em manutenção') condicaoMatch = true;
           if (reservados && status == 'Reservado') condicaoMatch = true;
           if (emDivergencia && i['setor_divergente'] == true) condicaoMatch = true;
-          if (apenasHomeOffice && i['is_home_office'] == true) condicaoMatch = true;
+          if (apenasHomeOffice && i['home_office_autorizado'] == true) condicaoMatch = true;
           
           return condicaoMatch;
         }).toList();
