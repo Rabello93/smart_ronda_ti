@@ -33,7 +33,7 @@ class AboutPage extends StatelessWidget {
                       Icon(Icons.checklist_rtl, size: 80, color: Colors.blue),
                       SizedBox(height: 10),
                       Text("Smart Ronda TI", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                  Text("Versão 3.2.6", style: TextStyle(color: Colors.grey)),
+                  Text("Versão 3.2.7", style: TextStyle(color: Colors.grey)),
                 ],
               ),
             ),
@@ -46,8 +46,12 @@ class AboutPage extends StatelessWidget {
             const SizedBox(height: 20),
             _sectionTitle("🚀 Log de Atualizações"),
             _buildUpdate(
-              "3.2.6 (Atual)",
-              "• COMPLIANCE: Novo sistema de autorização permanente para Home Office com chave (Switch) persistente entre rondas.\n• IMPRESSÃO: Otimização de QR Codes para JPG com fundo branco sólido, reduzindo drasticamente o gasto de fita em impressoras portáteis.\n• UI/UX: Novo botão 'Salvar na Galeria' para QR Codes, facilitando o gerenciamento de etiquetas.\n• RELATÓRIOS: Exibição automática do nome do Responsável em exportações PDF/Excel ao filtrar por Home Office.\n• ESTABILIDADE: Sincronização global da versão 3.2.6 em todos os módulos e documentos gerados.",
+              "3.2.7 (Atual)",
+              "• INTELIGÊNCIA: Automação de Substituição - Itens substituídos em ronda são transferidos automaticamente para a TI com status 'Reservado'.\n• RELATÓRIOS: Novo filtro e relatório exclusivo de 'Substituições' com detalhamento de setor anterior e motivo.\n• ALINHAMENTO GLOBAL: Sincronização de versão 3.2.7 em todo o ecossistema (UI, Logs e Documentos).",
+            ),
+            _buildUpdate(
+              "3.2.6",
+              "• COMPLIANCE: Novo sistema de autorização permanente para Home Office com chave (Switch) persistente entre rondas.\n• IMPRESSÃO: Otimização de QR Codes para JPG com fundo branco sólido e nova exportação vetorial em PDF.\n• UI/UX: Novo botão 'Salvar na Galeria' para QR Codes, facilitando o gerenciamento de etiquetas.\n• RELATÓRIOS: Exibição automática do nome do Responsável em exportações PDF/Excel ao filtrar por Home Office.",
             ),
             _buildUpdate(
               "3.2.5",

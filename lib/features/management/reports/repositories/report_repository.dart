@@ -79,7 +79,7 @@ class ReportRepository {
             crossAxisAlignment: pw.CrossAxisAlignment.end,
             children: [
               pw.Text("Gerado em: $dateStr", style: const pw.TextStyle(fontSize: 7, color: PdfColors.grey700)),
-              pw.Text("Smart Ronda TI v3.2.6 - Governança de Ativos", style: const pw.TextStyle(fontSize: 6, color: PdfColors.grey500)),
+              pw.Text("Smart Ronda TI v3.2.7 - Governança de Ativos", style: const pw.TextStyle(fontSize: 6, color: PdfColors.grey500)),
             ]
           ),
         ]
@@ -735,6 +735,113 @@ class ReportRepository {
     } catch (e) { messenger?.showSnackBar(SnackBar(content: Text("Erro: $e"), backgroundColor: Colors.red)); }
   }
 
+  static Future<void> exportarSubstituicoesParaPDF(BuildContext context, List<Map<String, dynamic>> itens, String titulo) async {
+    final messenger = (context.mounted) ? ScaffoldMessenger.of(context) : null;
+    try {
+      final pdf = pw.Document();
+      final firestore = FirebaseFirestore.instance;
+      DocumentSnapshot configDoc = await firestore.collection('config').doc('empresa').get();
+      Map<String, dynamic> config = configDoc.exists ? (configDoc.data() as Map<String, dynamic>) : {};
+      pw.MemoryImage? logoImage = await _fetchLogo(config);
+
+      pdf.addPage(
+        pw.MultiPage(
+          pageFormat: PdfPageFormat.a4.landscape,
+          header: (pw.Context context) => _buildHeader(config, titulo, logoImage),
+          footer: (pw.Context context) => _buildFooter(config),
+          build: (pw.Context context) => [
+            pw.SizedBox(height: 10),
+            pw.TableHelper.fromTextArray(
+              headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 7),
+              cellStyle: const pw.TextStyle(fontSize: 6),
+              headerDecoration: const pw.BoxDecoration(color: PdfColors.teal900),
+              headers: const ['TIPO', 'PATRIMÔNIO', 'MARCA', 'MODELO', 'SÉRIE', 'LOCADORA', 'DEP. ANTERIOR', 'DATA', 'DEP. ATUAL', 'STATUS', 'MOTIVO'],
+              data: itens.map((i) {
+                final date = i['data'] as DateTime;
+                return [
+                  i['tipo']?.toString() ?? '---',
+                  i['patrimonio']?.toString() ?? '---',
+                  i['marca']?.toString() ?? '---',
+                  i['modelo']?.toString() ?? '---',
+                  i['serie']?.toString() ?? '---',
+                  i['locadora']?.toString() ?? 'PRÓPRIO',
+                  i['departamento_anterior']?.toString().toUpperCase() ?? '---',
+                  DateFormat('dd/MM/yy').format(date),
+                  i['departamento_atual']?.toString() ?? 'TI',
+                  i['status']?.toString() ?? 'RESERVADO',
+                  i['motivo']?.toString() ?? '---',
+                ];
+              }).toList(),
+            ),
+            pw.SizedBox(height: 20),
+            pw.Container(
+              alignment: pw.Alignment.centerRight,
+              child: pw.Text(
+                "TOTAL DE SUBSTITUIÇÕES NO RELATÓRIO: ${itens.length}",
+                style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
+              ),
+            ),
+          ],
+        ),
+      );
+
+      final output = await getTemporaryDirectory();
+      final file = File("${output.path}/substituicoes_${DateTime.now().millisecondsSinceEpoch}.pdf");
+      await file.writeAsBytes(await pdf.save());
+      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: titulo));
+    } catch (e) { messenger?.showSnackBar(SnackBar(content: Text("Erro PDF: $e"), backgroundColor: Colors.red)); }
+  }
+
+  static Future<void> exportarSubstituicoesParaXLSX(List<Map<String, dynamic>> itens, String titulo) async {
+    try {
+      var excel = ex.Excel.createExcel();
+      ex.Sheet sheet = excel['Substituicoes'];
+      excel.delete('Sheet1');
+
+      ex.CellStyle headerStyle = ex.CellStyle(
+        backgroundColorHex: ex.ExcelColor.fromHexString('#004D40'),
+        fontColorHex: ex.ExcelColor.fromHexString('#FFFFFF'),
+        bold: true,
+        horizontalAlign: ex.HorizontalAlign.Center,
+      );
+
+      List<String> headers = ['TIPO', 'PATRIMÔNIO', 'MARCA', 'MODELO', 'SÉRIE', 'LOCADORA', 'DEP. ANTERIOR', 'DATA', 'DEP. ATUAL', 'STATUS', 'MOTIVO'];
+      
+      for (int i = 0; i < headers.length; i++) {
+        var cell = sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0));
+        cell.value = ex.TextCellValue(headers[i]);
+        cell.cellStyle = headerStyle;
+      }
+
+      for (int r = 0; r < itens.length; r++) {
+        final i = itens[r];
+        final date = i['data'] as DateTime;
+
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: r + 1)).value = ex.TextCellValue(i['tipo']?.toString() ?? '');
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: r + 1)).value = ex.TextCellValue(i['patrimonio']?.toString() ?? '');
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: r + 1)).value = ex.TextCellValue(i['marca']?.toString() ?? '');
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: r + 1)).value = ex.TextCellValue(i['modelo']?.toString() ?? '');
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: r + 1)).value = ex.TextCellValue(i['serie']?.toString() ?? '');
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: r + 1)).value = ex.TextCellValue(i['locadora']?.toString() ?? 'PRÓPRIO');
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: r + 1)).value = ex.TextCellValue(i['departamento_anterior']?.toString().toUpperCase() ?? '');
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 7, rowIndex: r + 1)).value = ex.TextCellValue(DateFormat('dd/MM/yyyy').format(date));
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 8, rowIndex: r + 1)).value = ex.TextCellValue(i['departamento_atual']?.toString() ?? 'TI');
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: r + 1)).value = ex.TextCellValue(i['status']?.toString() ?? 'RESERVADO');
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 10, rowIndex: r + 1)).value = ex.TextCellValue(i['motivo']?.toString() ?? '');
+      }
+
+      final directory = await getTemporaryDirectory();
+      var fileBytes = excel.save();
+      final file = File("${directory.path}/substituicoes_${DateTime.now().millisecondsSinceEpoch}.xlsx")
+        ..createSync(recursive: true)
+        ..writeAsBytesSync(fileBytes!);
+
+      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: titulo));
+    } catch (e) {
+      debugPrint("Erro XLSX: $e");
+    }
+  }
+
   static Future<void> exportarRelatorioMetas(BuildContext context, {DateTimeRange? periodo, DateTimeRange? periodoComparativo}) async {
     final messenger = (context.mounted) ? ScaffoldMessenger.of(context) : null;
     try {
@@ -1063,7 +1170,7 @@ class ReportRepository {
                   crossAxisAlignment: pw.CrossAxisAlignment.end,
                   children: [
                     pw.Text("Gerado em: $dateStr", style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
-                    pw.Text("Smart Ronda TI v3.2.6", style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
+                    pw.Text("Smart Ronda TI v3.2.7", style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
                   ],
                 ),
               ],

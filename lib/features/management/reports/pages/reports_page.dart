@@ -28,6 +28,7 @@ class _ReportsPageState extends State<ReportsPage> {
   bool _apenasHomeOffice = false;
   bool _apenasLocados = false;
   bool _apenasSemPatrimonio = false;
+  bool _apenasSubstituicoes = false;
   bool _gerandoInventario = false;
 
   // Filtros Performance
@@ -49,6 +50,7 @@ class _ReportsPageState extends State<ReportsPage> {
       apenasHomeOffice: _apenasHomeOffice,
       apenasLocados: _apenasLocados,
       apenasSemPatrimonio: _apenasSemPatrimonio,
+      apenasSubstituicoes: _apenasSubstituicoes,
       formato: _formatoSelecionado!,
     );
     if (mounted) setState(() => _gerandoInventario = false);
@@ -92,6 +94,19 @@ class _ReportsPageState extends State<ReportsPage> {
               _filterChip("🏠 HOME OFFICE", _apenasHomeOffice, (v) => setState(() => _apenasHomeOffice = v), color: Colors.blue),
               _filterChip("🤝 LOCADOS", _apenasLocados, (v) => setState(() => _apenasLocados = v), color: Colors.orange.shade800),
               _filterChip("🚫 SEM PATRIMÔNIO", _apenasSemPatrimonio, (v) => setState(() => _apenasSemPatrimonio = v), color: Colors.red.shade800),
+              _filterChip("🔄 SUBSTITUIÇÕES", _apenasSubstituicoes, (v) => setState(() {
+                _apenasSubstituicoes = v;
+                if (v) {
+                  // Desativa outros filtros de condição para focar no relatório de trocas
+                  _apenasDefeitos = false;
+                  _apenasObsoletos = false;
+                  _emManutencao = false;
+                  _emDivergencia = false;
+                  _reservados = false;
+                  _apenasHomeOffice = false;
+                  _apenasSemPatrimonio = false;
+                }
+              }), color: Colors.teal.shade800),
             ],
           ),
           const SizedBox(height: 20),

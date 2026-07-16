@@ -18,9 +18,14 @@ class ReportController {
     bool apenasHomeOffice = false,
     bool apenasLocados = false,
     bool apenasSemPatrimonio = false,
+    bool apenasSubstituicoes = false,
     required String formato,
   }) async {
     try {
+      if (apenasSubstituicoes) {
+        return _gerarRelatorioSubstituicoes(context, formato, setor);
+      }
+
       Query query = _firestore.collection('inventario_mestre');
 
       if (setor != null) query = query.where('setor', isEqualTo: setor);
@@ -121,6 +126,70 @@ class ReportController {
           SnackBar(content: Text("Erro ao gerar: $e"), backgroundColor: Colors.red)
         );
       }
+    }
+  }
+
+  Future<void> _gerarRelatorioSubstituicoes(BuildContext context, String formato, String? setorFiltro) async {
+    try {
+      // Busca todas as rondas (limitado a um período razoável ou todas se for o caso)
+      Query queryRondas = _firestore.collection('rondas').orderBy('timestamp', descending: true);
+      if (setorFiltro != null) queryRondas = queryRondas.where('setor', isEqualTo: setorFiltro);
+      
+      final snapshots = await queryRondas.get();
+      List<Map<String, dynamic>> substituicoes = [];
+
+      for (var doc in snapshots.docs) {
+        final rondaData = doc.data() as Map<String, dynamic>;
+        final String setorRonda = rondaData['setor'] ?? '---';
+        final DateTime dataRonda = (rondaData['timestamp'] as Timestamp).toDate();
+
+        final equipsSnap = await doc.reference.collection('equipamentos').where('is_troca', isEqualTo: true).get();
+        
+        for (var eDoc in equipsSnap.docs) {
+          final troca = eDoc.data() as Map<String, dynamic>;
+          final String patAntigo = troca['patrimonio_antigo'] ?? '---';
+          
+          // Tenta buscar detalhes do item antigo no Castelo para enriquecer o relatório
+          DocumentSnapshot? assetDoc;
+          if (patAntigo != '---' && patAntigo != 'SEM PATRIMÔNIO') {
+            assetDoc = await _firestore.collection('inventario_mestre').doc(patAntigo).get();
+          }
+
+          Map<String, dynamic>? assetData = assetDoc?.exists == true ? (assetDoc!.data() as Map<String, dynamic>) : null;
+
+          substituicoes.add({
+            'tipo': assetData?['tipo'] ?? '---',
+            'patrimonio': patAntigo,
+            'marca': assetData?['marca'] ?? '---',
+            'modelo': assetData?['modelo'] ?? '---',
+            'serie': assetData?['serie'] ?? '---',
+            'locadora': assetData?['locadora'] ?? 'PRÓPRIO',
+            'departamento_anterior': setorRonda, // O setor onde a troca foi registrada
+            'data': dataRonda,
+            'departamento_atual': 'TI', // Inteligência 3.2.7: vai para TI
+            'status': 'RESERVADO',
+            'motivo': troca['motivo'] ?? '---',
+          });
+        }
+      }
+
+      if (substituicoes.isEmpty) {
+        if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Nenhuma substituição encontrada.")));
+        return;
+      }
+
+      if (context.mounted) {
+        if (formato == 'PDF') {
+          await ReportRepository.exportarSubstituicoesParaPDF(context, substituicoes, "Relatório de Substituições");
+        } else if (formato == 'XLSX') {
+          await ReportRepository.exportarSubstituicoesParaXLSX(substituicoes, "Relatório de Substituições");
+        } else {
+          // CSV ou XML genérico se necessário, mas o foco é PDF/Excel
+          await ReportRepository.exportarInventarioParaCSV(substituicoes, "Relatório de Substituições");
+        }
+      }
+    } catch (e) {
+      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Erro: $e"), backgroundColor: Colors.red));
     }
   }
 
