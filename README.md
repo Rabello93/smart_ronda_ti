@@ -17,11 +17,12 @@ O app foi desenvolvido para otimizar as rondas técnicas em ambiente corporativo
 
 ## 🚀 Série Histórica (Evolução)
 
+### [3.2.7 Stable] - 2024-07-16
+- **Automação de Substituição**: Itens substituídos em ronda são transferidos automaticamente para a TI com status 'Reservado'.
+- **Relatório de Trocas**: Novo filtro e relatório exclusivo de 'Substituições' com detalhamento de setor anterior e motivo.
+- **Sincronização Global**: Alinhamento de versão 3.2.7 em todo o ecossistema (UI, Logs e Documentos).
+
 ### [3.2.6 Stable] - 2024-07-15
-- **Home Office 2.0**: Chave de autorização permanente que preserva o estado entre rondas.
-- **Economia de Ribbon**: QR Codes exportados em JPG com fundo sólido para otimização térmica.
-- **Gestão de Galeria**: Novo botão para salvar etiquetas diretamente no dispositivo.
-- **Sincronização Global**: Alinhamento de versão 3.2.6 e build 42 em todo o ecossistema.
 
 ### [3.2.5 Stable] - 2024-07-15
 - **DASHBOARD**: Agrupamento de alertas críticos em 'Central de Alertas' colapsável.

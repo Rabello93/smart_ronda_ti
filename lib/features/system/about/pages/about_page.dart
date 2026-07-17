@@ -47,7 +47,7 @@ class AboutPage extends StatelessWidget {
             _sectionTitle("🚀 Log de Atualizações"),
             _buildUpdate(
               "3.2.7 (Atual)",
-              "• INTELIGÊNCIA: Automação de Substituição - Itens substituídos em ronda são transferidos automaticamente para a TI com status 'Reservado'.\n• RELATÓRIOS: Novo filtro e relatório exclusivo de 'Substituições' com detalhamento de setor anterior e motivo.\n• ALINHAMENTO GLOBAL: Sincronização de versão 3.2.7 em todo o ecossistema (UI, Logs e Documentos).",
+              "• INTELIGÊNCIA: Automação de Substituição - Itens substituídos em ronda são transferidos automaticamente para a TI com status 'Reservado'.\n• RELATÓRIOS: Novo filtro e relatório exclusivo de 'Substituições' com detalhamento de setor anterior e motivo.\n• UX: Adicionada busca por lupa e scanner de QR Code nos campos de substituição (Patrimônio Antigo/Novo).\n• ALINHAMENTO GLOBAL: Sincronização de versão 3.2.7 em todo o ecossistema (UI, Logs e Documentos).",
             ),
             _buildUpdate(
               "3.2.6",

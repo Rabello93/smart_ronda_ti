@@ -396,7 +396,7 @@ class _RondaPageState extends State<RondaPage> {
     );
   }
 
-  Future<void> _abrirLeitorQR() async {
+  Future<void> _abrirLeitorQR({TextEditingController? controller}) async {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -426,9 +426,13 @@ class _RondaPageState extends State<RondaPage> {
                       if (mounted) {
                         Navigator.of(context).pop();
                         setState(() {
-                          patrimonioController.text = code;
+                          if (controller != null) {
+                            controller.text = code;
+                          } else {
+                            patrimonioController.text = code;
+                            _verificarInventario(code);
+                          }
                         });
-                        _verificarInventario(code);
                       }
                     }
                   },
@@ -442,7 +446,7 @@ class _RondaPageState extends State<RondaPage> {
     );
   }
 
-  Future<void> _abrirBuscaInventario() async {
+  Future<void> _abrirBuscaInventario({TextEditingController? controller}) async {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -495,14 +499,18 @@ class _RondaPageState extends State<RondaPage> {
                         subtitle: Text("${item['marca'] ?? ''} ${item['modelo'] ?? ''} ${isHome ? '(HOME OFFICE)' : ''}"),
                         onTap: () {
                           Navigator.pop(context);
-                          _patrimonioOriginal = pat; // Salva o ID original
-                          setState(() {
-                            // Se for sem placa, deixa vazio para o técnico digitar a nova
-                            // Se tiver placa, já preenche o campo
-                            patrimonioController.text = pat.startsWith("SP_") ? "" : pat;
-                            possuiPatrimonio = true; // Força a chave para 'Sim' para permitir edição/confirmação
-                          });
-                          _verificarInventario(pat);
+                          if (controller != null) {
+                            setState(() => controller.text = pat);
+                          } else {
+                            _patrimonioOriginal = pat; // Salva o ID original
+                            setState(() {
+                              // Se for sem placa, deixa vazio para o técnico digitar a nova
+                              // Se tiver placa, já preenche o campo
+                              patrimonioController.text = pat.startsWith("SP_") ? "" : pat;
+                              possuiPatrimonio = true; // Força a chave para 'Sim' para permitir edição/confirmação
+                            });
+                            _verificarInventario(pat);
+                          }
                         },
                       );
                     },
@@ -532,14 +540,18 @@ class _RondaPageState extends State<RondaPage> {
                         subtitle: Text("Setor: ${item['setor']}"),
                         onTap: () {
                           Navigator.pop(context);
-                          _patrimonioOriginal = pat; // Salva o ID original
-                          setState(() {
-                            // Se for sem placa, deixa vazio para o técnico digitar a nova
-                            // Se tiver placa, já preenche o campo
-                            patrimonioController.text = pat.startsWith("SP_") ? "" : pat;
-                            possuiPatrimonio = true; // Força a chave para 'Sim' para permitir edição/confirmação
-                          });
-                          _verificarInventario(pat);
+                          if (controller != null) {
+                            setState(() => controller.text = pat);
+                          } else {
+                            _patrimonioOriginal = pat; // Salva o ID original
+                            setState(() {
+                              // Se for sem placa, deixa vazio para o técnico digitar a nova
+                              // Se tiver placa, já preenche o campo
+                              patrimonioController.text = pat.startsWith("SP_") ? "" : pat;
+                              possuiPatrimonio = true; // Força a chave para 'Sim' para permitir edição/confirmação
+                            });
+                            _verificarInventario(pat);
+                          }
                         },
                       );
                     },
@@ -1012,9 +1024,41 @@ class _RondaPageState extends State<RondaPage> {
                   CheckboxListTile(title: const Text('Houve Troca de Equipamento?', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange)), value: houveTroca, activeColor: Colors.orange, onChanged: (v) => setState(() => houveTroca = v!)),
                   if (houveTroca) ...[
                     const SizedBox(height: 10),
-                    TextField(controller: patrimonioAntigoController, decoration: const InputDecoration(labelText: 'Patrimônio Antigo', border: OutlineInputBorder())),
+                    TextField(
+                      controller: patrimonioAntigoController, 
+                      decoration: InputDecoration(
+                        labelText: 'Patrimônio Antigo', 
+                        border: const OutlineInputBorder(),
+                        prefixIcon: IconButton(
+                          icon: const Icon(Icons.qr_code_scanner, color: Colors.blue), 
+                          onPressed: () => _abrirLeitorQR(controller: patrimonioAntigoController),
+                          tooltip: "Escanear QR Code",
+                        ),
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.search), 
+                          onPressed: () => _abrirBuscaInventario(controller: patrimonioAntigoController),
+                          tooltip: "Buscar no Inventário",
+                        ),
+                      )
+                    ),
                     const SizedBox(height: 10),
-                    TextField(controller: patrimonioNovoController, decoration: const InputDecoration(labelText: 'Patrimônio Novo', border: OutlineInputBorder())),
+                    TextField(
+                      controller: patrimonioNovoController, 
+                      decoration: InputDecoration(
+                        labelText: 'Patrimônio Novo', 
+                        border: const OutlineInputBorder(),
+                        prefixIcon: IconButton(
+                          icon: const Icon(Icons.qr_code_scanner, color: Colors.blue), 
+                          onPressed: () => _abrirLeitorQR(controller: patrimonioNovoController),
+                          tooltip: "Escanear QR Code",
+                        ),
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.search), 
+                          onPressed: () => _abrirBuscaInventario(controller: patrimonioNovoController),
+                          tooltip: "Buscar no Inventário",
+                        ),
+                      )
+                    ),
                     const SizedBox(height: 10),
                     Row(
                       children: [
