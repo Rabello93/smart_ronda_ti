@@ -1,17 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:smart_ronda_ti/app/theme.dart';
 
 class NotificationsPage extends StatelessWidget {
   const NotificationsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
+      backgroundColor: isDark ? AppTheme.deepNavy : AppTheme.coolGrey,
       appBar: AppBar(
-        title: const Text("Notificações do Sistema"),
-        backgroundColor: Colors.blue.shade900,
-        foregroundColor: Colors.white,
+        title: Text("ALERTAS DO SISTEMA", style: GoogleFonts.inter(fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 1)),
+        backgroundColor: isDark ? AppTheme.deepNavy : Colors.white,
+        foregroundColor: isDark ? Colors.white : AppTheme.deepNavy,
+        elevation: 0,
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
@@ -25,13 +31,13 @@ class NotificationsPage extends StatelessWidget {
           }
 
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.notifications_off_outlined, size: 80, color: Colors.grey),
-                  SizedBox(height: 16),
-                  Text("Nenhuma notificação recente.", style: TextStyle(color: Colors.grey)),
+                  Icon(Icons.notifications_off_rounded, size: 80, color: isDark ? Colors.white10 : Colors.grey.shade300),
+                  const SizedBox(height: 16),
+                  const Text("NENHUMA ATIVIDADE RECENTE", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 1)),
                 ],
               ),
             );
@@ -40,6 +46,7 @@ class NotificationsPage extends StatelessWidget {
           final logs = snapshot.data!.docs;
 
           return ListView.builder(
+            padding: const EdgeInsets.symmetric(vertical: 12),
             itemCount: logs.length,
             itemBuilder: (context, index) {
               final log = logs[index].data() as Map<String, dynamic>;
@@ -48,28 +55,55 @@ class NotificationsPage extends StatelessWidget {
               final String details = log['detalhes'] ?? "---";
               final String user = log['tecnico_nome'] ?? "Admin";
 
-              return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              final Color color = _getLogColor(action);
+
+              return Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                decoration: BoxDecoration(
+                  color: isDark ? AppTheme.charcoal : Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: color.withValues(alpha: 0.1)),
+                ),
                 child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: _getLogColor(action).withValues(alpha: 0.1),
-                    child: Icon(_getLogIcon(action), color: _getLogColor(action)),
+                  contentPadding: const EdgeInsets.all(12),
+                  leading: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Icon(_getLogIcon(action), color: color, size: 22),
                   ),
-                  title: Text(action, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  title: Text(
+                    action, 
+                    style: GoogleFonts.inter(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 0.5)
+                  ),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 4),
-                      Text(details),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
+                      Text(
+                        details, 
+                        style: TextStyle(fontSize: 12, color: isDark ? Colors.white70 : Colors.black87)
+                      ),
+                      const SizedBox(height: 12),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(user, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.blueGrey)),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.shade100,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              user.toUpperCase(), 
+                              style: AppTheme.monoStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.blueGrey)
+                            ),
+                          ),
                           Text(
-                            DateFormat('dd/MM/yy HH:mm').format(timestamp),
-                            style: const TextStyle(fontSize: 10, color: Colors.grey),
+                            DateFormat('dd/MM HH:mm').format(timestamp),
+                            style: AppTheme.monoStyle(fontSize: 9, color: Colors.grey),
                           ),
                         ],
                       ),

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:smart_ronda_ti/app/theme.dart';
 import 'package:smart_ronda_ti/features/system/auth/controllers/auth_controller.dart';
 import 'package:smart_ronda_ti/features/operation/rounds/controllers/round_controller.dart';
 import 'package:smart_ronda_ti/features/management/admin/controllers/admin_controller.dart';
@@ -98,6 +101,8 @@ class _HistoryPageState extends State<HistoryPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return StreamBuilder<UserModel?>(
       stream: _authController.profileStream,
       builder: (context, profileSnapshot) {
@@ -106,12 +111,15 @@ class _HistoryPageState extends State<HistoryPage> {
         final bool isManager = userData?.nivelAcesso == 'master' || userData?.nivelAcesso == 'gerente';
 
         return Scaffold(
+          backgroundColor: isDark ? AppTheme.deepNavy : AppTheme.coolGrey,
           appBar: AppBar(
-            title: const Text('Histórico de Rondas'),
+            title: Text('HISTÓRICO DE RONDAS', style: GoogleFonts.inter(fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 1)),
+            backgroundColor: isDark ? AppTheme.deepNavy : Colors.white,
+            elevation: 0,
             actions: [
               if (isManager) ...[
                 IconButton(
-                  icon: const Icon(Icons.picture_as_pdf),
+                  icon: const Icon(Icons.picture_as_pdf_rounded, size: 20),
                   onPressed: () => ReportRepository.exportarRondasParaPDF(
                     setor: setorFiltro,
                     context: context,
@@ -119,32 +127,36 @@ class _HistoryPageState extends State<HistoryPage> {
                   tooltip: "Exportar PDF",
                 ),
                 IconButton(
-                  icon: const Icon(Icons.code),
+                  icon: const Icon(Icons.code_rounded, size: 20),
                   onPressed: () => ReportRepository.exportarRondasParaXML(
                     setor: setorFiltro,
                     context: context,
                   ),
                   tooltip: "Exportar XML",
                 ),
+                const SizedBox(width: 8),
               ]
             ],
             bottom: PreferredSize(
-              preferredSize: const Size.fromHeight(110),
+              preferredSize: const Size.fromHeight(130),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Column(
                   children: [
                     TextField(
                       decoration: InputDecoration(
-                        hintText: 'Buscar por Técnico...',
-                        prefixIcon: const Icon(Icons.search),
+                        hintText: 'BUSCAR POR TÉCNICO...',
+                        prefixIcon: const Icon(Icons.search_rounded, size: 20),
                         filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                        fillColor: isDark ? AppTheme.charcoal : Colors.grey.shade100,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide.none,
+                        ),
                       ),
                       onChanged: (v) => setState(() => filtroTexto = v.toLowerCase()),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 12),
                     StreamBuilder<List<Map<String, dynamic>>>(
                       stream: _adminController.sectorsStream,
                       builder: (context, snap) {
@@ -153,14 +165,30 @@ class _HistoryPageState extends State<HistoryPage> {
                           scrollDirection: Axis.horizontal,
                           child: Row(
                             children: [
-                              ChoiceChip(label: const Text("Todas Datas"), selected: dataFiltro == null, onSelected: (s) => setState(() => dataFiltro = null)),
+                              ChoiceChip(
+                                label: const Text("HOJE"), 
+                                selected: dataFiltro != null && dataFiltro!.day == DateTime.now().day, 
+                                onSelected: (s) => setState(() => dataFiltro = s ? DateTime.now() : null)
+                              ),
                               const SizedBox(width: 8),
-                              ChoiceChip(label: Text(dataFiltro == null ? "Filtrar por Data" : "${dataFiltro!.day}/${dataFiltro!.month}/${dataFiltro!.year}"), selected: dataFiltro != null, onSelected: (s) => _selecionarData(context)),
+                              ChoiceChip(
+                                label: Text(dataFiltro == null ? "CALENDÁRIO" : DateFormat('dd/MM/yy').format(dataFiltro!)), 
+                                selected: dataFiltro != null, 
+                                onSelected: (s) => _selecionarData(context)
+                              ),
                               const VerticalDivider(),
-                              ChoiceChip(label: const Text("Todos Setores"), selected: setorFiltro == null, onSelected: (s) => setState(() => setorFiltro = null)),
+                              ChoiceChip(
+                                label: const Text("TODOS SETORES"), 
+                                selected: setorFiltro == null, 
+                                onSelected: (s) => setState(() => setorFiltro = null)
+                              ),
                               ...setores.map((s) => Padding(
                                 padding: const EdgeInsets.only(left: 8.0),
-                                child: ChoiceChip(label: Text(s['nome']), selected: setorFiltro == s['nome'], onSelected: (val) => setState(() => setorFiltro = val ? s['nome'] : null)),
+                                child: ChoiceChip(
+                                  label: Text(s['nome'].toString().toUpperCase()), 
+                                  selected: setorFiltro == s['nome'], 
+                                  onSelected: (val) => setState(() => setorFiltro = val ? s['nome'] : null)
+                                ),
                               )),
                             ],
                           ),
@@ -185,9 +213,10 @@ class _HistoryPageState extends State<HistoryPage> {
                   return r.dataInicio.year == dataFiltro!.year && r.dataInicio.month == dataFiltro!.month && r.dataInicio.day == dataFiltro!.day;
                 }).toList();
               }
-              if (rondas.isEmpty) return const Center(child: Text('Nenhuma ronda encontrada.'));
+              if (rondas.isEmpty) return const Center(child: Text('Nenhuma atividade encontrada no período.'));
 
               return ListView.builder(
+                padding: const EdgeInsets.symmetric(vertical: 12),
                 itemCount: rondas.length,
                 itemBuilder: (context, index) {
                   final r = rondas[index];
@@ -204,38 +233,62 @@ class _HistoryPageState extends State<HistoryPage> {
                     }
                   }
 
-                  final dataStr = "${r.dataInicio.day}/${r.dataInicio.month}/${r.dataInicio.year} ${r.dataInicio.hour}:${r.dataInicio.minute}";
+                  final dataStr = DateFormat('dd/MM HH:mm').format(r.dataInicio);
 
-                  return Card(
-                    elevation: 3,
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  return Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: isDark ? AppTheme.charcoal : Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                    ),
                     child: ListTile(
-                      leading: CircleAvatar(backgroundColor: Colors.blue.shade100, child: const Icon(Icons.assignment, color: Colors.blue)),
-                      title: Text(r.setor, style: const TextStyle(fontWeight: FontWeight.bold)),
+                      contentPadding: const EdgeInsets.all(12),
+                      leading: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppTheme.electricBlue.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: const Icon(Icons.assignment_rounded, color: AppTheme.electricBlue),
+                      ),
+                      title: Text(
+                        r.setor.toUpperCase(), 
+                        style: GoogleFonts.inter(fontWeight: FontWeight.w900, fontSize: 14)
+                      ),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Técnico: ${r.tecnico}'),
-                          Text('Data: $dataStr'),
+                          const SizedBox(height: 4),
+                          Text(
+                            'OPERAÇÃO: ${r.tecnico.toUpperCase()}',
+                            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey),
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              const Icon(Icons.schedule_rounded, size: 12, color: Colors.grey),
+                              const SizedBox(width: 4),
+                              Text(
+                                dataStr,
+                                style: AppTheme.monoStyle(fontSize: 10, color: Colors.grey),
+                              ),
+                              const Spacer(),
+                              _badge("${r.itensTotal} ITENS", Colors.blue),
+                              if (r.defeitosTotal > 0) ...[
+                                const SizedBox(width: 4),
+                                _badge("${r.defeitosTotal} ERROS", AppTheme.ruby),
+                              ],
+                            ],
+                          ),
                         ],
                       ),
                       trailing: podeGerenciar 
-                        ? Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.edit_note, color: Colors.blue),
-                                onPressed: () => _abrirEdicao(r),
-                                tooltip: 'Editar',
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete_forever, color: Colors.red),
-                                onPressed: () => _excluirRonda(r.id!),
-                                tooltip: 'Excluir',
-                              ),
-                            ],
+                        ? IconButton(
+                            icon: const Icon(Icons.more_vert_rounded),
+                            onPressed: () => _showRondaMenu(context, r),
                           )
-                        : const Icon(Icons.chevron_right),
+                        : const Icon(Icons.chevron_right_rounded),
                       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => RondaDetailsPage(ronda: {
                         'id_documento': r.id,
                         'setor': r.setor,
@@ -253,6 +306,50 @@ class _HistoryPageState extends State<HistoryPage> {
           ),
         );
       },
+    );
+  }
+
+  Widget _badge(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(color: color, fontSize: 9, fontWeight: FontWeight.w900),
+      ),
+    );
+  }
+
+  void _showRondaMenu(BuildContext context, RoundModel r) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.edit_note_rounded, color: Colors.blue),
+            title: const Text("Editar Registro"),
+            onTap: () {
+              Navigator.pop(ctx);
+              _abrirEdicao(r);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.delete_forever_rounded, color: AppTheme.ruby),
+            title: const Text("Excluir Permanentemente"),
+            onTap: () {
+              Navigator.pop(ctx);
+              _excluirRonda(r.id!);
+            },
+          ),
+          const SizedBox(height: 20),
+        ],
+      ),
     );
   }
 }

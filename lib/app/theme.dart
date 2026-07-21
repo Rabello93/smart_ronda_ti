@@ -124,11 +124,12 @@ class AppTheme {
   }
 
   // Estilo Monospace para dados técnicos
-  static TextStyle monoStyle({double fontSize = 12, Color? color, FontWeight fontWeight = FontWeight.normal}) {
+  static TextStyle monoStyle({double fontSize = 12, Color? color, FontWeight fontWeight = FontWeight.normal, double? letterSpacing}) {
     return GoogleFonts.jetBrainsMono(
       fontSize: fontSize,
       color: color,
       fontWeight: fontWeight,
+      letterSpacing: letterSpacing,
     );
   }
 }

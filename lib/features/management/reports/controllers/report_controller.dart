@@ -155,7 +155,7 @@ class ReportController {
             assetDoc = await _firestore.collection('inventario_mestre').doc(patAntigo).get();
           }
 
-          Map<String, dynamic>? assetData = assetDoc?.exists == true ? assetDoc!.data() as Map<String, dynamic>? : null;
+          Map<String, dynamic>? assetData = assetDoc?.data() as Map<String, dynamic>?;
 
           substituicoes.add({
             'tipo': assetData?['tipo'] ?? '---',

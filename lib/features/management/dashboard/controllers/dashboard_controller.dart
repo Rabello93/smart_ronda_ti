@@ -64,23 +64,29 @@ class DashboardController {
     return trend;
   }
 
-  /// Calcula a cobertura do inventário (Vistos vs Total)
+  /// Calcula o Health Score do Patrimônio (Itens Saudáveis vs Total)
   Map<String, double> getInventoryCoverage(List<AssetModel> allAssets, List<RoundModel> roundsInPeriod) {
     if (allAssets.isEmpty) return {'auditado': 0, 'pendente': 0};
     
-    // Idealmente rounds deveria ter uma lista de ids de equipamentos vistos
-    // Como simplificação, vamos assumir que itensTotal representa a cobertura
-    // Mas para ser real, precisaríamos buscar nos equipamentos das rondas.
-    // Vamos usar uma métrica aproximada baseada nos itens totais vistos vs totais no castelo.
+    // Nova Lógica 3.2.9: Saúde Física do Parque
+    // Um item deixa de ser "saudável" se:
+    // 1. Tem defeito relatado
+    // 2. Está em manutenção
+    // 3. É obsoleto (+5 anos)
     
-    int totalNoCastelo = allAssets.length;
-    int vistosNoPeriodo = getTotalItens(roundsInPeriod);
-    
-    if (vistosNoPeriodo > totalNoCastelo) vistosNoPeriodo = totalNoCastelo;
+    int total = allAssets.length;
+    int problematicos = allAssets.where((a) => 
+      a.temDefeito || 
+      a.statusOperacional == 'Em manutenção' || 
+      a.isObsoleto
+    ).length;
+
+    int saudaveis = total - problematicos;
+    if (saudaveis < 0) saudaveis = 0;
 
     return {
-      'auditado': vistosNoPeriodo.toDouble(),
-      'pendente': (totalNoCastelo - vistosNoPeriodo).toDouble(),
+      'auditado': saudaveis.toDouble(),
+      'pendente': problematicos.toDouble(),
     };
   }
 

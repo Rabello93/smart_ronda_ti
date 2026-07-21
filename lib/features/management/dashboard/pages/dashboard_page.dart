@@ -397,23 +397,37 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   void _showDepartamentoDetails(BuildContext context, String nome, List<AssetModel> itens) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: isDark ? AppTheme.deepNavy : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24), side: BorderSide(color: Colors.white.withValues(alpha: 0.05))),
         title: Row(
           children: [
-            const Icon(Icons.business, color: Colors.blue),
-            const SizedBox(width: 10),
-            Text(nome, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(color: AppTheme.electricBlue.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+              child: const Icon(Icons.lan_rounded, color: AppTheme.electricBlue, size: 20),
+            ),
+            const SizedBox(width: 15),
+            Text(nome.toUpperCase(), style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
           ],
         ),
         content: SizedBox(
           width: 500,
           child: itens.isEmpty 
-            ? const Padding(
-                padding: EdgeInsets.symmetric(vertical: 30),
-                child: Text("Nenhum equipamento alocado neste departamento.", textAlign: TextAlign.center),
+            ? Padding(
+                padding: const EdgeInsets.symmetric(vertical: 40),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.inventory_2_outlined, size: 40, color: isDark ? Colors.white10 : Colors.grey.shade300),
+                    const SizedBox(height: 16),
+                    const Text("DEPARTAMENTO VAZIO", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold, fontSize: 11)),
+                  ],
+                ),
               )
             : ListView.builder(
                 shrinkWrap: true,
@@ -423,42 +437,39 @@ class _DashboardPageState extends State<DashboardPage> {
                   final bool isInMaintenance = i.statusOperacional == 'Em manutenção';
                   final bool hasDefect = i.temDefeito || isInMaintenance;
 
-                  String statusInfo = "Status: ${i.statusOperacional}";
+                  String statusInfo = "STATUS: ${i.statusOperacional.toUpperCase()}";
                   if (isInMaintenance && i.dataEntradaManutencao != null) {
                     final diff = DateTime.now().difference(i.dataEntradaManutencao!);
-                    final days = diff.inDays;
-                    final hours = diff.inHours % 24;
-                    final minutes = diff.inMinutes % 60;
-                    statusInfo += "\nTempo: ${days}d ${hours}h ${minutes}m";
+                    statusInfo += " | ${diff.inDays}D ${diff.inHours % 24}H";
                   }
                   
-                  return Card(
-                    elevation: 0,
-                    color: Theme.of(context).brightness == Brightness.dark 
-                        ? Colors.white.withValues(alpha: 0.05) 
-                        : Colors.grey.shade50,
+                  return Container(
                     margin: const EdgeInsets.symmetric(vertical: 4),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      side: BorderSide(color: Colors.grey.shade200),
+                    decoration: BoxDecoration(
+                      color: isDark ? AppTheme.charcoal : Colors.grey.shade50,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.02)),
                     ),
                     child: Opacity(
                       opacity: (i.statusOperacional == 'Em manutenção' && nome != 'TI') ? 0.4 : 1.0,
                       child: ListTile(
                         leading: Icon(
-                          isInMaintenance ? Icons.build_circle : (i.tipo == 'Notebook' ? Icons.laptop : Icons.desktop_windows),
-                          color: isInMaintenance ? Colors.orange : (hasDefect ? Colors.red : Colors.blue),
+                          isInMaintenance ? Icons.build_circle_rounded : (i.tipo == 'Notebook' ? Icons.laptop_chromebook_rounded : Icons.desktop_windows_rounded),
+                          color: isInMaintenance ? Colors.orange : (hasDefect ? AppTheme.ruby : AppTheme.electricBlue),
                         ),
-                        title: Text("${i.tipo} - ${i.patrimonio}", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                        title: Text(
+                          "${i.tipo.toUpperCase()} - ${i.patrimonio}", 
+                          style: AppTheme.monoStyle(fontWeight: FontWeight.w900, fontSize: 12)
+                        ),
                         subtitle: Text(
                           (isInMaintenance && nome == 'TI' && i.setor != 'TI')
-                            ? "ORIGEM: ${i.setor}\n$statusInfo"
-                            : "$statusInfo\nMarca: ${i.marca.isNotEmpty ? i.marca : '---'}", 
-                          style: const TextStyle(fontSize: 11)
+                            ? "ORIGEM: ${i.setor.toUpperCase()}\n$statusInfo"
+                            : "$statusInfo\nMARCA: ${i.marca.isNotEmpty ? i.marca.toUpperCase() : '---'}", 
+                          style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.grey)
                         ),
                         trailing: isInMaintenance 
-                          ? const Icon(Icons.timer_outlined, color: Colors.orange, size: 18)
-                          : (hasDefect ? const Icon(Icons.warning, color: Colors.red, size: 18) : null),
+                          ? const Icon(Icons.timer_rounded, color: Colors.orange, size: 16)
+                          : (hasDefect ? const Icon(Icons.warning_amber_rounded, color: AppTheme.ruby, size: 16) : null),
                       ),
                     ),
                   );
@@ -466,7 +477,10 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Fechar")),
+          TextButton(
+            onPressed: () => Navigator.pop(context), 
+            child: const Text("FECHAR", style: TextStyle(fontWeight: FontWeight.bold))
+          ),
         ],
       ),
     );
@@ -697,73 +711,80 @@ class _DashboardPageState extends State<DashboardPage> {
         }
 
         return SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SectionTitle(title: "Progresso das Metas (Mês Atual)", color: Colors.amber),
-              const SizedBox(height: 16),
+              const SectionTitle(title: "Progresso das Metas (Mês Atual)", color: AppTheme.amberNeon),
+              const SizedBox(height: 24),
               Wrap(
-                spacing: 16,
-                runSpacing: 16,
+                spacing: 20,
+                runSpacing: 20,
                 alignment: WrapAlignment.center,
                 children: [
                   GoalProgressCard(
                     title: "RONDAS REALIZADAS", 
                     current: thisMonthRondas.length.toDouble(), 
                     goal: (goals['rondas_mensal'] ?? 100).toDouble(), 
-                    color: Colors.blue,
+                    color: AppTheme.electricBlue,
                     unit: "rondas",
                   ),
                   GoalProgressCard(
                     title: "ITENS AUDITADOS", 
                     current: totalItensMes.toDouble(), 
                     goal: (goals['itens_mensal'] ?? 500).toDouble(), 
-                    color: Colors.orange,
+                    color: AppTheme.cyanNeon,
                     unit: "itens",
                   ),
                 ],
               ),
-              const SizedBox(height: 32),
-              const SectionTitle(title: "Comparativo Mensal (Últimos 6 Meses)", color: Colors.purple),
-              const SizedBox(height: 16),
+              const SizedBox(height: 48),
+              const SectionTitle(title: "Comparativo Mensal", color: Colors.purpleAccent),
+              const SizedBox(height: 24),
               Container(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                  borderRadius: BorderRadius.circular(16),
+                  color: isDark ? AppTheme.charcoal : Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
                 ),
                 child: Column(
                   children: [
-                    const Text("Volume de Rondas", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 20),
-                    ComparisonChart(data: monthlyData, metric: 'rondas', color: Colors.purple),
+                    Text("VOLUME DE OPERAÇÕES", style: AppTheme.monoStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey)),
+                    const SizedBox(height: 24),
+                    ComparisonChart(data: monthlyData, metric: 'rondas', color: Colors.purpleAccent),
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
               Container(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                  borderRadius: BorderRadius.circular(16),
+                  color: isDark ? AppTheme.charcoal : Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
                 ),
                 child: Column(
                   children: [
-                    const Text("Itens Auditados", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 20),
-                    ComparisonChart(data: monthlyData, metric: 'itens', color: Colors.orange),
+                    Text("AUDITORIA DE ITENS", style: AppTheme.monoStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey)),
+                    const SizedBox(height: 24),
+                    ComparisonChart(data: monthlyData, metric: 'itens', color: AppTheme.cyanNeon),
                   ],
                 ),
               ),
               if (canEdit) ...[
+                const SizedBox(height: 48),
+                const Divider(height: 1),
                 const SizedBox(height: 32),
-                const Divider(),
                 Center(
                   child: TextButton.icon(
                     onPressed: () => _showEditGoalsDialog(goals),
-                    icon: const Icon(Icons.edit_note),
-                    label: const Text("Ajustar Metas Estratégicas"),
+                    icon: const Icon(Icons.tune_rounded),
+                    label: const Text("AJUSTAR DIRETRIZES ESTRATÉGICAS"),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppTheme.cyanNeon,
+                      textStyle: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1),
+                    ),
                   ),
                 ),
               ],
@@ -836,37 +857,53 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget _buildTecnicosTab(List<RoundModel> rondas, Color textColor) {
     final rankingTecnicos = _dashboardController.getRankingPorTecnico(rondas);
     final ultimasAtividades = rondas.toList()..sort((a, b) => b.dataInicio.compareTo(a.dataInicio));
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildFiltroData(),
-          const SizedBox(height: 24),
-          const SectionTitle(title: "Rondas por Técnico", color: Colors.green),
-          const SizedBox(height: 16),
+          const SizedBox(height: 32),
+          const SectionTitle(title: "Operações por Técnico", color: AppTheme.emerald),
+          const SizedBox(height: 20),
           _buildRankingCard(
             rankingTecnicos, 
             rankingTecnicos.isNotEmpty ? rankingTecnicos.first.value : 0,
-            Colors.green,
+            AppTheme.emerald,
           ),
-          const SizedBox(height: 32),
-          const SectionTitle(title: "Histórico de Atividades Recentes", color: Colors.orange),
-          const SizedBox(height: 16),
+          const SizedBox(height: 48),
+          const SectionTitle(title: "Atividades Recentes", color: Colors.orangeAccent),
+          const SizedBox(height: 20),
           ListView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: ultimasAtividades.take(10).length,
             itemBuilder: (context, index) {
               final r = ultimasAtividades[index];
-              return Card(
+              return Container(
                 margin: const EdgeInsets.only(bottom: 8),
+                decoration: BoxDecoration(
+                  color: isDark ? AppTheme.charcoal : Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                ),
                 child: ListTile(
                   dense: true,
-                  leading: const CircleAvatar(child: Icon(Icons.person_outline, size: 16)),
-                  title: Text("${r.tecnico} no setor ${r.setor}", style: const TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Text("${DateFormat('dd/MM HH:mm').format(r.dataInicio)} | ${r.itensTotal} itens | ${r.defeitosTotal} defeitos"),
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(color: Colors.orange.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                    child: const Icon(Icons.person_outline_rounded, size: 18, color: Colors.orange),
+                  ),
+                  title: Text(
+                    "${r.tecnico.toUpperCase()} no setor ${r.setor.toUpperCase()}", 
+                    style: GoogleFonts.inter(fontWeight: FontWeight.w800, fontSize: 12)
+                  ),
+                  subtitle: Text(
+                    "${DateFormat('dd/MM HH:mm').format(r.dataInicio)} | ${r.itensTotal} itens auditados",
+                    style: AppTheme.monoStyle(fontSize: 10, color: Colors.grey),
+                  ),
                 ),
               );
             },
@@ -904,31 +941,62 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget _buildDefeitosTab(Color textColor) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return StreamBuilder<List<AssetModel>>(
       stream: _assetController.getDefectsStream(),
       builder: (context, snapshot) {
         final itens = snapshot.data ?? [];
         if (itens.isEmpty) {
-          return const Center(child: Text("Nenhum item com defeito no momento."));
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.check_circle_outline_rounded, size: 80, color: AppTheme.emerald.withValues(alpha: 0.2)),
+                const SizedBox(height: 16),
+                const Text("TUDO OPERANDO NORMALMENTE", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 1)),
+              ],
+            ),
+          );
         }
 
         return ListView.builder(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(24),
           itemCount: itens.length,
           itemBuilder: (context, index) {
             final item = itens[index];
-            final displayPat = item.patrimonio;
-
-            return Card(
+            return Container(
               margin: const EdgeInsets.only(bottom: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              decoration: BoxDecoration(
+                color: isDark ? AppTheme.charcoal : Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppTheme.ruby.withValues(alpha: 0.1)),
+              ),
               child: ListTile(
-                leading: const CircleAvatar(
-                  backgroundColor: Colors.redAccent,
-                  child: Icon(Icons.warning_amber_rounded, color: Colors.white),
+                leading: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(color: AppTheme.ruby.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(14)),
+                  child: const Icon(Icons.gpp_maybe_rounded, color: AppTheme.ruby),
                 ),
-                title: Text("${item.tipo} - Pat: $displayPat", style: const TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: Text("Departamento: ${item.setor}\nDefeito: ${item.descricaoDefeito ?? 'Não informado'}"),
+                title: Text(
+                  "${item.tipo.toUpperCase()} - PAT: ${item.patrimonio}", 
+                  style: GoogleFonts.inter(fontWeight: FontWeight.w900, fontSize: 13)
+                ),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 4),
+                    Text(
+                      "DEPTO: ${item.setor.toUpperCase()}", 
+                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      "MOTIVO: ${item.descricaoDefeito ?? 'NÃO INFORMADO'}", 
+                      style: TextStyle(fontSize: 12, color: isDark ? Colors.white70 : Colors.black87)
+                    ),
+                  ],
+                ),
                 isThreeLine: true,
               ),
             );
@@ -939,6 +1007,8 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget _buildAtivosTab(Color textColor) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return StreamBuilder<List<Map<String, dynamic>>>(
       stream: FirebaseFirestore.instance
           .collection('inventario_mestre')
@@ -959,7 +1029,6 @@ class _DashboardPageState extends State<DashboardPage> {
           porOrigem.putIfAbsent(origem, () => []).add(i);
         }
 
-        // Ordena para que Patrimônio Próprio apareça primeiro
         final listaOrdenada = porOrigem.entries.toList()
           ..sort((a, b) {
             if (a.key == "PATRIMÔNIO PRÓPRIO") return -1;
@@ -968,22 +1037,32 @@ class _DashboardPageState extends State<DashboardPage> {
           });
 
         return ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(24),
           children: [
-            const SectionTitle(title: "Gestão Geral de Ativos (Próprios e Locados)"),
-            const SizedBox(height: 16),
+            const SectionTitle(title: "Matriz Geral de Ativos"),
+            const SizedBox(height: 24),
             ...listaOrdenada.map((entry) {
               final isProprio = entry.key == "PATRIMÔNIO PRÓPRIO";
-              return Card(
-                margin: const EdgeInsets.only(bottom: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              return Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: isDark ? AppTheme.charcoal : Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                ),
                 child: ExpansionTile(
-                  leading: CircleAvatar(
-                    backgroundColor: isProprio ? Colors.blue.shade100 : Colors.orange.shade100,
-                    child: Icon(isProprio ? Icons.inventory : Icons.business_center, color: isProprio ? Colors.blue.shade900 : Colors.orange.shade900),
+                  shape: const RoundedRectangleBorder(side: BorderSide.none),
+                  collapsedShape: const RoundedRectangleBorder(side: BorderSide.none),
+                  leading: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: (isProprio ? AppTheme.electricBlue : Colors.orange).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(isProprio ? Icons.inventory_2_rounded : Icons.business_center_rounded, color: isProprio ? AppTheme.electricBlue : Colors.orange, size: 20),
                   ),
-                  title: Text(entry.key, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Text("${entry.value.length} equipamentos cadastrados"),
+                  title: Text(entry.key, style: GoogleFonts.inter(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 0.5)),
+                  subtitle: Text("${entry.value.length} ATIVOS REGISTRADOS", style: AppTheme.monoStyle(fontSize: 9, color: Colors.grey, fontWeight: FontWeight.bold)),
                   children: _buildLocacaoTipos(entry.value),
                 ),
               );
@@ -1027,11 +1106,11 @@ class _DashboardPageState extends State<DashboardPage> {
 
   Widget _buildStatusTab(Color textColor) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(24),
       child: Column(
         children: [
-          const SectionTitle(title: "Análise de Saúde do Parque"),
-          const SizedBox(height: 20),
+          const SectionTitle(title: "Análise de Disponibilidade"),
+          const SizedBox(height: 24),
           
           StreamBuilder<List<AssetModel>>(
             stream: _assetController.getMaintenanceStream(),
@@ -1039,28 +1118,27 @@ class _DashboardPageState extends State<DashboardPage> {
               final itens = snapshot.data ?? [];
               final count = itens.length;
               
-              // Pequeno resumo por tipo
               Map<String, int> porTipo = {};
               for (var i in itens) {
                 porTipo[i.tipo] = (porTipo[i.tipo] ?? 0) + 1;
               }
-              String resumo = porTipo.entries.map((e) => "${e.value} ${e.key}(s)").join(", ");
-              if (resumo.isEmpty) resumo = "Tudo operando normalmente";
+              String resumo = porTipo.entries.map((e) => "${e.value} ${e.key.toUpperCase()}").join(" | ");
+              if (resumo.isEmpty) resumo = "OPERAÇÃO NOMINAL";
 
               return Column(
                 children: [
                   StatusIndicatorCard(
-                    title: "EM MANUTENÇÃO", 
+                    title: "FORA DE OPERAÇÃO (REPARO)", 
                     count: count.toString(), 
-                    icon: Icons.build_circle_outlined, 
+                    icon: Icons.build_circle_rounded, 
                     color: Colors.orange, 
                     onTap: () => _showItensList(context, "Itens em Manutenção", itens),
                   ),
                   Padding(
-                    padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
                     child: Text(
                       resumo, 
-                      style: const TextStyle(fontSize: 11, color: Colors.blueGrey, fontStyle: FontStyle.italic),
+                      style: AppTheme.monoStyle(fontSize: 10, color: Colors.blueGrey, fontWeight: FontWeight.bold),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -1075,10 +1153,10 @@ class _DashboardPageState extends State<DashboardPage> {
             builder: (context, snapshot) {
               final count = snapshot.data?.length ?? 0;
               return StatusIndicatorCard(
-                title: "AUTORIZADOS HOME OFFICE", 
+                title: "EXTERNOS (HOME OFFICE)", 
                 count: count.toString(), 
-                icon: Icons.home_work_outlined, 
-                color: Colors.blue, 
+                icon: Icons.home_work_rounded, 
+                color: AppTheme.electricBlue, 
                 onTap: () => _showItensList(context, "Ativos Autorizados Home Office", snapshot.data ?? []),
               );
             }
@@ -1092,8 +1170,8 @@ class _DashboardPageState extends State<DashboardPage> {
               return StatusIndicatorCard(
                 title: "DIVERGÊNCIAS DE LOCAL", 
                 count: count.toString(), 
-                icon: Icons.wrong_location_outlined, 
-                color: Colors.purple, 
+                icon: Icons.wrong_location_rounded, 
+                color: Colors.purpleAccent, 
                 onTap: () => _showItensList(context, "Ativos em Departamento Divergente", snapshot.data ?? []),
               );
             }
@@ -1105,21 +1183,21 @@ class _DashboardPageState extends State<DashboardPage> {
             builder: (context, snapshot) {
               final count = snapshot.data?.length ?? 0;
               return StatusIndicatorCard(
-                title: "EQUIPAMENTOS ANTIGOS (+5 ANOS)", 
+                title: "OBSOLETOS (+5 ANOS)", 
                 count: count.toString(), 
-                icon: Icons.timer_outlined, 
-                color: Colors.deepPurple, 
+                icon: Icons.timer_rounded, 
+                color: AppTheme.amberNeon, 
                 onTap: () => _showItensList(context, "Ativos Obsoletos", snapshot.data ?? []),
               );
             }
           ),
           
-          const SizedBox(height: 30),
-          const Divider(),
-          const SizedBox(height: 10),
-          const Text(
-            "ℹ️ Itens em manutenção são vinculados automaticamente ao TI.",
-            style: TextStyle(fontSize: 11, color: Colors.grey),
+          const SizedBox(height: 48),
+          const Divider(height: 1),
+          const SizedBox(height: 16),
+          Text(
+            "INFO: SISTEMA DE GOVERNANÇA HÍBRIDA v3.2.9",
+            style: AppTheme.monoStyle(fontSize: 9, color: Colors.grey, fontWeight: FontWeight.bold),
           ),
         ],
       ),

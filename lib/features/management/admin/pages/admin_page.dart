@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:smart_ronda_ti/app/theme.dart';
 import 'package:smart_ronda_ti/features/system/auth/controllers/auth_controller.dart';
 import 'package:smart_ronda_ti/features/management/admin/controllers/admin_controller.dart';
 import 'package:smart_ronda_ti/features/operation/assets/controllers/asset_controller.dart';
@@ -77,36 +79,39 @@ class _AdminPageState extends State<AdminPage> {
           length: 7,
           child: Scaffold(
             appBar: AppBar(
-              title: const Text("Administração Corporativa"),
-              backgroundColor: Colors.indigo.shade900,
+              title: Text("ADMINISTRAÇÃO CORPORATIVA", style: GoogleFonts.inter(fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 1)),
+              backgroundColor: isMaster ? AppTheme.deepNavy : Colors.indigo.shade900,
               foregroundColor: Colors.white,
               bottom: const TabBar(
                 isScrollable: true,
                 tabs: [
-                  Tab(icon: Icon(Icons.people), text: "Equipe"),
-                  Tab(icon: Icon(Icons.castle), text: "O Castelo"),
-                  Tab(icon: Icon(Icons.location_on), text: "Departamentos"),
-                  Tab(icon: Icon(Icons.description), text: "Relatórios"),
-                  Tab(icon: Icon(Icons.stars), text: "Metas"),
-                  Tab(icon: Icon(Icons.business), text: "Empresa"),
-                  Tab(icon: Icon(Icons.swap_horiz), text: "Locadoras"),
+                  Tab(icon: Icon(Icons.people_rounded), text: "EQUIPE"),
+                  Tab(icon: Icon(Icons.castle_rounded), text: "CASTELO"),
+                  Tab(icon: Icon(Icons.lan_rounded), text: "DEPTOS"),
+                  Tab(icon: Icon(Icons.description_rounded), text: "REPORTS"),
+                  Tab(icon: Icon(Icons.stars_rounded), text: "METAS"),
+                  Tab(icon: Icon(Icons.business_rounded), text: "EMPRESA"),
+                  Tab(icon: Icon(Icons.swap_horiz_rounded), text: "LOC"),
                 ],
-                indicatorColor: Colors.white,
-                labelColor: Colors.white,
+                indicatorColor: AppTheme.cyanNeon,
+                indicatorWeight: 4,
+                labelColor: AppTheme.cyanNeon,
                 unselectedLabelColor: Colors.white70,
+                labelStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
               ),
               actions: [
                 if (isMaster)
                   IconButton(
-                    icon: const Icon(Icons.cleaning_services, color: Colors.orange),
+                    icon: const Icon(Icons.auto_delete_rounded, color: Colors.orange),
                     onPressed: () => _confirmarResetInventario(context),
                     tooltip: "Resetar Inventário Mestre",
                   ),
                 IconButton(
-                  icon: const Icon(Icons.receipt_long),
+                  icon: const Icon(Icons.terminal_rounded),
                   onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LogPage())),
-                  tooltip: "Ver Logs",
-                )
+                  tooltip: "Ver Logs de Auditoria",
+                ),
+                const SizedBox(width: 8),
               ],
             ),
             body: const TabBarView(
@@ -269,6 +274,7 @@ class _EquipeTab extends StatelessWidget {
             final minhaUid = meuPerfil?.uid ?? '';
 
             return ListView.builder(
+              padding: const EdgeInsets.symmetric(vertical: 12),
               itemCount: users.length,
               itemBuilder: (context, index) {
                 final t = users[index];
@@ -279,29 +285,51 @@ class _EquipeTab extends StatelessWidget {
                   return const SizedBox.shrink();
                 }
 
-                return Card(
+                return Container(
                   margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardTheme.color,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                  ),
                   child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: isAtivo ? Colors.green.shade100 : Colors.red.shade100,
-                      child: Icon(isAtivo ? Icons.person : Icons.person_off, color: isAtivo ? Colors.green : Colors.red),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    leading: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: (isAtivo ? Colors.green : Colors.red).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Icon(isAtivo ? Icons.person_rounded : Icons.person_off_rounded, color: isAtivo ? Colors.green : Colors.red, size: 24),
                     ),
-                    title: Text(t.nome, style: const TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Text("Nível: ${t.nivelAcesso}\n${t.email}"),
+                    title: Text(t.nome.toUpperCase(), style: GoogleFonts.inter(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 0.5)),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            _badge(t.nivelAcesso.toUpperCase(), isAtivo ? AppTheme.electricBlue : Colors.grey),
+                            const SizedBox(width: 8),
+                            Text(t.email, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                          ],
+                        ),
+                      ],
+                    ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         if (meuNivel == 'master' || meuNivel == 'gerente')
                           IconButton(
-                            icon: const Icon(Icons.edit, color: Colors.blue),
+                            icon: const Icon(Icons.tune_rounded, color: AppTheme.cyanNeon, size: 20),
                             onPressed: () => _alterarUsuario(context, t),
-                            tooltip: "Alterar Nível",
+                            tooltip: "Gerenciar Perfil",
                           ),
                         if (meuNivel == 'master' || (meuNivel == 'gerente' && t.uid != minhaUid))
                           IconButton(
-                            icon: const Icon(Icons.person_off, color: Colors.red), 
+                            icon: const Icon(Icons.block_rounded, color: AppTheme.ruby, size: 20), 
                             onPressed: () => _mostrarExclusao(context, t, meuNivel == 'master'), 
-                            tooltip: "Gerenciar Acesso"
+                            tooltip: "Suspender Acesso"
                           ),
                       ],
                     ),
@@ -312,6 +340,21 @@ class _EquipeTab extends StatelessWidget {
           }
         );
       },
+    );
+  }
+
+  Widget _badge(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(color: color, fontSize: 8, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+      ),
     );
   }
 }
@@ -493,25 +536,42 @@ class _DepartamentosTab extends StatelessWidget {
                   if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
                   final setores = snapshot.data!;
                   return ListView.builder(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
                     itemCount: setores.length,
                     itemBuilder: (context, index) {
                       final s = setores[index];
-                      return Card(
-                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                      return Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).cardTheme.color,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                        ),
                         child: ListTile(
-                          leading: const Icon(Icons.location_on, color: Colors.blue),
-                          title: Text(s['nome'], style: const TextStyle(fontWeight: FontWeight.bold)),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          leading: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: AppTheme.electricBlue.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: const Icon(Icons.location_on_rounded, color: AppTheme.electricBlue, size: 24),
+                          ),
+                          title: Text(
+                            s['nome'].toString().toUpperCase(), 
+                            style: GoogleFonts.inter(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 0.5)
+                          ),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               IconButton(
-                                icon: const Icon(Icons.history, color: Colors.blue), 
+                                icon: const Icon(Icons.insights_rounded, color: AppTheme.cyanNeon, size: 20), 
                                 onPressed: () => _abrirHistoricoSetor(context, s['nome'], isAuthorized),
                                 tooltip: "Mapa do Departamento"
                               ),
                               if (canCreate)
                                 IconButton(
-                                  icon: const Icon(Icons.delete, color: Colors.red), 
+                                  icon: const Icon(Icons.delete_outline_rounded, color: AppTheme.ruby, size: 20), 
                                   onPressed: () => _handleDeleteDepartamento(context, s, controller),
                                   tooltip: "Excluir Departamento"
                                 ),
@@ -645,25 +705,58 @@ class _CasteloTabState extends State<_CasteloTab> {
               }
               
               return ListView.builder(
+                padding: const EdgeInsets.symmetric(vertical: 12),
                 itemCount: filteredItens.length,
                 itemBuilder: (context, index) {
                   final i = filteredItens[index];
-                  final displayPat = i.patrimonio.startsWith("SP_") ? "SEM PLACA" : i.patrimonio;
+                  final bool semPlaca = i.patrimonio.startsWith("SP_");
+                  final displayPat = semPlaca ? "ITEM SEM PLACA" : i.patrimonio;
 
-                  return Card(
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  return Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardTheme.color,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                    ),
                     child: ListTile(
-                      leading: Icon(
-                        i.patrimonio.startsWith("SP_") ? Icons.no_photography_outlined : Icons.computer, 
-                        color: i.patrimonio.startsWith("SP_") ? Colors.orange : Colors.blue
+                      contentPadding: const EdgeInsets.all(12),
+                      leading: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: (semPlaca ? Colors.orange : AppTheme.electricBlue).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Icon(
+                          semPlaca ? Icons.no_photography_rounded : Icons.terminal_rounded, 
+                          color: semPlaca ? Colors.orange : AppTheme.electricBlue,
+                          size: 22,
+                        ),
                       ),
-                      title: Text("${i.tipo} - $displayPat"),
-                      subtitle: Text("Departamento: ${i.setor}\nCPU: ${i.processador ?? '---'}"),
+                      title: Text(
+                        displayPat, 
+                        style: AppTheme.monoStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 0.5)
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 4),
+                          Text(
+                            "${i.tipo.toUpperCase()} | ${i.setor.toUpperCase()}", 
+                            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "CPU: ${i.processador ?? '---'}", 
+                            style: AppTheme.monoStyle(fontSize: 9, color: Colors.blueGrey)
+                          ),
+                        ],
+                      ),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          IconButton(icon: const Icon(Icons.edit_note, color: Colors.indigo), onPressed: () => _editarCastelo(context, i), tooltip: "Editar"),
-                          IconButton(icon: const Icon(Icons.delete, color: Colors.red), onPressed: () => _confirmarExclusao(context, i.patrimonio), tooltip: "Excluir"),
+                          IconButton(icon: const Icon(Icons.edit_square, color: AppTheme.cyanNeon, size: 20), onPressed: () => _editarCastelo(context, i), tooltip: "Editar"),
+                          IconButton(icon: const Icon(Icons.delete_sweep_rounded, color: AppTheme.ruby, size: 20), onPressed: () => _confirmarExclusao(context, i.patrimonio), tooltip: "Excluir"),
                         ],
                       ),
                     ),
@@ -793,13 +886,37 @@ class _LocadorasTab extends StatelessWidget {
               if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
               final list = snapshot.data!;
               return ListView.builder(
+                padding: const EdgeInsets.symmetric(vertical: 12),
                 itemCount: list.length,
-                itemBuilder: (context, index) => ListTile(
-                  title: Text(list[index]),
-                  trailing: IconButton(icon: const Icon(Icons.delete, color: Colors.red), onPressed: () async {
-                    await controller.removeLeasingCompany(list[index].toLowerCase());
-                    await controller.registerLog(action: "DEL LOCADORA", details: "Excluiu locadora: ${list[index]}");
-                  }),
+                itemBuilder: (context, index) => Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardTheme.color,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                  ),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    leading: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(Icons.business_center_rounded, color: Colors.orange, size: 20),
+                    ),
+                    title: Text(
+                      list[index].toUpperCase(), 
+                      style: GoogleFonts.inter(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 0.5)
+                    ),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete_outline_rounded, color: AppTheme.ruby, size: 20), 
+                      onPressed: () async {
+                        await controller.removeLeasingCompany(list[index].toLowerCase());
+                        await controller.registerLog(action: "DEL LOCADORA", details: "Excluiu locadora: ${list[index]}");
+                      }
+                    ),
+                  ),
                 ),
               );
             },

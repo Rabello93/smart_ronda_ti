@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:smart_ronda_ti/app/theme.dart';
 import 'package:smart_ronda_ti/features/management/reports/controllers/report_controller.dart';
 import 'package:smart_ronda_ti/features/management/admin/controllers/admin_controller.dart';
 import 'package:intl/intl.dart';
@@ -280,32 +282,49 @@ class _ReportsPageState extends State<ReportsPage> {
   }
 
   Widget _sectionHeader(String title, IconData icon) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Row(
       children: [
-        Icon(icon, color: Colors.indigo.shade900, size: 20),
-        const SizedBox(width: 8),
-        Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1.1)),
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppTheme.electricBlue.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, color: AppTheme.electricBlue, size: 18),
+        ),
+        const SizedBox(width: 12),
+        Text(
+          title, 
+          style: GoogleFonts.inter(
+            fontSize: 14, 
+            fontWeight: FontWeight.w900, 
+            letterSpacing: 1,
+            color: isDark ? Colors.white : AppTheme.deepNavy,
+          )
+        ),
       ],
     );
   }
 
   Widget _filterChip(String label, bool selected, Function(bool) onSelected, {Color? color}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = color ?? AppTheme.electricBlue;
     return FilterChip(
-      label: Text(label, style: TextStyle(
-        fontSize: 11, 
+      label: Text(label.toUpperCase(), style: TextStyle(
+        fontSize: 10, 
         color: selected ? Colors.white : (isDark ? Colors.white70 : Colors.black87),
         fontWeight: selected ? FontWeight.bold : FontWeight.normal,
       )),
       selected: selected,
       onSelected: onSelected,
-      selectedColor: color ?? Colors.indigo,
-      backgroundColor: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.grey.shade200,
+      selectedColor: primaryColor,
+      backgroundColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.shade100,
       checkmarkColor: Colors.white,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(10),
         side: BorderSide(
-          color: selected ? (color ?? Colors.indigo) : (isDark ? Colors.white38 : Colors.grey.shade400),
+          color: selected ? primaryColor : (isDark ? Colors.white12 : Colors.grey.shade300),
           width: 1,
         ),
       ),
@@ -314,28 +333,47 @@ class _ReportsPageState extends State<ReportsPage> {
 
   Widget _formatChip(String label, IconData icon, Color activeColor) {
     final isSelected = _formatoSelecionado == label;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return ChoiceChip(
       label: Text(label),
       avatar: Icon(icon, size: 16, color: isSelected ? Colors.white : activeColor),
       selected: isSelected,
       onSelected: (v) => setState(() => _formatoSelecionado = label),
       selectedColor: activeColor,
-      labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.black87, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal),
+      backgroundColor: isDark ? AppTheme.charcoal : Colors.white,
+      labelStyle: TextStyle(
+        color: isSelected ? Colors.white : (isDark ? Colors.white70 : Colors.black87), 
+        fontWeight: FontWeight.bold,
+        fontSize: 12,
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     );
   }
 
   Widget _actionButton({required VoidCallback? onPressed, required String label, required IconData icon, Color? color}) {
-    return SizedBox(
+    return Container(
       width: double.infinity,
-      height: 50,
+      decoration: BoxDecoration(
+        gradient: onPressed == null ? null : LinearGradient(
+          colors: [color ?? AppTheme.electricBlue, (color ?? AppTheme.electricBlue).withValues(alpha: 0.7)],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          if (onPressed != null)
+            BoxShadow(color: (color ?? AppTheme.electricBlue).withValues(alpha: 0.2), blurRadius: 8, offset: const Offset(0, 4)),
+        ],
+      ),
       child: ElevatedButton.icon(
         onPressed: onPressed,
-        icon: Icon(icon),
-        label: Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+        icon: Icon(icon, size: 20),
+        label: Text(label, style: GoogleFonts.inter(fontWeight: FontWeight.w900, letterSpacing: 0.5)),
         style: ElevatedButton.styleFrom(
-          backgroundColor: color ?? Colors.indigo.shade900,
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
           foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          minimumSize: const Size(double.infinity, 55),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
       ),
     );
