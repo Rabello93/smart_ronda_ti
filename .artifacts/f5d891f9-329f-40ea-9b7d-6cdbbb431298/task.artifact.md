@@ -1,16 +1,24 @@
-# Tasks - Versão 3.2.7
+# Tasks - Versão 3.2.9 "Premium Tech"
 
 - [x] **Global Version Alignment**
-    - [x] Update version in `pubspec.yaml` to `3.2.7`
-    - [x] Update version strings in `report_repository.dart`
-    - [x] Update version string in `dashboard_page.dart`
-    - [x] Update "Sobre o Sistema" log in `about_page.dart`
-- [x] **Substitution Intelligence**
-    - [x] Modify `round_repository.dart` to automate old asset transfer to TI/Reservado
-- [x] **Reports Expansion**
-    - [x] Add "SUBSTITUIÇÕES" filter button in `reports_page.dart`
-    - [x] Update `report_controller.dart` to handle substitution report data fetching
-    - [x] Create `exportarSubstituicoesParaPDF` and `exportarSubstituicoesParaXLSX` in `report_repository.dart`
-- [x] **Verification & Cleanup**
-    - [x] Verify build and functionality
-    - [ ] Prepare Supercombo for deploy
+    - [x] Update version in `pubspec.yaml` to `3.2.9+13`
+    - [x] Update version in `home_page.dart` footer
+    - [x] Update version in `dashboard_page.dart` footer
+    - [x] Update version in `android/app/build.gradle.kts` (v3.2.9, Build 45)
+    - [x] Update version in `report_repository.dart` (PDF footers)
+- [x] **Update Logs & Documentation**
+    - [x] Update "Sobre o Sistema" log in `about_page.dart` (Add v3.2.7, v3.2.8, v3.2.9)
+    - [x] Update `README.md` historical series
+    - [x] Create `RELEASENOTES_v3.2.9.md`
+- [x] **Visual Redesign (v3.2.9)**
+    - [x] Implement `AppTheme` with Google Fonts (Inter/JetBrains Mono)
+    - [x] Redesign `SummaryCard` and Dashboard widgets (HUD Style)
+    - [x] Refactor Sidebar with Glassmorphism and modern icons
+    - [x] Modernize Buttons and Inputs across the app
+- [x] **Operational Flow Adjustment (v3.2.8 Logic)**
+    - [x] Implement Hybrid Governance (Maintenance items keep origin sector)
+    - [x] Apply visual "greyed-out" style to maintenance items
+- [x] **Verification**
+    - [x] Verify theme switching (Light/Dark)
+    - [x] Verify version strings in all footers
+    - [x] Prepare for final deploy

@@ -1,28 +1,44 @@
-# Implementation Plan - APK Build Stabilization
+# Implementation Plan - Redesign Visual "Smart Tech 3.2.9"
 
-Stabilize the Android build environment by resolving environment variable conflicts, aligning Gradle/AGP versions, and fixing JVM/Kotlin compatibility issues.
+Repaginar a interface completa do Smart Ronda TI para um visual tecnológico "Premium", com foco em fluidez, legibilidade e uma experiência de "Mission Control" no Dashboard.
 
 ## User Review Required
 
 > [!IMPORTANT]
-> A falha no build do APK é causada por um conflito de variáveis de ambiente (`ANDROID_PREFS_ROOT` e `ANDROID_USER_HOME`). Vou tentar desativar uma delas temporariamente durante o comando de build. Recomendo remover `ANDROID_PREFS_ROOT` das configurações do seu Windows permanentemente.
+> **Fontes**: Vou adotar a combinação **Inter** (para textos longos) e **JetBrains Mono** (para números e dados técnicos). Isso requer conexão com a internet no primeiro build para baixar as fontes via `google_fonts`.
+> **Cores**: A base do Dark será `0xFF0A0E14` (Deep Navy) com detalhes em `0xFF00E5FF` (Cyan Neon). O Light usará `0xFFF5F7FA` (Cool Grey).
 
 ## Proposed Changes
 
-### [Android]
+### [Global]
+#### [MODIFY] [pubspec.yaml](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/pubspec.yaml)
+- Adicionar dependência `google_fonts: ^6.2.1`.
+- Atualizar versão para `3.2.9+13`.
 
-#### [MODIFY] [settings.gradle.kts](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/android/settings.gradle.kts)
-- Atualizar a versão do Android Gradle Plugin para `8.9.1`.
-- Atualizar a versão do Kotlin para `1.9.24` para compatibilidade com plugins legados.
+#### [MODIFY] [theme.dart](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/app/theme.dart)
+- Implementar o novo sistema de design centralizado.
+- Configurar `ColorScheme`, `TextTheme` (Inter/JetBrains Mono) e `CardTheme` (borderRadius 20dp).
 
-#### [MODIFY] [gradle-wrapper.properties](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/android/gradle/wrapper/gradle-wrapper.properties)
-- Atualizar a URL de distribuição do Gradle para `8.11.1`.
+### [Dashboard & Management]
+#### [MODIFY] [dashboard_page.dart](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/management/dashboard/pages/dashboard_page.dart)
+- Refatorar para o estilo "Mission Control".
+- Implementar gradientes nos gráficos e efeito de vidro na Sidebar.
+- Atualizar rodapé para v3.2.9.
 
-#### [MODIFY] [build.gradle.kts](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/android/build.gradle.kts)
-- Ajustar a configuração de `subprojects` para forçar o Java 17 de forma consistente em todos os módulos e plugins.
+### [Operational UI]
+#### [MODIFY] [home_page.dart](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/operation/rounds/pages/home_page.dart)
+- Modernizar botões de ação e banners de alerta.
+- Atualizar rodapé para v3.2.9.
+
+#### [MODIFY] [ronda_page.dart](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/operation/rounds/pages/ronda_page.dart)
+- Ajustar inputs e chips para o novo padrão fluido.
+
+#### [MODIFY] [about_page.dart](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/system/about/pages/about_page.dart)
+- Atualizar log de novidades da v3.2.9.
 
 ## Verification Plan
 
 ### Manual Verification
-- Executar o build do APK garantindo que o conflito de variáveis de ambiente não ocorra:
-  `$env:ANDROID_PREFS_ROOT = $null; flutter build apk --release --android-skip-build-dependency-validation`
+- Testar legibilidade nos modos Light e Dark.
+- Validar se o Dashboard reflete o novo estilo "Premium Tech".
+- Confirmar que a navegação e botões mantêm suas funcionalidades originais.

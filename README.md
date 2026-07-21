@@ -17,6 +17,13 @@ O app foi desenvolvido para otimizar as rondas técnicas em ambiente corporativo
 
 ## 🚀 Série Histórica (Evolução)
 
+### [3.2.9 Stable] - 2024-07-20
+- **Redesign Premium Tech**: Repaginação completa da interface com tipografia Inter e JetBrains Mono.
+- **Mission Control Dashboard**: Novo visual para indicadores com gradientes, efeitos de vidro e HUD.
+- **Governança Híbrida**: Equipamentos em manutenção mantêm vínculo com o setor de origem.
+
+### [3.2.8 Stable] - 2024-07-20
+
 ### [3.2.7 Stable] - 2024-07-16
 - **Automação de Substituição**: Itens substituídos em ronda são transferidos automaticamente para a TI com status 'Reservado'.
 - **Relatório de Trocas**: Novo filtro e relatório exclusivo de 'Substituições' com detalhamento de setor anterior e motivo.

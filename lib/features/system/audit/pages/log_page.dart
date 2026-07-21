@@ -3,6 +3,8 @@ import 'package:intl/intl.dart';
 import 'package:smart_ronda_ti/features/management/admin/controllers/admin_controller.dart';
 import 'package:smart_ronda_ti/features/management/reports/repositories/report_repository.dart';
 
+import 'package:smart_ronda_ti/app/theme.dart';
+
 class LogPage extends StatelessWidget {
   const LogPage({super.key});
 
@@ -44,11 +46,24 @@ class LogPage extends StatelessWidget {
               final String dataFormatada = DateFormat('dd/MM/yyyy HH:mm').format(date);
 
               return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                 child: ListTile(
-                  leading: const CircleAvatar(child: Icon(Icons.history_edu, size: 20)),
-                  title: Text("${log['acao']} - $dataFormatada", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                  subtitle: Text("Usuário: ${log['tecnico_nome']}\nDetalhes: ${log['detalhes']}", style: const TextStyle(fontSize: 12)),
+                  leading: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.terminal_rounded, size: 20),
+                  ),
+                  title: Text(
+                    log['acao'], 
+                    style: AppTheme.monoStyle(fontWeight: FontWeight.w900, fontSize: 13)
+                  ),
+                  subtitle: Text(
+                    "DATA: $dataFormatada\nUSUÁRIO: ${log['tecnico_nome']}\nDETALHES: ${log['detalhes']}", 
+                    style: const TextStyle(fontSize: 11)
+                  ),
                   isThreeLine: true,
                 ),
               );

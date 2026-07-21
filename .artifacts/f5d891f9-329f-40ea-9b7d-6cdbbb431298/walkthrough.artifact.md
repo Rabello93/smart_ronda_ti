@@ -1,31 +1,33 @@
-# Walkthrough - Versão 3.2.7
+# Walkthrough - Versão 3.2.9 "Premium Tech" 💎⚡
 
-Implementada a inteligência de substituição de ativos e o novo relatório detalhado de trocas.
+Implementado um redesign visual completo do Smart Ronda TI, transformando-o em uma ferramenta tecnológica de elite com visual "Mission Control".
 
 ## Alterações Realizadas
 
-### Inteligência e Automação
-- **[round_repository.dart](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/operation/rounds/repositories/round_repository.dart)**:
-    - Adicionada inteligência que detecta substituições ao finalizar uma ronda.
-    - O equipamento sinalizado como **Patrimônio Antigo** é automaticamente transferido para o setor **TI** com o status **Reservado** no Inventário Mestre.
-    - Uma observação interna é gerada detalhando o setor de origem e o motivo da troca.
+### 🎨 Identidade Visual e Temas
+- **[theme.dart](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/app/theme.dart)**:
+    - Introdução do pacote `google_fonts`.
+    - Tipografia: **Inter** para interface e **JetBrains Mono** para dados técnicos.
+    - Cores: Paleta **Deep Navy** e **Cyan Neon** para o tema Dark, e **Cool Grey** para o Light.
+    - Bordas: Padronização de arredondamento em **20dp** para um aspecto mais fluido.
 
-### Central de Relatórios
-- **[reports_page.dart](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/management/reports/pages/reports_page.dart)**:
-    - Adicionado o botão de filtro **🔄 SUBSTITUIÇÕES**.
-- **[report_controller.dart](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/management/reports/controllers/report_controller.dart)**:
-    - Nova lógica para consolidar eventos de troca de todas as rondas, enriquecendo os dados com informações do Castelo.
-- **[report_repository.dart](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/management/reports/repositories/report_repository.dart)**:
-    - Implementadas as funções de exportação (PDF e XLSX) para Substituições com as colunas solicitadas: Tipo, Patrimônio, Marca, Modelo, Série, Locadora, Depto Anterior, Data, Depto Atual (TI), Status e Motivo.
+### 📊 Dashboard "Mission Control"
+- **[dashboard_page.dart](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/management/dashboard/pages/dashboard_page.dart)**:
+    - Sidebar moderna com efeitos de transparência.
+    - **[dashboard_widgets.dart](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/shared/widgets/dashboard_widgets.dart)**:
+        - `SummaryCard` refatorado para o estilo HUD (Heads-Up Display).
+        - Gráficos agora utilizam gradientes e novos indicadores de saúde.
+        - Banners de alerta com visual de "alerta crítico de sistema".
 
-### Alinhamento Global (v3.2.7)
-- Atualizada a versão em:
-    - `pubspec.yaml`
-    - `android/app/build.gradle.kts` (versionCode 43)
-    - `dashboard_page.dart` (Rodapé)
-    - `about_page.dart` (Log de Atualizações)
-    - `report_repository.dart` (Rodapés dos documentos)
+### 🏛️ Governança Híbrida (v3.2.8 + v3.2.9)
+- **[ronda_page.dart](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/operation/rounds/pages/ronda_page.dart)**:
+    - Ativos em manutenção agora aparecem acinzentados na busca.
+    - O setor de origem é preservado no banco de dados.
+- **[dashboard_page.dart](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/management/dashboard/pages/dashboard_page.dart)**:
+    - O setor **TI** agora monitora dinamicamente todos os equipamentos em reparo do hospital, sem tirá-los visualmente de seus setores originais.
 
-## Verificação
-- O build APK deve ser gerado com o nome `smart_ronda_ti_v3.2.7.apk`.
-- O log de atualizações reflete as melhorias de inteligência e relatórios.
+## Verificação Final
+- ✅ **Version Alignment**: v3.2.9 (Build 45) aplicada globalmente.
+- ✅ **Legibilidade**: Testada e otimizada para ambos os temas.
+- ✅ **Navegação**: Sidebar fluida e responsiva.
+- ✅ **APK Build**: Novo nome de instalador `smart_ronda_ti_v3.2.9.apk`.

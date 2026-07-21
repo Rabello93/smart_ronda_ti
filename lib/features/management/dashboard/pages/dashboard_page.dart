@@ -37,14 +37,14 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? Colors.grey.shade900 : Colors.grey.shade100;
-    final textColor = isDark ? Colors.white : Colors.black87;
+    final bgColor = isDark ? AppTheme.deepNavy : AppTheme.coolGrey;
+    final textColor = isDark ? Colors.white : AppTheme.deepNavy;
     final bool isMobile = MediaQuery.of(context).size.width < 800;
 
     return Scaffold(
       backgroundColor: bgColor,
       appBar: AppBar(
-        toolbarHeight: isMobile ? 80 : 125,
+        toolbarHeight: isMobile ? 80 : 110,
         leading: isMobile 
           ? Builder(builder: (ctx) => IconButton(
               icon: const Icon(Icons.menu),
@@ -55,18 +55,20 @@ class _DashboardPageState extends State<DashboardPage> {
               onPressed: () => setState(() => _isRailExpanded = !_isRailExpanded),
             ),
         title: _buildCompanyLogo(isMobile),
-        backgroundColor: isDark ? Colors.black : Colors.indigo.shade900,
-        foregroundColor: Colors.white,
+        backgroundColor: isDark ? AppTheme.deepNavy : Colors.white,
+        foregroundColor: textColor,
+        elevation: 0,
         actions: [
           IconButton(
-            icon: Icon(isDark ? Icons.light_mode : Icons.dark_mode),
+            icon: Icon(isDark ? Icons.light_mode : Icons.dark_mode, size: 20),
             tooltip: isDark ? "Tema Claro" : "Tema Escuro",
             onPressed: () => widget.onChangeTheme(isDark ? ThemeMode.light : ThemeMode.dark),
           ),
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.logout, size: 20),
             onPressed: () => _authController.logout(),
           ),
+          const SizedBox(width: 10),
         ],
       ),
       drawer: isMobile ? Drawer(
@@ -159,22 +161,22 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget _buildSideNavigation(bool isDark) {
     return NavigationRail(
       extended: _isRailExpanded,
-      backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+      backgroundColor: isDark ? AppTheme.deepNavy : Colors.white,
       selectedIndex: _selectedIndex,
       onDestinationSelected: (index) => setState(() => _selectedIndex = index),
       labelType: _isRailExpanded ? NavigationRailLabelType.none : NavigationRailLabelType.selected,
-      unselectedIconTheme: IconThemeData(color: isDark ? Colors.white54 : Colors.grey.shade600),
-      selectedIconTheme: const IconThemeData(color: Colors.blue),
-      selectedLabelTextStyle: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 12),
-      unselectedLabelTextStyle: TextStyle(color: isDark ? Colors.white54 : Colors.grey.shade600, fontSize: 11),
+      unselectedIconTheme: IconThemeData(color: isDark ? Colors.white24 : Colors.grey.shade400),
+      selectedIconTheme: const IconThemeData(color: AppTheme.cyanNeon, size: 28),
+      selectedLabelTextStyle: GoogleFonts.inter(color: AppTheme.cyanNeon, fontWeight: FontWeight.w900, fontSize: 11),
+      unselectedLabelTextStyle: TextStyle(color: isDark ? Colors.white24 : Colors.grey.shade400, fontSize: 10, fontWeight: FontWeight.bold),
       destinations: const [
-        NavigationRailDestination(icon: Icon(Icons.dashboard), label: Text("Geral")),
-        NavigationRailDestination(icon: Icon(Icons.stars), label: Text("Metas")),
-        NavigationRailDestination(icon: Icon(Icons.person), label: Text("Técnicos")),
-        NavigationRailDestination(icon: Icon(Icons.warning_amber), label: Text("Defeitos")),
-        NavigationRailDestination(icon: Icon(Icons.business), label: Text("Ativos")),
-        NavigationRailDestination(icon: Icon(Icons.location_on), label: Text("Departamentos")),
-        NavigationRailDestination(icon: Icon(Icons.analytics), label: Text("Status")),
+        NavigationRailDestination(icon: Icon(Icons.grid_view_rounded), label: Text("Geral")),
+        NavigationRailDestination(icon: Icon(Icons.rocket_launch_rounded), label: Text("Metas")),
+        NavigationRailDestination(icon: Icon(Icons.hub_rounded), label: Text("Técnicos")),
+        NavigationRailDestination(icon: Icon(Icons.gpp_maybe_rounded), label: Text("Defeitos")),
+        NavigationRailDestination(icon: Icon(Icons.account_tree_rounded), label: Text("Ativos")),
+        NavigationRailDestination(icon: Icon(Icons.lan_rounded), label: Text("Departamentos")),
+        NavigationRailDestination(icon: Icon(Icons.query_stats_rounded), label: Text("Status")),
       ],
       trailing: Expanded(
         child: Align(
@@ -226,7 +228,8 @@ class _DashboardPageState extends State<DashboardPage> {
         }
 
         final displayUrl = UrlHelper.convertDriveUrl(logoUrl);
-        final double logoHeight = isMobile ? 40 : 100;
+        final double logoHeight = isMobile ? 35 : 70;
+        final isDark = Theme.of(context).brightness == Brightness.dark;
 
         return Row(
           mainAxisSize: MainAxisSize.min,
@@ -235,9 +238,12 @@ class _DashboardPageState extends State<DashboardPage> {
               Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(isMobile ? 6 : 12),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    if (isDark) BoxShadow(color: AppTheme.cyanNeon.withValues(alpha: 0.1), blurRadius: 10)
+                  ]
                 ),
-                padding: EdgeInsets.all(isMobile ? 3 : 6),
+                padding: const EdgeInsets.all(6),
                 child: Image.network(
                   displayUrl, 
                   height: logoHeight, 
@@ -246,12 +252,18 @@ class _DashboardPageState extends State<DashboardPage> {
                 ),
               )
             else
-              Image.asset(
-                "assets/logo.png", 
-                height: logoHeight, 
-                errorBuilder: (_, __, ___) => Icon(Icons.business, size: logoHeight * 0.8),
+              ShaderMask(
+                shaderCallback: (rect) => LinearGradient(
+                  colors: [AppTheme.cyanNeon, AppTheme.electricBlue],
+                ).createShader(rect),
+                child: Image.asset(
+                  "assets/logo.png", 
+                  height: logoHeight, 
+                  color: Colors.white,
+                  errorBuilder: (_, __, ___) => Icon(Icons.hub_rounded, size: logoHeight, color: Colors.white),
+                ),
               ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 15),
             Flexible(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -259,25 +271,29 @@ class _DashboardPageState extends State<DashboardPage> {
                 children: [
                   Text(
                     companyName.toUpperCase(),
-                    style: TextStyle(
-                      fontSize: isMobile ? 11 : 20,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: isMobile ? 0.5 : 1.2,
-                      color: Colors.white,
+                    style: GoogleFonts.inter(
+                      fontSize: isMobile ? 12 : 18,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.5,
+                      color: isDark ? Colors.white : AppTheme.deepNavy,
                     ),
                     overflow: TextOverflow.ellipsis,
-                    maxLines: 2,
-                    softWrap: true,
                   ),
-                  Text(
-                    isMobile ? "RONDA OPERACIONAL" : "SISTEMA DE GESTÃO E RONDAS",
-                    style: TextStyle(
-                      fontSize: isMobile ? 7 : 11,
-                      color: Colors.white70,
-                      letterSpacing: isMobile ? 0.5 : 2.0,
+                  Container(
+                    margin: const EdgeInsets.only(top: 2),
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppTheme.cyanNeon.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(4),
                     ),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
+                    child: Text(
+                      isMobile ? "OPERATIONAL" : "ASSET GOVERNANCE SYSTEM",
+                      style: AppTheme.monoStyle(
+                        fontSize: isMobile ? 7 : 9,
+                        color: AppTheme.cyanNeon,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -312,7 +328,17 @@ class _DashboardPageState extends State<DashboardPage> {
               itemCount: departamentos.length,
               itemBuilder: (context, index) {
                 final dep = departamentos[index];
-                final itensDoDep = allAssets.where((a) => a.setor == dep['nome']).toList();
+                final String depNome = dep['nome'].toString();
+                
+                // Inteligência 3.2.8: Contagem Híbrida
+                // Se for TI, conta seus próprios itens + tudo que estiver em manutenção no hospital
+                // Se for outro setor, conta apenas seus itens (incluindo os que estão em manutenção fora)
+                List<AssetModel> itensDoDep;
+                if (depNome == 'TI') {
+                  itensDoDep = allAssets.where((a) => a.setor == 'TI' || a.statusOperacional == 'Em manutenção').toList();
+                } else {
+                  itensDoDep = allAssets.where((a) => a.setor == depNome).toList();
+                }
                 
                 return Card(
                   elevation: 2,
@@ -414,16 +440,24 @@ class _DashboardPageState extends State<DashboardPage> {
                       borderRadius: BorderRadius.circular(12),
                       side: BorderSide(color: Colors.grey.shade200),
                     ),
-                    child: ListTile(
-                      leading: Icon(
-                        isInMaintenance ? Icons.build_circle : (i.tipo == 'Notebook' ? Icons.laptop : Icons.desktop_windows),
-                        color: isInMaintenance ? Colors.orange : (hasDefect ? Colors.red : Colors.blue),
+                    child: Opacity(
+                      opacity: (i.statusOperacional == 'Em manutenção' && nome != 'TI') ? 0.4 : 1.0,
+                      child: ListTile(
+                        leading: Icon(
+                          isInMaintenance ? Icons.build_circle : (i.tipo == 'Notebook' ? Icons.laptop : Icons.desktop_windows),
+                          color: isInMaintenance ? Colors.orange : (hasDefect ? Colors.red : Colors.blue),
+                        ),
+                        title: Text("${i.tipo} - ${i.patrimonio}", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                        subtitle: Text(
+                          (isInMaintenance && nome == 'TI' && i.setor != 'TI')
+                            ? "ORIGEM: ${i.setor}\n$statusInfo"
+                            : "$statusInfo\nMarca: ${i.marca.isNotEmpty ? i.marca : '---'}", 
+                          style: const TextStyle(fontSize: 11)
+                        ),
+                        trailing: isInMaintenance 
+                          ? const Icon(Icons.timer_outlined, color: Colors.orange, size: 18)
+                          : (hasDefect ? const Icon(Icons.warning, color: Colors.red, size: 18) : null),
                       ),
-                      title: Text("${i.tipo} - ${i.patrimonio}", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                      subtitle: Text("$statusInfo\nMarca: ${i.marca.isNotEmpty ? i.marca : '---'}", style: const TextStyle(fontSize: 11)),
-                      trailing: isInMaintenance 
-                        ? const Icon(Icons.timer_outlined, color: Colors.orange, size: 18)
-                        : (hasDefect ? const Icon(Icons.warning, color: Colors.red, size: 18) : null),
                     ),
                   );
                 },
@@ -437,7 +471,7 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget _buildFooter(Color textColor) {
-    const String version = '3.2.7';
+    const String version = '3.2.8';
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Center(

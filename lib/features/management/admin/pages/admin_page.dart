@@ -400,9 +400,15 @@ class _DepartamentosTab extends StatelessWidget {
                 itemCount: itens.length,
                 itemBuilder: (context, index) {
                   final i = itens[index];
-                  return ListTile(
-                    title: Text("${i.tipo} - Pat: ${i.patrimonio}"),
-                    subtitle: Text("Status: ${i.statusOperacional} | S/N: ${i.serie}"),
+                  final bool emManutencao = i.statusOperacional == 'Em manutenção';
+
+                  return Opacity(
+                    opacity: emManutencao ? 0.4 : 1.0,
+                    child: ListTile(
+                      title: Text("${i.tipo} - Pat: ${i.patrimonio}"),
+                      subtitle: Text("Status: ${i.statusOperacional} | S/N: ${i.serie}${emManutencao ? ' (FORA DO SETOR)' : ''}"),
+                      trailing: emManutencao ? const Icon(Icons.build_circle, color: Colors.orange, size: 20) : null,
+                    ),
                   );
                 },
               );

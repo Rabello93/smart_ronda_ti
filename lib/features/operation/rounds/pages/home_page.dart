@@ -149,38 +149,43 @@ class _HomePageState extends State<HomePage> {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text("Smart Ronda TI"),
-            backgroundColor: Colors.blue.shade900,
+            title: Text("SMART RONDA", style: GoogleFonts.inter(fontWeight: FontWeight.w900, letterSpacing: 1)),
+            backgroundColor: isAdmin ? AppTheme.deepNavy : Colors.blue.shade900,
             foregroundColor: Colors.white,
+            elevation: 0,
             actions: [
               IconButton(
-                icon: const Icon(Icons.info_outline),
+                icon: const Icon(Icons.info_outline, size: 20),
                 onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutPage())),
               ),
               IconButton(
-                icon: const Icon(Icons.logout),
+                icon: const Icon(Icons.logout, size: 20),
                 onPressed: () => _authController.logout(),
               ),
+              const SizedBox(width: 8),
             ],
           ),
           body: _buildBody(_selectedIndex, isAdmin, user),
           bottomNavigationBar: BottomNavigationBar(
             currentIndex: _selectedIndex,
             type: BottomNavigationBarType.fixed,
-            selectedItemColor: Colors.blue.shade900,
+            selectedItemColor: isAdmin ? AppTheme.cyanNeon : Colors.blue.shade900,
+            unselectedItemColor: Colors.grey,
+            backgroundColor: isAdmin ? AppTheme.charcoal : Colors.white,
+            selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
             onTap: (index) => setState(() => _selectedIndex = index),
             items: [
-              const BottomNavigationBarItem(icon: Icon(Icons.play_arrow), label: "Ronda"),
-              const BottomNavigationBarItem(icon: Icon(Icons.history), label: "Histórico"),
-              const BottomNavigationBarItem(icon: Icon(Icons.notifications), label: "Alertas"),
-              if (isAdmin) const BottomNavigationBarItem(icon: Icon(Icons.admin_panel_settings), label: "Admin"),
+              const BottomNavigationBarItem(icon: Icon(Icons.qr_code_scanner_rounded), label: "Ronda"),
+              const BottomNavigationBarItem(icon: Icon(Icons.history_rounded), label: "Histórico"),
+              const BottomNavigationBarItem(icon: Icon(Icons.auto_awesome_motion_rounded), label: "Alertas"),
+              if (isAdmin) const BottomNavigationBarItem(icon: Icon(Icons.security_rounded), label: "Admin"),
             ],
           ),
-          persistentFooterButtons: const [
+          persistentFooterButtons: [
             Center(
               child: Text(
-                "Smart Ronda TI - v3.2.7",
-                style: TextStyle(fontSize: 10, color: Colors.grey),
+                "Smart Ronda TI - v3.2.9",
+                style: AppTheme.monoStyle(fontSize: 9, color: Colors.grey),
               ),
             ),
           ],
@@ -202,21 +207,35 @@ class _HomePageState extends State<HomePage> {
                   child: CriticalAlertBanner(alerts: _departmentAlerts),
                 ),
               const SizedBox(height: 40),
-              const Icon(Icons.checklist_rtl, size: 100, color: Colors.blue),
-              const SizedBox(height: 20),
-              ElevatedButton.icon(
-                onPressed: () => _iniciarRonda(user),
-                icon: const Icon(Icons.play_arrow),
-                label: const Text("INICIAR NOVA RONDA"),
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(250, 60),
-                  backgroundColor: Colors.blue.shade900,
-                  foregroundColor: Colors.white,
-                  textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [AppTheme.electricBlue, AppTheme.cyanNeon],
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.electricBlue.withValues(alpha: 0.3),
+                      blurRadius: 15,
+                      offset: const Offset(0, 5),
+                    )
+                  ],
+                ),
+                child: ElevatedButton.icon(
+                  onPressed: () => _iniciarRonda(user),
+                  icon: const Icon(Icons.rocket_launch_rounded),
+                  label: const Text("INICIAR NOVA RONDA"),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(280, 70),
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    foregroundColor: Colors.white,
+                    textStyle: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1),
+                  ),
                 ),
               ),
               if (isAdmin) ...[
-                const SizedBox(height: 20),
+                const SizedBox(height: 25),
                 OutlinedButton.icon(
                   onPressed: () {
                     final appState = RondaTIApp.of(context);
@@ -227,12 +246,13 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ));
                   },
-                  icon: const Icon(Icons.analytics),
-                  label: const Text("DASHBOARD ANALÍTICO"),
+                  icon: const Icon(Icons.analytics_rounded),
+                  label: const Text("DASHBOARD ESTRATÉGICO"),
                   style: OutlinedButton.styleFrom(
-                    minimumSize: const Size(250, 50),
-                    side: BorderSide(color: Colors.blue.shade900, width: 2),
-                    foregroundColor: Colors.blue.shade900,
+                    minimumSize: const Size(280, 55),
+                    side: const BorderSide(color: AppTheme.cyanNeon, width: 2),
+                    foregroundColor: AppTheme.cyanNeon,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
                 ),
               ],

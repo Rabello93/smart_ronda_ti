@@ -489,29 +489,33 @@ class _RondaPageState extends State<RondaPage> {
                       final item = docs[index].data() as Map<String, dynamic>;
                       final pat = docs[index].id;
                       final isHome = item['is_home_office'] ?? false;
+                      final bool emManutencao = item['status_operacional'] == 'Em manutenção';
 
-                      return ListTile(
-                        leading: Icon(
-                          isHome ? Icons.home_work : Icons.computer, 
-                          color: isHome ? Colors.orange : Colors.blue
+                      return Opacity(
+                        opacity: emManutencao ? 0.4 : 1.0,
+                        child: ListTile(
+                          leading: Icon(
+                            isHome ? Icons.home_work : (emManutencao ? Icons.build_circle : Icons.computer), 
+                            color: isHome ? Colors.orange : (emManutencao ? Colors.grey : Colors.blue)
+                          ),
+                          title: Text("Pat: $pat - ${item['tipo']}"),
+                          subtitle: Text("${item['marca'] ?? ''} ${item['modelo'] ?? ''} ${isHome ? '(HOME OFFICE)' : ''}${emManutencao ? ' (EM MANUTENÇÃO)' : ''}"),
+                          onTap: () {
+                            Navigator.pop(context);
+                            if (controller != null) {
+                              setState(() => controller.text = pat);
+                            } else {
+                              _patrimonioOriginal = pat; // Salva o ID original
+                              setState(() {
+                                // Se for sem placa, deixa vazio para o técnico digitar a nova
+                                // Se tiver placa, já preenche o campo
+                                patrimonioController.text = pat.startsWith("SP_") ? "" : pat;
+                                possuiPatrimonio = true; // Força a chave para 'Sim' para permitir edição/confirmação
+                              });
+                              _verificarInventario(pat);
+                            }
+                          },
                         ),
-                        title: Text("Pat: $pat - ${item['tipo']}"),
-                        subtitle: Text("${item['marca'] ?? ''} ${item['modelo'] ?? ''} ${isHome ? '(HOME OFFICE)' : ''}"),
-                        onTap: () {
-                          Navigator.pop(context);
-                          if (controller != null) {
-                            setState(() => controller.text = pat);
-                          } else {
-                            _patrimonioOriginal = pat; // Salva o ID original
-                            setState(() {
-                              // Se for sem placa, deixa vazio para o técnico digitar a nova
-                              // Se tiver placa, já preenche o campo
-                              patrimonioController.text = pat.startsWith("SP_") ? "" : pat;
-                              possuiPatrimonio = true; // Força a chave para 'Sim' para permitir edição/confirmação
-                            });
-                            _verificarInventario(pat);
-                          }
-                        },
                       );
                     },
                   );
@@ -534,25 +538,33 @@ class _RondaPageState extends State<RondaPage> {
                     itemBuilder: (context, index) {
                       final item = docs[index].data() as Map<String, dynamic>;
                       final pat = docs[index].id;
-                      return ListTile(
-                        leading: const Icon(Icons.search, color: Colors.grey),
-                        title: Text("Pat: $pat - ${item['tipo']}"),
-                        subtitle: Text("Setor: ${item['setor']}"),
-                        onTap: () {
-                          Navigator.pop(context);
-                          if (controller != null) {
-                            setState(() => controller.text = pat);
-                          } else {
-                            _patrimonioOriginal = pat; // Salva o ID original
-                            setState(() {
-                              // Se for sem placa, deixa vazio para o técnico digitar a nova
-                              // Se tiver placa, já preenche o campo
-                              patrimonioController.text = pat.startsWith("SP_") ? "" : pat;
-                              possuiPatrimonio = true; // Força a chave para 'Sim' para permitir edição/confirmação
-                            });
-                            _verificarInventario(pat);
-                          }
-                        },
+                      final bool emManutencao = item['status_operacional'] == 'Em manutenção';
+
+                      return Opacity(
+                        opacity: emManutencao ? 0.4 : 1.0,
+                        child: ListTile(
+                          leading: Icon(
+                            emManutencao ? Icons.build_circle : Icons.search, 
+                            color: emManutencao ? Colors.grey : Colors.grey
+                          ),
+                          title: Text("Pat: $pat - ${item['tipo']}"),
+                          subtitle: Text("Setor: ${item['setor']}${emManutencao ? ' (EM MANUTENÇÃO)' : ''}"),
+                          onTap: () {
+                            Navigator.pop(context);
+                            if (controller != null) {
+                              setState(() => controller.text = pat);
+                            } else {
+                              _patrimonioOriginal = pat; // Salva o ID original
+                              setState(() {
+                                // Se for sem placa, deixa vazio para o técnico digitar a nova
+                                // Se tiver placa, já preenche o campo
+                                patrimonioController.text = pat.startsWith("SP_") ? "" : pat;
+                                possuiPatrimonio = true; // Força a chave para 'Sim' para permitir edição/confirmação
+                              });
+                              _verificarInventario(pat);
+                            }
+                          },
+                        ),
                       );
                     },
                   );
@@ -628,9 +640,7 @@ class _RondaPageState extends State<RondaPage> {
 
     // Lógica de Setor
     String setorDestino = widget.setor;
-    if (statusOperacional == 'Em manutenção') {
-      setorDestino = 'TI';
-    } else if (setorDivergente && setorDivergenteSelecionado != null) {
+    if (setorDivergente && setorDivergenteSelecionado != null) {
       setorDestino = setorDivergenteSelecionado!;
     }
 
@@ -793,12 +803,46 @@ class _RondaPageState extends State<RondaPage> {
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Item carregado para edição"), duration: Duration(seconds: 1), behavior: SnackBarBehavior.floating));
   }
 
+  Widget _filterChip(String label, bool selected, Function(bool) onSelected, {Color? color}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = color ?? Theme.of(context).colorScheme.primary;
+
+    return FilterChip(
+      label: Text(label, style: TextStyle(
+        fontSize: 11, 
+        color: selected ? Colors.white : (isDark ? Colors.white70 : Colors.black87),
+        fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+      )),
+      selected: selected,
+      onSelected: onSelected,
+      selectedColor: primaryColor,
+      backgroundColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.shade100,
+      checkmarkColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+        side: BorderSide(
+          color: selected ? primaryColor : (isDark ? Colors.white12 : Colors.grey.shade300),
+          width: 1,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool isAdmin = _usuarioLogado?.nivelAcesso == 'master' || _usuarioLogado?.nivelAcesso == 'gerente';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(title: Text(widget.rondaId != null ? 'Editando Ronda - ${widget.setor}' : 'Ronda - ${widget.setor}')),
+      backgroundColor: isDark ? AppTheme.deepNavy : AppTheme.coolGrey,
+      appBar: AppBar(
+        title: Text(
+          widget.rondaId != null ? 'EDITANDO RONDA' : 'NOVA RONDA',
+          style: GoogleFonts.inter(fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 1),
+        ),
+        backgroundColor: isDark ? AppTheme.deepNavy : Colors.white,
+        elevation: 0,
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -937,19 +981,16 @@ class _RondaPageState extends State<RondaPage> {
             ],
 
             Wrap(
-              spacing: 10,
+              spacing: 8,
+              runSpacing: 8,
               children: [
                 // ACESSÓRIOS DINÂMICOS
-                ...acessoriosAtuais.map((acc) => FilterChip(
-                  label: Text(acc),
-                  selected: acessoriosSelecionados[acc] ?? false,
-                  onSelected: (v) => setState(() => acessoriosSelecionados[acc] = v),
-                )),
+                ...acessoriosAtuais.map((acc) => _filterChip(acc, acessoriosSelecionados[acc] ?? false, (v) => setState(() => acessoriosSelecionados[acc] = v))),
                 
                 // STATUS FIXOS (AUDITORIA)
-                FilterChip(label: const Text('Defeito'), selected: defeito, selectedColor: Colors.red.withAlpha(80), onSelected: (v) => setState(() => defeito = v)),
-                FilterChip(label: const Text('Locado?'), selected: isLocado, selectedColor: Colors.orange.withAlpha(80), onSelected: (v) => setState(() => isLocado = v)),
-                FilterChip(label: const Text('Em outro setor?'), selected: setorDivergente, selectedColor: Colors.purple.withAlpha(80), onSelected: (v) => setState(() => setorDivergente = v)),
+                _filterChip('DEFEITO', defeito, (v) => setState(() => defeito = v), color: AppTheme.ruby),
+                _filterChip('LOCADO', isLocado, (v) => setState(() => isLocado = v), color: Colors.orange),
+                _filterChip('OUTRO SETOR', setorDivergente, (v) => setState(() => setorDivergente = v), color: Colors.purple),
               ],
             ),
             if (isHomeOffice) ...[
@@ -990,7 +1031,7 @@ class _RondaPageState extends State<RondaPage> {
             ],
             if (statusOperacional == 'Em manutenção') ...[
               const SizedBox(height: 8),
-              const Text("ℹ️ Este item será automaticamente vinculado ao setor TI.", style: TextStyle(fontSize: 12, color: Colors.blueGrey, fontStyle: FontStyle.italic)),
+              const Text("ℹ️ Este item manterá seu departamento de origem, mas será listado na TI para controle técnico.", style: TextStyle(fontSize: 12, color: Colors.blueGrey, fontStyle: FontStyle.italic)),
             ],
             if (isLocado) ...[
               const SizedBox(height: 10),
@@ -1003,7 +1044,26 @@ class _RondaPageState extends State<RondaPage> {
             ],
             TextField(controller: observacaoController, decoration: const InputDecoration(labelText: 'Observações')),
             const SizedBox(height: 15),
-            Center(child: ElevatedButton.icon(onPressed: adicionarEquipamento, style: ElevatedButton.styleFrom(backgroundColor: Colors.blue.shade700, foregroundColor: Colors.white, minimumSize: const Size(200, 50), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))), icon: const Icon(Icons.add_circle_outline), label: const Text('ADICIONAR ITEM', style: TextStyle(fontWeight: FontWeight.bold)))),
+            Center(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(colors: [AppTheme.electricBlue, AppTheme.cyanNeon]),
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: ElevatedButton.icon(
+                  onPressed: adicionarEquipamento, 
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent, 
+                    shadowColor: Colors.transparent,
+                    foregroundColor: Colors.white, 
+                    minimumSize: const Size(220, 55), 
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))
+                  ), 
+                  icon: const Icon(Icons.add_circle_outline, size: 22), 
+                  label: Text('ADICIONAR ITEM', style: GoogleFonts.inter(fontWeight: FontWeight.w900, letterSpacing: 0.5))
+                ),
+              ),
+            ),
             const Divider(height: 40),
             if (equipamentos.isNotEmpty) ...[
               Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('Itens na Ronda (${equipamentos.length}):', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)), TextButton(onPressed: () => setState(() => equipamentos.clear()), child: const Text('Limpar Tudo', style: TextStyle(color: Colors.red)))]),

@@ -79,7 +79,7 @@ class ReportRepository {
             crossAxisAlignment: pw.CrossAxisAlignment.end,
             children: [
               pw.Text("Gerado em: $dateStr", style: const pw.TextStyle(fontSize: 7, color: PdfColors.grey700)),
-              pw.Text("Smart Ronda TI v3.2.7 - Governança de Ativos", style: const pw.TextStyle(fontSize: 6, color: PdfColors.grey500)),
+              pw.Text("Smart Ronda TI v3.2.9 - Governança de Ativos", style: const pw.TextStyle(fontSize: 6, color: PdfColors.grey500)),
             ]
           ),
         ]
@@ -1170,7 +1170,7 @@ class ReportRepository {
                   crossAxisAlignment: pw.CrossAxisAlignment.end,
                   children: [
                     pw.Text("Gerado em: $dateStr", style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
-                    pw.Text("Smart Ronda TI v3.2.7", style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
+                    pw.Text("Smart Ronda TI v3.2.9", style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
                   ],
                 ),
               ],
