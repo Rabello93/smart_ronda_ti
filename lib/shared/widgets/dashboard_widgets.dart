@@ -399,7 +399,7 @@ class CriticalAlertBanner extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 4),
           child: Row(
             children: [
-              const Icon(Icons.bolt, color: AppTheme.ruby, size: 20),
+              Icon(Icons.bolt, color: AppTheme.ruby, size: 20),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(

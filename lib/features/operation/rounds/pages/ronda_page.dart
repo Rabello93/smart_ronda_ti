@@ -12,6 +12,8 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter/rendering.dart';
+import 'package:smart_ronda_ti/app/theme.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:smart_ronda_ti/features/system/auth/controllers/auth_controller.dart';
 import 'package:smart_ronda_ti/features/operation/rounds/controllers/round_controller.dart';
 import 'package:smart_ronda_ti/features/operation/assets/controllers/asset_controller.dart';
@@ -1047,7 +1049,7 @@ class _RondaPageState extends State<RondaPage> {
             Center(
               child: Container(
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(colors: [AppTheme.electricBlue, AppTheme.cyanNeon]),
+                  gradient: LinearGradient(colors: [AppTheme.electricBlue, AppTheme.cyanNeon]),
                   borderRadius: BorderRadius.circular(15),
                 ),
                 child: ElevatedButton.icon(

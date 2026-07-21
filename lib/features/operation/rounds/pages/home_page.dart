@@ -14,6 +14,8 @@ import 'package:smart_ronda_ti/features/operation/rounds/controllers/round_contr
 import 'package:smart_ronda_ti/features/management/dashboard/controllers/dashboard_controller.dart';
 import 'package:smart_ronda_ti/shared/widgets/dashboard_widgets.dart';
 import 'package:smart_ronda_ti/features/system/auth/models/user_model.dart';
+import 'package:smart_ronda_ti/app/theme.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class HomePage extends StatefulWidget {
@@ -250,7 +252,7 @@ class _HomePageState extends State<HomePage> {
                   label: const Text("DASHBOARD ESTRATÉGICO"),
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size(280, 55),
-                    side: const BorderSide(color: AppTheme.cyanNeon, width: 2),
+                    side: BorderSide(color: AppTheme.cyanNeon, width: 2),
                     foregroundColor: AppTheme.cyanNeon,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),

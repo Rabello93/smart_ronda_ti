@@ -19,10 +19,9 @@ class AppTheme {
         seedColor: electricBlue,
         brightness: Brightness.light,
         surface: Colors.white,
-        background: coolGrey,
       ),
       textTheme: GoogleFonts.interTextTheme(),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
@@ -73,12 +72,11 @@ class AppTheme {
         seedColor: cyanNeon,
         brightness: Brightness.dark,
         surface: charcoal,
-        background: deepNavy,
         primary: cyanNeon,
         secondary: electricBlue,
       ),
       textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 0,
         color: charcoal,
         shape: RoundedRectangleBorder(

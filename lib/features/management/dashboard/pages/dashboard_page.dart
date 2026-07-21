@@ -12,6 +12,8 @@ import 'package:smart_ronda_ti/features/operation/rounds/models/round_model.dart
 import 'package:smart_ronda_ti/features/operation/assets/models/asset_model.dart';
 import 'package:smart_ronda_ti/features/system/auth/models/user_model.dart';
 import 'package:smart_ronda_ti/features/system/about/pages/about_page.dart';
+import 'package:smart_ronda_ti/app/theme.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class DashboardPage extends StatefulWidget {
   final ThemeMode themeMode;
@@ -166,7 +168,7 @@ class _DashboardPageState extends State<DashboardPage> {
       onDestinationSelected: (index) => setState(() => _selectedIndex = index),
       labelType: _isRailExpanded ? NavigationRailLabelType.none : NavigationRailLabelType.selected,
       unselectedIconTheme: IconThemeData(color: isDark ? Colors.white24 : Colors.grey.shade400),
-      selectedIconTheme: const IconThemeData(color: AppTheme.cyanNeon, size: 28),
+      selectedIconTheme: IconThemeData(color: AppTheme.cyanNeon, size: 28),
       selectedLabelTextStyle: GoogleFonts.inter(color: AppTheme.cyanNeon, fontWeight: FontWeight.w900, fontSize: 11),
       unselectedLabelTextStyle: TextStyle(color: isDark ? Colors.white24 : Colors.grey.shade400, fontSize: 10, fontWeight: FontWeight.bold),
       destinations: const [
