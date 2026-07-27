@@ -466,10 +466,10 @@ class _DepartamentosTab extends StatelessWidget {
                 ElevatedButton.icon(
                   onPressed: () async {
                     final AuthController auth = AuthController();
-                    final String? displayName = auth.currentUser?.displayName;
-                    final String currentUserName = (displayName != null && displayName.isNotEmpty)
-                                                   ? displayName
-                                                   : (auth.currentUser?.email?.split('@')[0] ?? "Admin");
+                    final profile = await auth.profileStream.first;
+                    final String currentUserName = profile?.nome ?? 
+                                                   auth.currentUser?.displayName ?? 
+                                                   auth.currentUser?.email?.split('@')[0] ?? "Admin";
                     final itensSnapshot = await controller.getSectorStream(setor).first;
                     final itensMap = itensSnapshot.map((e) => e.toMap()..['patrimonio'] = e.patrimonio).toList();
                     if (context.mounted) ReportRepository.exportarMapaAtivosSetor(setor: setor, itens: itensMap, context: context, userName: currentUserName);
@@ -879,6 +879,7 @@ class _LocadorasTab extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                const SizedBox(height: 12),
                 TextField(controller: versaoController, decoration: const InputDecoration(labelText: "Nº / Versão do Contrato", border: OutlineInputBorder())),
                 const SizedBox(height: 12),
                 Row(

@@ -78,7 +78,7 @@ class ReportRepository {
               if (config['contato'] != null && config['contato'].isNotEmpty)
                 pw.Text("Contato: ${config['contato']}", style: const pw.TextStyle(fontSize: 7)),
               pw.SizedBox(height: 2),
-              pw.Text("RELATÓRIO EMITIDO POR: $finalUserName", style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: PdfColors.indigo900)),
+              pw.Text("RELATÓRIO EMITIDO POR: $finalUserName", style: pw.TextStyle(fontSize: 7, fontWeight: pw.FontWeight.bold, color: PdfColors.black)),
             ]
           ),
           pw.Column(

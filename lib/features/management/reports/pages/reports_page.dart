@@ -5,6 +5,7 @@ import 'package:smart_ronda_ti/features/system/auth/controllers/auth_controller.
 import 'package:smart_ronda_ti/features/management/reports/controllers/report_controller.dart';
 import 'package:smart_ronda_ti/features/management/admin/controllers/admin_controller.dart';
 import 'package:intl/intl.dart';
+import 'package:smart_ronda_ti/features/system/auth/models/user_model.dart';
 
 class ReportsPage extends StatefulWidget {
   final bool embed;
@@ -19,6 +20,20 @@ class _ReportsPageState extends State<ReportsPage> {
   final ReportController _reportController = ReportController();
   final AuthController _authController = AuthController();
   
+  UserModel? _meuPerfil;
+
+  @override
+  void initState() {
+    super.initState();
+    _carregarPerfil();
+  }
+
+  void _carregarPerfil() {
+    _authController.profileStream.listen((user) {
+      if (mounted) setState(() => _meuPerfil = user);
+    });
+  }
+
   // Filtros Inventário
   String? _setorSelecionado;
   String? _locadoraSelecionada;
@@ -41,12 +56,13 @@ class _ReportsPageState extends State<ReportsPage> {
   DateTimeRange? _periodoComparativo;
 
   Future<void> _handleGerarInventario() async {
-    final String? displayName = _authController.currentUser?.displayName;
-    final String currentUserName = (displayName != null && displayName.isNotEmpty)
-                                   ? displayName
-                                   : (_authController.currentUser?.email?.split('@')[0] ?? "Admin");
-
     setState(() => _gerandoInventario = true);
+    
+    final profile = await _authController.profileStream.first;
+    final String currentUserName = profile?.nome ?? 
+                                   _authController.currentUser?.displayName ?? 
+                                   _authController.currentUser?.email?.split('@')[0] ?? "Admin";
+
     await _reportController.gerarRelatorioInventario(
       context: context,
       setor: _setorSelecionado,
@@ -251,11 +267,11 @@ class _ReportsPageState extends State<ReportsPage> {
             children: [
               Expanded(
                 child: _actionButton(
-                  onPressed: _periodoPrincipal == null ? null : () {
-                    final String? displayName = _authController.currentUser?.displayName;
-                    final String currentUserName = (displayName != null && displayName.isNotEmpty)
-                                                   ? displayName
-                                                   : (_authController.currentUser?.email?.split('@')[0] ?? "Admin");
+                  onPressed: _periodoPrincipal == null ? null : () async {
+                    final profile = await _authController.profileStream.first;
+                    final String currentUserName = profile?.nome ?? 
+                                                   _authController.currentUser?.displayName ?? 
+                                                   _authController.currentUser?.email?.split('@')[0] ?? "Admin";
                     _reportController.gerarRelatorioMetas(
                       context, 
                       periodo: _periodoPrincipal, 
@@ -292,11 +308,11 @@ class _ReportsPageState extends State<ReportsPage> {
             children: [
               Expanded(
                 child: _actionButton(
-                  onPressed: _periodoPrincipal == null ? null : () {
-                    final String? displayName = _authController.currentUser?.displayName;
-                    final String currentUserName = (displayName != null && displayName.isNotEmpty)
-                                                   ? displayName
-                                                   : (_authController.currentUser?.email?.split('@')[0] ?? "Admin");
+                  onPressed: _periodoPrincipal == null ? null : () async {
+                    final profile = await _authController.profileStream.first;
+                    final String currentUserName = profile?.nome ?? 
+                                                   _authController.currentUser?.displayName ?? 
+                                                   _authController.currentUser?.email?.split('@')[0] ?? "Admin";
                     _reportController.gerarRelatorioIncidencias(
                       context, 
                       periodo: _periodoPrincipal!, 
@@ -332,11 +348,11 @@ class _ReportsPageState extends State<ReportsPage> {
           _sectionHeader("🤝 AUDITORIA CONTRATUAL", Icons.handshake_rounded),
           const SizedBox(height: 20),
           _actionButton(
-            onPressed: () {
-              final String? displayName = _authController.currentUser?.displayName;
-              final String currentUserName = (displayName != null && displayName.isNotEmpty)
-                                             ? displayName
-                                             : (_authController.currentUser?.email?.split('@')[0] ?? "Admin");
+            onPressed: () async {
+              final profile = await _authController.profileStream.first;
+              final String currentUserName = profile?.nome ?? 
+                                             _authController.currentUser?.displayName ?? 
+                                             _authController.currentUser?.email?.split('@')[0] ?? "Admin";
               _reportController.gerarRelatorioContratos(context, userName: currentUserName);
             },
             label: "PDF ANÁLISE DE CONTRATOS (OPEX)",
