@@ -581,6 +581,15 @@ class AuditHeatMapWidget extends StatelessWidget {
     return Column(
       children: [
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _legendItem('SEGURO', AppTheme.emerald),
+            _legendItem('ATENÇÃO', AppTheme.amberNeon),
+            _legendItem('CRÍTICO', AppTheme.ruby),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
           children: [
             _bar('CRÍTICO (+30D)', data['vermelho']!.length, total, AppTheme.ruby),
             const SizedBox(width: 4),
@@ -598,6 +607,16 @@ class AuditHeatMapWidget extends StatelessWidget {
             ...data['amarelo']!.map((name) => _indicator(name, AppTheme.amberNeon, isDark)),
           ],
         ),
+      ],
+    );
+  }
+
+  Widget _legendItem(String label, Color color) {
+    return Row(
+      children: [
+        Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+        const SizedBox(width: 4),
+        Text(label, style: const TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.grey)),
       ],
     );
   }

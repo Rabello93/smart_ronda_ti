@@ -33,7 +33,7 @@ class AboutPage extends StatelessWidget {
                       Icon(Icons.checklist_rtl, size: 80, color: Colors.blue),
                       SizedBox(height: 10),
                       Text("Smart Ronda TI", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                  Text("Versão 3.2.9", style: TextStyle(color: Colors.grey)),
+                  Text("Versão 3.2.10", style: TextStyle(color: Colors.grey)),
                 ],
               ),
             ),
@@ -46,12 +46,12 @@ class AboutPage extends StatelessWidget {
             const SizedBox(height: 20),
             _sectionTitle("🚀 Log de Atualizações"),
             _buildUpdate(
-              "3.2.9 (Atual)",
-              "• VISUAL 'PREMIUM TECH': Repaginação completa da interface com novas fontes (Inter & JetBrains Mono).\n• MISSION CONTROL: Redesign do Dashboard com estilo central de comando, gradientes e gráficos fluidos.\n• GLASSMORPHISM: Efeitos de transparência e desfoque em menus e elementos de navegação.\n• ALINHAMENTO GLOBAL: Sincronização de versão 3.2.9 em todo o sistema.",
+              "3.2.10 (Atual)",
+              "• MÚLTIPLAS SUBSTITUIÇÕES: Registre várias trocas de uma só vez em uma única ronda.\n• BAIXA PATRIMONIAL: Novo fluxo de baixa (antigo descarte) com motivo obrigatório para compliance.\n• MAPA DE CALOR: Visualize o risco de inatividade por departamento diretamente no Dashboard (Semáforo de Auditoria).\n• GESTÃO CONTRATUAL: Submenu para controle de valores, vigência e SLA de locadoras.\n• PERFIL PERSONALIZADO: Personalização de cargo, matrícula e data de nascimento no perfil do técnico.\n• ASSINATURA DIGITAL: Nome do emissor automático no rodapé de todos os relatórios PDF.",
             ),
             _buildUpdate(
-              "3.2.8",
-              "• GOVERNANÇA HÍBRIDA: Itens em manutenção agora preservam seu departamento de origem no banco de dados.\n• DASHBOARD: Nova lógica de visualização - equipamentos em manutenção aparecem 'acinzentados' no setor de origem e são listados simultaneamente na TI.",
+              "3.2.9",
+              "• VISUAL 'PREMIUM TECH': Repaginação completa da interface com novas fontes (Inter & JetBrains Mono).\n• MISSION CONTROL: Redesign do Dashboard com estilo central de comando, gradientes e gráficos fluidos.\n• GLASSMORPHISM: Efeitos de transparência e desfoque em menus e elementos de navegação.\n• HEALTH SCORE REAL: Saúde do patrimônio baseada em disponibilidade real e ciclo de vida.",
             ),
             _buildUpdate(
               "3.2.7",

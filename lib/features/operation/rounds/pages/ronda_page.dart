@@ -79,6 +79,8 @@ class _RondaPageState extends State<RondaPage> {
   DateTime? _dataEntradaManutencaoOriginal; // Novo: Para cálculo de tempo em reparo
   bool houveTroca = false;
   List<Map<String, dynamic>> listaTrocas = [];
+  String? _labelEquipamentoAntigo;
+  String? _labelEquipamentoNovo;
   bool buscandoInventario = false;
   UserModel? _usuarioLogado;
 
@@ -613,6 +615,20 @@ class _RondaPageState extends State<RondaPage> {
     }
   }
 
+  Future<void> _verificarEquipamentoTroca(String valor, bool isAntigo) async {
+    if (valor.length < 3) return;
+    final AssetModel? dados = await _assetController.searchAsset(valor);
+    if (dados != null && mounted) {
+      setState(() {
+        if (isAntigo) {
+          _labelEquipamentoAntigo = "${dados.tipo} - ${dados.marca}";
+        } else {
+          _labelEquipamentoNovo = "${dados.tipo} - ${dados.marca}";
+        }
+      });
+    }
+  }
+
   void adicionarEquipamento() {
     final String currentPat = patrimonioController.text.trim();
     final bool isExistingNoPlate = _patrimonioOriginal != null && _patrimonioOriginal!.startsWith("SP_");
@@ -743,7 +759,9 @@ class _RondaPageState extends State<RondaPage> {
     setState(() {
       listaTrocas.add({
         'patrimonio_antigo': patrimonioAntigoController.text.trim(),
+        'label_antigo': _labelEquipamentoAntigo ?? '---',
         'patrimonio_novo': patrimonioNovoController.text.trim(),
+        'label_novo': _labelEquipamentoNovo ?? '---',
         'hora_retirada': horaRetirada.toIso8601String(),
         'hora_instalacao': horaInstalacao.toIso8601String(),
         'motivo': motivoTrocaController.text.trim(),
@@ -752,6 +770,8 @@ class _RondaPageState extends State<RondaPage> {
       patrimonioAntigoController.clear();
       patrimonioNovoController.clear();
       motivoTrocaController.clear();
+      _labelEquipamentoAntigo = null;
+      _labelEquipamentoNovo = null;
       horaRetirada = DateTime.now();
       horaInstalacao = DateTime.now();
     });
@@ -1128,10 +1148,12 @@ class _RondaPageState extends State<RondaPage> {
                       const Text("Trocas para registrar nesta ronda:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                       const SizedBox(height: 8),
                       ...listaTrocas.asMap().entries.map((e) => Card(
+                        color: isDark ? AppTheme.charcoal : Colors.white,
+                        margin: const EdgeInsets.symmetric(vertical: 4),
                         child: ListTile(
                           dense: true,
                           title: Text("${e.value['patrimonio_antigo']} ➔ ${e.value['patrimonio_novo']}"),
-                          subtitle: Text("Motivo: ${e.value['motivo']}"),
+                          subtitle: Text("ITENS: ${e.value['label_antigo']} / ${e.value['label_novo']}\nMOTIVO: ${e.value['motivo']}"),
                           trailing: IconButton(icon: const Icon(Icons.delete, color: Colors.red, size: 18), onPressed: () => setState(() => listaTrocas.removeAt(e.key))),
                         ),
                       )),
@@ -1139,8 +1161,11 @@ class _RondaPageState extends State<RondaPage> {
                     ],
                     TextField(
                       controller: patrimonioAntigoController, 
+                      onChanged: (v) => _verificarEquipamentoTroca(v, true),
                       decoration: InputDecoration(
                         labelText: 'Patrimônio Antigo', 
+                        helperText: _labelEquipamentoAntigo != null ? "Item: $_labelEquipamentoAntigo" : null,
+                        helperStyle: TextStyle(color: isDark ? Colors.white70 : Colors.indigo.shade900, fontWeight: FontWeight.bold),
                         border: const OutlineInputBorder(),
                         prefixIcon: IconButton(
                           icon: const Icon(Icons.qr_code_scanner, color: Colors.blue), 
@@ -1157,8 +1182,11 @@ class _RondaPageState extends State<RondaPage> {
                     const SizedBox(height: 10),
                     TextField(
                       controller: patrimonioNovoController, 
+                      onChanged: (v) => _verificarEquipamentoTroca(v, false),
                       decoration: InputDecoration(
                         labelText: 'Patrimônio Novo', 
+                        helperText: _labelEquipamentoNovo != null ? "Item: $_labelEquipamentoNovo" : null,
+                        helperStyle: TextStyle(color: isDark ? Colors.white70 : Colors.indigo.shade900, fontWeight: FontWeight.bold),
                         border: const OutlineInputBorder(),
                         prefixIcon: IconButton(
                           icon: const Icon(Icons.qr_code_scanner, color: Colors.blue), 

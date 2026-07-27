@@ -235,7 +235,7 @@ class _ReportsPageState extends State<ReportsPage> {
           ),
           const SizedBox(height: 30),
           _actionButton(
-            onPressed: (_gerandoInventario || (_apenasSubstituicoes && _periodoPrincipal == null)) ? null : _handleGerarInventario,
+            onPressed: (_gerandoInventario || _periodoPrincipal == null) ? null : _handleGerarInventario,
             label: _gerandoInventario ? "GERANDO..." : "GERAR RELATÓRIO DE INVENTÁRIO",
             icon: Icons.assignment,
           ),
@@ -249,7 +249,13 @@ class _ReportsPageState extends State<ReportsPage> {
             children: [
               Expanded(
                 child: _actionButton(
-                  onPressed: _periodoPrincipal == null ? null : () => _reportController.gerarRelatorioMetas(context, periodo: _periodoPrincipal, periodoComparativo: _periodoComparativo, userName: _authController.currentUser?.email?.split('@')[0], formato: 'PDF'),
+                  onPressed: _periodoPrincipal == null ? null : () => _reportController.gerarRelatorioMetas(
+                    context, 
+                    periodo: _periodoPrincipal, 
+                    periodoComparativo: _periodoComparativo, 
+                    userName: _authController.currentUser?.email?.split('@')[0],
+                    formato: 'PDF'
+                  ),
                   label: "PDF METAS",
                   icon: Icons.picture_as_pdf,
                   color: Colors.red.shade900,

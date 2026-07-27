@@ -864,9 +864,10 @@ class ReportRepository {
       final end = periodo?.end ?? DateTime(now.year, now.month + 1, 0, 23, 59, 59);
 
       Future<Map<String, int>> fetchPerformance(DateTime start, DateTime end) async {
+        final DateTime endOfDay = DateTime(end.year, end.month, end.day, 23, 59, 59);
         QuerySnapshot roundsSnap = await firestore.collection('rondas')
-            .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(start))
-            .where('timestamp', isLessThanOrEqualTo: Timestamp.fromDate(end))
+            .where('data_inicio', isGreaterThanOrEqualTo: start.toIso8601String())
+            .where('data_inicio', isLessThanOrEqualTo: endOfDay.toIso8601String())
             .get();
 
         int rondas = roundsSnap.docs.length;
@@ -953,9 +954,10 @@ class ReportRepository {
       final start = periodo?.start ?? DateTime(now.year, now.month, 1);
       final end = periodo?.end ?? DateTime(now.year, now.month + 1, 0, 23, 59, 59);
 
+      final DateTime endOfDay = DateTime(end.year, end.month, end.day, 23, 59, 59);
       QuerySnapshot roundsSnap = await firestore.collection('rondas')
-          .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(start))
-          .where('timestamp', isLessThanOrEqualTo: Timestamp.fromDate(end))
+          .where('data_inicio', isGreaterThanOrEqualTo: start.toIso8601String())
+          .where('data_inicio', isLessThanOrEqualTo: endOfDay.toIso8601String())
           .get();
 
       var excel = ex.Excel.createExcel();
@@ -1011,9 +1013,10 @@ class ReportRepository {
       final start = periodo?.start ?? DateTime(now.year, now.month, 1);
       final end = periodo?.end ?? DateTime(now.year, now.month + 1, 0, 23, 59, 59);
 
+      final DateTime endOfDay = DateTime(end.year, end.month, end.day, 23, 59, 59);
       QuerySnapshot roundsSnap = await firestore.collection('rondas')
-          .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(start))
-          .where('timestamp', isLessThanOrEqualTo: Timestamp.fromDate(end))
+          .where('data_inicio', isGreaterThanOrEqualTo: start.toIso8601String())
+          .where('data_inicio', isLessThanOrEqualTo: endOfDay.toIso8601String())
           .get();
 
       int rondasRealizadas = roundsSnap.docs.length;

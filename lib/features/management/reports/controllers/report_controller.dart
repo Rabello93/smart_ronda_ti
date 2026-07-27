@@ -34,9 +34,10 @@ class ReportController {
       if (setor != null) query = query.where('setor', isEqualTo: setor);
       
       if (periodo != null) {
+        final DateTime endOfDay = DateTime(periodo.end.year, periodo.end.month, periodo.end.day, 23, 59, 59);
         query = query
             .where('ultima_atualizacao', isGreaterThanOrEqualTo: Timestamp.fromDate(periodo.start))
-            .where('ultima_atualizacao', isLessThanOrEqualTo: Timestamp.fromDate(periodo.end));
+            .where('ultima_atualizacao', isLessThanOrEqualTo: Timestamp.fromDate(endOfDay));
       }
       
       final snapshot = await query.get();
@@ -143,13 +144,14 @@ class ReportController {
 
   Future<void> _gerarRelatorioSubstituicoes(BuildContext context, String formato, String? setorFiltro, DateTimeRange? periodo, String? userName) async {
     try {
-      Query queryRondas = _firestore.collection('rondas').orderBy('timestamp', descending: true);
+      Query queryRondas = _firestore.collection('rondas').orderBy('data_inicio', descending: true);
       if (setorFiltro != null) queryRondas = queryRondas.where('setor', isEqualTo: setorFiltro);
       
       if (periodo != null) {
+        final DateTime endOfDay = DateTime(periodo.end.year, periodo.end.month, periodo.end.day, 23, 59, 59);
         queryRondas = queryRondas
-            .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(periodo.start))
-            .where('timestamp', isLessThanOrEqualTo: Timestamp.fromDate(periodo.end));
+            .where('data_inicio', isGreaterThanOrEqualTo: periodo.start.toIso8601String())
+            .where('data_inicio', isLessThanOrEqualTo: endOfDay.toIso8601String());
       }
 
       final snapshots = await queryRondas.get();
@@ -228,13 +230,14 @@ class ReportController {
     String formato = 'PDF',
   }) async {
     try {
+      final DateTime endOfDay = DateTime(periodo.end.year, periodo.end.month, periodo.end.day, 23, 59, 59);
       Query queryRondas = _firestore.collection('rondas')
-          .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(periodo.start))
-          .where('timestamp', isLessThanOrEqualTo: Timestamp.fromDate(periodo.end));
+          .where('data_inicio', isGreaterThanOrEqualTo: periodo.start.toIso8601String())
+          .where('data_inicio', isLessThanOrEqualTo: endOfDay.toIso8601String());
       
       if (setor != null) queryRondas = queryRondas.where('setor', isEqualTo: setor);
 
-      final QuerySnapshot rondasSnap = await queryRondas.orderBy('timestamp', descending: false).get();
+      final QuerySnapshot rondasSnap = await queryRondas.orderBy('data_inicio', descending: false).get();
 
       Map<String, Map<String, dynamic>> agregador = {};
 
