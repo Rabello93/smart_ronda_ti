@@ -41,8 +41,10 @@ class _ReportsPageState extends State<ReportsPage> {
   DateTimeRange? _periodoComparativo;
 
   Future<void> _handleGerarInventario() async {
-    final String currentUserName = _authController.currentUser?.displayName ?? 
-                                   _authController.currentUser?.email?.split('@')[0] ?? "Admin";
+    final String? displayName = _authController.currentUser?.displayName;
+    final String currentUserName = (displayName != null && displayName.isNotEmpty)
+                                   ? displayName
+                                   : (_authController.currentUser?.email?.split('@')[0] ?? "Admin");
 
     setState(() => _gerandoInventario = true);
     await _reportController.gerarRelatorioInventario(
@@ -250,8 +252,10 @@ class _ReportsPageState extends State<ReportsPage> {
               Expanded(
                 child: _actionButton(
                   onPressed: _periodoPrincipal == null ? null : () {
-                    final String currentUserName = _authController.currentUser?.displayName ?? 
-                                                   _authController.currentUser?.email?.split('@')[0] ?? "Admin";
+                    final String? displayName = _authController.currentUser?.displayName;
+                    final String currentUserName = (displayName != null && displayName.isNotEmpty)
+                                                   ? displayName
+                                                   : (_authController.currentUser?.email?.split('@')[0] ?? "Admin");
                     _reportController.gerarRelatorioMetas(
                       context, 
                       periodo: _periodoPrincipal, 
@@ -289,8 +293,10 @@ class _ReportsPageState extends State<ReportsPage> {
               Expanded(
                 child: _actionButton(
                   onPressed: _periodoPrincipal == null ? null : () {
-                    final String currentUserName = _authController.currentUser?.displayName ?? 
-                                                   _authController.currentUser?.email?.split('@')[0] ?? "Admin";
+                    final String? displayName = _authController.currentUser?.displayName;
+                    final String currentUserName = (displayName != null && displayName.isNotEmpty)
+                                                   ? displayName
+                                                   : (_authController.currentUser?.email?.split('@')[0] ?? "Admin");
                     _reportController.gerarRelatorioIncidencias(
                       context, 
                       periodo: _periodoPrincipal!, 
@@ -327,8 +333,10 @@ class _ReportsPageState extends State<ReportsPage> {
           const SizedBox(height: 20),
           _actionButton(
             onPressed: () {
-              final String currentUserName = _authController.currentUser?.displayName ?? 
-                                             _authController.currentUser?.email?.split('@')[0] ?? "Admin";
+              final String? displayName = _authController.currentUser?.displayName;
+              final String currentUserName = (displayName != null && displayName.isNotEmpty)
+                                             ? displayName
+                                             : (_authController.currentUser?.email?.split('@')[0] ?? "Admin");
               _reportController.gerarRelatorioContratos(context, userName: currentUserName);
             },
             label: "PDF ANÁLISE DE CONTRATOS (OPEX)",

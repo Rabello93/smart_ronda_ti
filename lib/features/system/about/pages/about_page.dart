@@ -47,7 +47,7 @@ class AboutPage extends StatelessWidget {
             _sectionTitle("🚀 Log de Atualizações"),
             _buildUpdate(
               "3.3.0 (Atual)",
-              "• INTELIGÊNCIA PREDITIVA: Implementação do Equipment Health Score (0-100%) baseado em idade e histórico.\n• PLANO DE AÇÃO: Sugestões automáticas de gestão (Capex/Manutenção) nos relatórios PDF.\n• MÓDULO DE LOCAÇÃO: Cockpit de auditoria contratual que cruza inventário real vs capacidade contratada.",
+              "• INTELIGÊNCIA PREDITIVA: Implementação do Equipment Health Score (0-100%) baseado em idade e histórico.\n• PLANO DE AÇÃO: Sugestões automáticas de gestão (Capex/Manutenção) nos relatórios PDF.\n• MÓDULO DE LOCAÇÃO: Cockpit de auditoria contratual que cruza inventário real vs capacidade contratada e simulador de expansão.",
             ),
             _buildUpdate(
               "3.2.11",

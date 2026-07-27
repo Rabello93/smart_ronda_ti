@@ -58,6 +58,9 @@ class ReportRepository {
     final now = DateTime.now();
     final dateStr = "${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}";
     
+    // Fallback robusto para o nome do emissor
+    final String finalUserName = (userName != null && userName.trim().isNotEmpty) ? userName.toUpperCase() : "GESTOR";
+
     return pw.Container(
       alignment: pw.Alignment.centerRight,
       margin: const pw.EdgeInsets.only(top: 5.0 * PdfPageFormat.mm),
@@ -74,8 +77,8 @@ class ReportRepository {
                 pw.Text("CNPJ: ${config['cnpj']}", style: const pw.TextStyle(fontSize: 7)),
               if (config['contato'] != null && config['contato'].isNotEmpty)
                 pw.Text("Contato: ${config['contato']}", style: const pw.TextStyle(fontSize: 7)),
-              if (userName != null && userName.trim().isNotEmpty)
-                pw.Text("RELATÓRIO EMITIDO POR: ${userName.toUpperCase()}", style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: PdfColors.indigo900)),
+              pw.SizedBox(height: 2),
+              pw.Text("RELATÓRIO EMITIDO POR: $finalUserName", style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: PdfColors.indigo900)),
             ]
           ),
           pw.Column(

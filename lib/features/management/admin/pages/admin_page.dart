@@ -426,7 +426,6 @@ class _DepartamentosTab extends StatelessWidget {
 
   void _abrirHistoricoSetor(BuildContext context, String setor, bool isAuthorized) {
     final AssetController controller = AssetController();
-    final AuthController _authController = AuthController();
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -466,8 +465,11 @@ class _DepartamentosTab extends StatelessWidget {
               children: [
                 ElevatedButton.icon(
                   onPressed: () async {
-                    final String currentUserName = _authController.currentUser?.displayName ?? 
-                                                   _authController.currentUser?.email?.split('@')[0] ?? "Admin";
+                    final AuthController auth = AuthController();
+                    final String? displayName = auth.currentUser?.displayName;
+                    final String currentUserName = (displayName != null && displayName.isNotEmpty)
+                                                   ? displayName
+                                                   : (auth.currentUser?.email?.split('@')[0] ?? "Admin");
                     final itensSnapshot = await controller.getSectorStream(setor).first;
                     final itensMap = itensSnapshot.map((e) => e.toMap()..['patrimonio'] = e.patrimonio).toList();
                     if (context.mounted) ReportRepository.exportarMapaAtivosSetor(setor: setor, itens: itensMap, context: context, userName: currentUserName);

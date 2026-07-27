@@ -14,8 +14,8 @@ Esta versão transforma o Smart Ronda TI em uma plataforma de **Inteligência Pr
 
 ### 📦 Gestão de Contratos e Locação (OPEX)
 *   **Módulo de Auditoria Contratual**: Novo painel que cruza o inventário real com a capacidade contratada das locadoras.
-*   **Análise de Gap**: O sistema alerta se você está com déficit de equipamentos ou se possui reserva técnica suficiente para novos setores.
-*   **Ficha Técnica de Contrato**: Registro de valores (mensal/anual), vigência, versão de contrato e SLA por locadora.
+*   **Análise de Gap e Simulador**: Ferramenta de simulação para expansão de setores e detecção de déficit.
+*   **Ficha Técnica Completa**: Agora com campos para CNPJ, E-mail, Telefone e Endereço da locadora para gestão de suprimentos.
 
 ### 📊 Business Intelligence (BI)
 *   **Evolução do Health Score**: O gráfico de saúde do Dashboard agora reflete a média de Score do parque tecnológico, não apenas a disponibilidade binária.
