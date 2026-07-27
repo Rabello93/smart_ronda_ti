@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import '../models/round_model.dart';
 import '../../assets/models/asset_model.dart';
 
@@ -39,6 +40,28 @@ class RoundRepository {
       // Validação/Atualização no Castelo (Única fonte da verdade)
       DocumentReference invRef = _firestore.collection('inventario_mestre').doc(inventoryId);
       
+      // INTELIGENCIA 3.2.11: Rastreabilidade de Movimentação
+      try {
+        final currentAssetDoc = await invRef.get();
+        if (currentAssetDoc.exists) {
+          final String setorAnterior = currentAssetDoc.get('setor') ?? 'Desconhecido';
+          if (setorAnterior != round.setor) {
+            // Registra a movimentação automática
+            DocumentReference movRef = invRef.collection('movimentacoes').doc();
+            batch.set(movRef, {
+              'origem': setorAnterior,
+              'destino': round.setor,
+              'data': FieldValue.serverTimestamp(),
+              'tecnico_id': _auth.currentUser?.uid,
+              'ronda_id': roundRef.id,
+              'motivo': assetData['motivo_divergencia'] ?? 'Movimentação detectada em ronda',
+            });
+          }
+        }
+      } catch (e) {
+        debugPrint("Erro ao registrar movimentação: $e");
+      }
+
       Map<String, dynamic> invData = Map.from(assetData);
       invData['ultima_ronda_id'] = roundRef.id;
       invData['ultimo_tecnico'] = _auth.currentUser?.uid;

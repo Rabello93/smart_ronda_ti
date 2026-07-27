@@ -327,12 +327,9 @@ class _DashboardPageState extends State<DashboardPage> {
 
   Widget _buildGeralTab(List<RoundModel> filteredRondas, List<RoundModel> allRondas, Color textColor) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
     final today = DateTime.now();
     final hojeRondas = allRondas.where((r) => 
-      r.dataInicio.day == today.day && 
-      r.dataInicio.month == today.month && 
-      r.dataInicio.year == today.year
+      r.dataInicio.day == today.day && r.dataInicio.month == today.month && r.dataInicio.year == today.year
     ).toList();
     
     final rankingDepartamentosHoje = _dashboardController.getRankingPorDepartamento(hojeRondas);
@@ -342,15 +339,12 @@ class _DashboardPageState extends State<DashboardPage> {
       stream: _adminController.sectorsStream,
       builder: (context, sectorSnapshot) {
         final departamentos = sectorSnapshot.data ?? [];
-        
         return StreamBuilder<List<AssetModel>>(
           stream: _assetController.getAllAssetsStream(),
           builder: (context, assetSnapshot) {
             final allAssets = assetSnapshot.data ?? [];
-            
             final criticalAlerts = _dashboardController.getCriticalAlerts(allRondas, allAssets);
             final deptAlerts = _dashboardController.getInactiveDepartmentAlerts(allRondas, departamentos);
-            
             final heatMapData = _dashboardController.getAuditHeatMap(allRondas, departamentos);
             final coverage = _dashboardController.getInventoryCoverage(allAssets, allRondas);
 
@@ -367,47 +361,13 @@ class _DashboardPageState extends State<DashboardPage> {
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
-                        SummaryCard(
-                          title: "Inventário Total", 
-                          value: allAssets.length.toString(), 
-                          icon: Icons.storage, 
-                          color: Colors.teal,
-                        ),
+                        SummaryCard(title: "Inventário Total", value: allAssets.length.toString(), icon: Icons.storage, color: Colors.teal),
                         const SizedBox(width: 12),
-                        SummaryCard(
-                          title: "Auditados no Período", 
-                          value: _dashboardController.getTotalItens(filteredRondas).toString(), 
-                          icon: Icons.inventory_2, 
-                          color: Colors.orange,
-                        ),
+                        SummaryCard(title: "Auditados no Período", value: _dashboardController.getTotalItens(filteredRondas).toString(), icon: Icons.inventory_2, color: Colors.orange),
                         const SizedBox(width: 12),
-                        SummaryCard(
-                          title: "Defeitos (Total)", 
-                          value: allAssets.where((a) => a.temDefeito || a.statusOperacional == 'Em manutenção').length.toString(), 
-                          icon: Icons.error, 
-                          color: Colors.red,
-                        ),
+                        SummaryCard(title: "Defeitos (Total)", value: allAssets.where((a) => a.temDefeito || a.statusOperacional == 'Em manutenção').length.toString(), icon: Icons.error, color: Colors.red),
                         const SizedBox(width: 12),
-                        SummaryCard(
-                          title: "Rondas (Período)", 
-                          value: filteredRondas.length.toString(), 
-                          icon: Icons.assignment_turned_in, 
-                          color: Colors.blue,
-                        ),
-                        const SizedBox(width: 12),
-                        SummaryCard(
-                          title: "Hoje", 
-                          value: hojeRondas.length.toString(), 
-                          icon: Icons.today, 
-                          color: Colors.green,
-                        ),
-                        const SizedBox(width: 12),
-                        SummaryCard(
-                          title: "Autorizados HO", 
-                          value: allAssets.where((a) => a.homeOfficeAutorizado).length.toString(),
-                          icon: Icons.home_work, 
-                          color: Colors.purple,
-                        ),
+                        SummaryCard(title: "Rondas (Período)", value: filteredRondas.length.toString(), icon: Icons.assignment_turned_in, color: Colors.blue),
                       ],
                     ),
                   ),
@@ -417,11 +377,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   const SizedBox(height: 16),
                   Container(
                     padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)],
-                    ),
+                    decoration: BoxDecoration(color: isDark ? const Color(0xFF1E1E1E) : Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)]),
                     child: TrendChart(data: trendData, color: Colors.blue),
                   ),
 
@@ -438,14 +394,8 @@ class _DashboardPageState extends State<DashboardPage> {
                             const SizedBox(height: 16),
                             Container(
                               padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: isDark ? AppTheme.charcoal : Colors.white,
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: CoverageChart(
-                                auditado: coverage['auditado'] ?? 0, 
-                                pendente: coverage['pendente'] ?? 0,
-                              ),
+                              decoration: BoxDecoration(color: isDark ? AppTheme.charcoal : Colors.white, borderRadius: BorderRadius.circular(16)),
+                              child: CoverageChart(auditado: coverage['auditado'] ?? 0, pendente: coverage['pendente'] ?? 0),
                             ),
                           ],
                         ),
@@ -460,10 +410,7 @@ class _DashboardPageState extends State<DashboardPage> {
                             const SizedBox(height: 16),
                             Container(
                               padding: const EdgeInsets.all(20),
-                              decoration: BoxDecoration(
-                                color: isDark ? AppTheme.charcoal : Colors.white,
-                                borderRadius: BorderRadius.circular(16),
-                              ),
+                              decoration: BoxDecoration(color: isDark ? AppTheme.charcoal : Colors.white, borderRadius: BorderRadius.circular(16)),
                               child: AuditHeatMapWidget(data: heatMapData),
                             ),
                           ],
@@ -475,30 +422,33 @@ class _DashboardPageState extends State<DashboardPage> {
                   const SizedBox(height: 32),
                   const SectionTitle(title: "Atividade por Departamento (Hoje)"),
                   const SizedBox(height: 16),
-                  _buildRankingCard(
-                    rankingDepartamentosHoje.take(5).toList(), 
-                    rankingDepartamentosHoje.isNotEmpty ? rankingDepartamentosHoje.first.value : 0,
-                    Colors.indigo,
-                  ),
+                  _buildRankingCard(rankingDepartamentosHoje.take(5).toList(), rankingDepartamentosHoje.isNotEmpty ? rankingDepartamentosHoje.first.value : 0, Colors.indigo),
                   
                   if (filteredRondas.length != hojeRondas.length) ...[
                     const SizedBox(height: 32),
                     const SectionTitle(title: "Top Departamentos (Período Selecionado)"),
                     const SizedBox(height: 16),
-                    _buildRankingCard(
-                      _dashboardController.getRankingPorDepartamento(filteredRondas).take(5).toList(),
-                      _dashboardController.getRankingPorDepartamento(filteredRondas).isNotEmpty 
-                        ? _dashboardController.getRankingPorDepartamento(filteredRondas).first.value 
-                        : 0,
-                      Colors.blue,
-                    ),
+                    _buildRankingCard(_dashboardController.getRankingPorDepartamento(filteredRondas).take(5).toList(), _dashboardController.getRankingPorDepartamento(filteredRondas).isNotEmpty ? _dashboardController.getRankingPorDepartamento(filteredRondas).first.value : 0, Colors.blue),
                   ],
+
+                  const SizedBox(height: 32),
+                  const SectionTitle(title: "Ranking de Divergências por Setor", color: AppTheme.ruby),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(color: isDark ? AppTheme.charcoal : Colors.white, borderRadius: BorderRadius.circular(24), border: Border.all(color: AppTheme.ruby.withValues(alpha: 0.1))),
+                    child: Column(
+                      children: _dashboardController.getDivergenceRanking(allAssets).take(5).map((e) => RankingItem(
+                        label: e['setor'].toString().toUpperCase(), count: e['count'], progress: (e['percent'] as double) / 100, color: AppTheme.ruby, suffix: "itens fora do lugar (${e['percent'].toStringAsFixed(1)}%)",
+                      )).toList(),
+                    ),
+                  ),
                 ],
               ),
             );
-          }
+          },
         );
-      }
+      },
     );
   }
 
@@ -528,14 +478,8 @@ class _DashboardPageState extends State<DashboardPage> {
                 runSpacing: 20,
                 alignment: WrapAlignment.center,
                 children: [
-                  GoalProgressCard(
-                    title: "RONDAS REALIZADAS", current: thisMonthRondas.length.toDouble(), 
-                    goal: (goals['rondas_mensal'] ?? 100).toDouble(), color: AppTheme.electricBlue, unit: "rondas"
-                  ),
-                  GoalProgressCard(
-                    title: "ITENS AUDITADOS", current: totalItensMes.toDouble(), 
-                    goal: (goals['itens_mensal'] ?? 500).toDouble(), color: AppTheme.cyanNeon, unit: "itens"
-                  ),
+                  GoalProgressCard(title: "RONDAS REALIZADAS", current: thisMonthRondas.length.toDouble(), goal: (goals['rondas_mensal'] ?? 100).toDouble(), color: AppTheme.electricBlue, unit: "rondas"),
+                  GoalProgressCard(title: "ITENS AUDITADOS", current: totalItensMes.toDouble(), goal: (goals['itens_mensal'] ?? 500).toDouble(), color: AppTheme.cyanNeon, unit: "itens"),
                 ],
               ),
               const SizedBox(height: 48),
@@ -565,11 +509,7 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget _buildChartCard(String title, dynamic data, String metric, Color color, bool isDark) {
     return Container(
       padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: isDark ? AppTheme.charcoal : Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-      ),
+      decoration: BoxDecoration(color: isDark ? AppTheme.charcoal : Colors.white, borderRadius: BorderRadius.circular(24), border: Border.all(color: Colors.white.withValues(alpha: 0.05))),
       child: Column(
         children: [
           Text(title, style: AppTheme.monoStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey)),
@@ -600,18 +540,10 @@ class _DashboardPageState extends State<DashboardPage> {
           const SizedBox(height: 20),
           ...ultimasAtividades.take(10).map((r) => Container(
             margin: const EdgeInsets.only(bottom: 8),
-            decoration: BoxDecoration(
-              color: isDark ? AppTheme.charcoal : Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-            ),
+            decoration: BoxDecoration(color: isDark ? AppTheme.charcoal : Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.white.withValues(alpha: 0.05))),
             child: ListTile(
               dense: true,
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: Colors.orange.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
-                child: const Icon(Icons.person_outline_rounded, size: 18, color: Colors.orange),
-              ),
+              leading: Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: Colors.orange.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)), child: const Icon(Icons.person_outline_rounded, size: 18, color: Colors.orange)),
               title: Text("${r.tecnico.toUpperCase()} no setor ${r.setor.toUpperCase()}", style: GoogleFonts.inter(fontWeight: FontWeight.w800, fontSize: 12)),
               subtitle: Text("${DateFormat('dd/MM HH:mm').format(r.dataInicio)} | ${r.itensTotal} itens auditados", style: AppTheme.monoStyle(fontSize: 10, color: Colors.grey)),
             ),
@@ -648,11 +580,7 @@ class _DashboardPageState extends State<DashboardPage> {
               margin: const EdgeInsets.only(bottom: 12),
               decoration: BoxDecoration(color: isDark ? AppTheme.charcoal : Colors.white, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppTheme.ruby.withValues(alpha: 0.1))),
               child: ListTile(
-                leading: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(color: AppTheme.ruby.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(14)),
-                  child: const Icon(Icons.gpp_maybe_rounded, color: AppTheme.ruby),
-                ),
+                leading: Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: AppTheme.ruby.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(14)), child: const Icon(Icons.gpp_maybe_rounded, color: AppTheme.ruby)),
                 title: Text("${item.tipo.toUpperCase()} - PAT: ${item.patrimonio}", style: GoogleFonts.inter(fontWeight: FontWeight.w900, fontSize: 13)),
                 subtitle: Text("DEPTO: ${item.setor.toUpperCase()}\nMOTIVO: ${item.descricaoDefeito ?? 'NÃO INFORMADO'}", style: const TextStyle(fontSize: 11)),
                 isThreeLine: true,
@@ -671,15 +599,12 @@ class _DashboardPageState extends State<DashboardPage> {
       builder: (context, snapshot) {
         final itens = snapshot.data ?? [];
         if (itens.isEmpty) return const Center(child: Text("Castelo Vazio."));
-
         Map<String, List<AssetModel>> porOrigem = {};
         for (var i in itens) {
           String origem = (i.isLocado && i.locadora != null) ? i.locadora!.toUpperCase() : "PATRIMÔNIO PRÓPRIO";
           porOrigem.putIfAbsent(origem, () => []).add(i);
         }
-
         final listaOrdenada = porOrigem.entries.toList()..sort((a, b) => a.key == "PATRIMÔNIO PRÓPRIO" ? -1 : a.key.compareTo(b.key));
-
         return ListView(
           padding: const EdgeInsets.all(24),
           children: listaOrdenada.map((entry) {
@@ -688,17 +613,9 @@ class _DashboardPageState extends State<DashboardPage> {
               margin: const EdgeInsets.only(bottom: 16),
               decoration: BoxDecoration(color: isDark ? AppTheme.charcoal : Colors.white, borderRadius: BorderRadius.circular(24), border: Border.all(color: Colors.white.withValues(alpha: 0.05))),
               child: ExpansionTile(
-                leading: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(color: (isProprio ? AppTheme.electricBlue : Colors.orange).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-                  child: Icon(isProprio ? Icons.inventory_2_rounded : Icons.business_center_rounded, color: isProprio ? AppTheme.electricBlue : Colors.orange, size: 20),
-                ),
+                leading: Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: (isProprio ? AppTheme.electricBlue : Colors.orange).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)), child: Icon(isProprio ? Icons.inventory_2_rounded : Icons.business_center_rounded, color: isProprio ? AppTheme.electricBlue : Colors.orange, size: 20)),
                 title: Text(entry.key, style: GoogleFonts.inter(fontWeight: FontWeight.w900, fontSize: 13)),
-                children: entry.value.map((i) => ListTile(
-                  dense: true, 
-                  title: Text("Pat: ${i.patrimonio}", style: const TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Text("${i.tipo} | ${i.setor}"),
-                )).toList(),
+                children: entry.value.map((i) => ListTile(dense: true, title: Text("Pat: ${i.patrimonio}", style: const TextStyle(fontWeight: FontWeight.bold)), subtitle: Text("${i.tipo} | ${i.setor}"))).toList(),
               ),
             );
           }).toList(),
@@ -724,10 +641,8 @@ class _DashboardPageState extends State<DashboardPage> {
                 final dep = departamentos[index];
                 final String depNome = dep['nome'].toString();
                 final itensDoDep = allAssets.where((a) => a.setor == depNome || (depNome == 'TI' && a.statusOperacional == 'Em manutenção')).toList();
-                
                 return Card(
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 2, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   child: InkWell(
                     borderRadius: BorderRadius.circular(16),
                     onTap: () => _showDepartamentoDetails(context, depNome, itensDoDep),
@@ -760,27 +675,15 @@ class _DashboardPageState extends State<DashboardPage> {
         children: [
           const SectionTitle(title: "Análise de Disponibilidade"),
           const SizedBox(height: 24),
-          _buildStatusStreamCard(
-            stream: _assetController.getMaintenanceStream(),
-            title: "FORA DE OPERAÇÃO (REPARO)", icon: Icons.build_circle_rounded, color: Colors.orange,
-          ),
+          _buildStatusStreamCard(stream: _assetController.getMaintenanceStream(), title: "FORA DE OPERAÇÃO (REPARO)", icon: Icons.build_circle_rounded, color: Colors.orange),
           const SizedBox(height: 12),
-          _buildStatusStreamCard(
-            stream: _assetController.getAllAssetsStream().map((list) => list.where((a) => a.homeOfficeAutorizado).toList()),
-            title: "EXTERNOS (HOME OFFICE)", icon: Icons.home_work_rounded, color: AppTheme.electricBlue,
-          ),
+          _buildStatusStreamCard(stream: _assetController.getAllAssetsStream().map((list) => list.where((a) => a.homeOfficeAutorizado).toList()), title: "EXTERNOS (HOME OFFICE)", icon: Icons.home_work_rounded, color: AppTheme.electricBlue),
           const SizedBox(height: 12),
-          _buildStatusStreamCard(
-            stream: _assetController.getDivergenceStream(),
-            title: "DIVERGÊNCIAS DE LOCAL", icon: Icons.wrong_location_rounded, color: Colors.purpleAccent,
-          ),
+          _buildStatusStreamCard(stream: _assetController.getDivergenceStream(), title: "DIVERGÊNCIAS DE LOCAL", icon: Icons.wrong_location_rounded, color: Colors.purpleAccent),
           const SizedBox(height: 12),
-          _buildStatusStreamCard(
-            stream: _assetController.getObsoleteStream(),
-            title: "OBSOLETOS (+5 ANOS)", icon: Icons.timer_rounded, color: AppTheme.amberNeon,
-          ),
+          _buildStatusStreamCard(stream: _assetController.getObsoleteStream(), title: "OBSOLETOS (+5 ANOS)", icon: Icons.timer_rounded, color: AppTheme.amberNeon),
           const SizedBox(height: 48),
-          Text("INFO: SISTEMA DE GOVERNANÇA HÍBRIDA v3.2.10", style: AppTheme.monoStyle(fontSize: 9, color: Colors.grey, fontWeight: FontWeight.bold)),
+          Text("INFO: SISTEMA DE GOVERNANÇA HÍBRIDA v3.2.11", style: AppTheme.monoStyle(fontSize: 9, color: Colors.grey, fontWeight: FontWeight.bold)),
         ],
       ),
     );
@@ -789,13 +692,7 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget _buildStatusStreamCard({required Stream<List<AssetModel>> stream, required String title, required IconData icon, required Color color}) {
     return StreamBuilder<List<AssetModel>>(
       stream: stream,
-      builder: (context, snapshot) {
-        final itens = snapshot.data ?? [];
-        return StatusIndicatorCard(
-          title: title, count: itens.length.toString(), icon: icon, color: color,
-          onTap: () => _showItensList(context, title, itens),
-        );
-      }
+      builder: (context, snapshot) => StatusIndicatorCard(title: title, count: (snapshot.data?.length ?? 0).toString(), icon: icon, color: color, onTap: () => _showItensList(context, title, snapshot.data ?? [])),
     );
   }
 
@@ -811,14 +708,13 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget _buildUnifiedAlertsExpander(List<String> critical, List<String> inactive) {
-    final totalCount = critical.length + inactive.length;
     return Card(
       elevation: 0, margin: const EdgeInsets.only(bottom: 20),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: Colors.orange.withValues(alpha: 0.3))),
       color: Colors.orange.withValues(alpha: 0.05),
       child: ExpansionTile(
         leading: Icon(critical.isNotEmpty ? Icons.report_problem : Icons.warning_amber_rounded, color: critical.isNotEmpty ? Colors.red : Colors.orange),
-        title: Text("⚠️ CENTRAL DE ALERTAS ($totalCount)", style: TextStyle(color: critical.isNotEmpty ? Colors.red : Colors.orange.shade900, fontWeight: FontWeight.bold, fontSize: 13)),
+        title: Text("⚠️ CENTRAL DE ALERTAS (${critical.length + inactive.length})", style: TextStyle(color: critical.isNotEmpty ? Colors.red : Colors.orange.shade900, fontWeight: FontWeight.bold, fontSize: 13)),
         children: [
           ...critical.map((a) => ListTile(dense: true, leading: const Icon(Icons.error_outline, color: Colors.red, size: 16), title: Text(a, style: const TextStyle(fontSize: 12, color: Colors.red)))),
           ...inactive.map((a) => ListTile(dense: true, leading: const Icon(Icons.history_toggle_off, color: Colors.orange, size: 16), title: Text(a, style: const TextStyle(fontSize: 12)))),
@@ -849,17 +745,7 @@ class _DashboardPageState extends State<DashboardPage> {
           child: itens.isEmpty ? const Text("Vazio.") : ListView.builder(
             shrinkWrap: true,
             itemCount: itens.length,
-            itemBuilder: (context, index) {
-              final i = itens[index];
-              return Card(
-                margin: const EdgeInsets.symmetric(vertical: 4),
-                child: ListTile(
-                  dense: true, 
-                  title: Text("${i.tipo} - ${i.patrimonio}", style: const TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Text("Status: ${i.statusOperacional}"),
-                ),
-              );
-            },
+            itemBuilder: (context, index) => Card(child: ListTile(dense: true, title: Text("${itens[index].tipo} - ${itens[index].patrimonio}"), subtitle: Text("Status: ${itens[index].statusOperacional}"))),
           ),
         ),
         actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text("FECHAR"))],
@@ -872,14 +758,7 @@ class _DashboardPageState extends State<DashboardPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(title),
-        content: SizedBox(
-          width: 500,
-          child: itens.isEmpty ? const Text("Vazio.") : ListView.builder(
-            shrinkWrap: true,
-            itemCount: itens.length,
-            itemBuilder: (context, index) => Card(child: ListTile(title: Text(itens[index].patrimonio), subtitle: Text(itens[index].tipo))),
-          ),
-        ),
+        content: SizedBox(width: 500, child: itens.isEmpty ? const Text("Vazio.") : ListView.builder(shrinkWrap: true, itemCount: itens.length, itemBuilder: (context, index) => Card(child: ListTile(title: Text(itens[index].patrimonio), subtitle: Text(itens[index].tipo))))),
         actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text("Fechar"))],
       ),
     );
@@ -889,19 +768,34 @@ class _DashboardPageState extends State<DashboardPage> {
     final rCtrl = TextEditingController(text: currentGoals['rondas_mensal']?.toString());
     final iCtrl = TextEditingController(text: currentGoals['itens_mensal']?.toString());
     showDialog(
-      context: context,
+      context: context, 
       builder: (context) => AlertDialog(
-        title: const Text("Metas"),
-        content: Column(mainAxisSize: MainAxisSize.min, children: [TextField(controller: rCtrl, decoration: const InputDecoration(labelText: "Rondas")), TextField(controller: iCtrl, decoration: const InputDecoration(labelText: "Itens"))]),
-        actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancelar")), ElevatedButton(onPressed: () async {
-          await _adminController.updateGoals({'rondas_mensal': int.tryParse(rCtrl.text) ?? 100, 'itens_mensal': int.tryParse(iCtrl.text) ?? 500});
-          if (context.mounted) Navigator.pop(context);
-        }, child: const Text("Salvar"))],
-      ),
+        title: const Text("Metas"), 
+        content: Column(
+          mainAxisSize: MainAxisSize.min, 
+          children: [
+            TextField(controller: rCtrl, decoration: const InputDecoration(labelText: "Rondas")), 
+            TextField(controller: iCtrl, decoration: const InputDecoration(labelText: "Itens"))
+          ]
+        ), 
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancelar")), 
+          ElevatedButton(
+            onPressed: () async { 
+              await _adminController.updateGoals({
+                'rondas_mensal': int.tryParse(rCtrl.text) ?? 100, 
+                'itens_mensal': int.tryParse(iCtrl.text) ?? 500
+              }); 
+              if (context.mounted) Navigator.pop(context); 
+            }, 
+            child: const Text("Salvar")
+          )
+        ]
+      )
     );
   }
 
   Widget _buildFooter(Color textColor) {
-    return Container(padding: const EdgeInsets.symmetric(vertical: 8), child: Center(child: Text('Smart Ronda TI - v3.2.10', style: TextStyle(color: textColor.withValues(alpha: 0.5), fontSize: 10))));
+    return Container(padding: const EdgeInsets.symmetric(vertical: 8), child: Center(child: Text('Smart Ronda TI - v3.2.11', style: TextStyle(color: textColor.withValues(alpha: 0.5), fontSize: 10))));
   }
 }

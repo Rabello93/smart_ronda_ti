@@ -75,8 +75,8 @@ class _RondaPageState extends State<RondaPage> {
   bool isHomeOffice = false;
   String? locadoraSelecionada;
   String? setorDivergenteSelecionado;
-  String? _patrimonioOriginal; // Rastreia o ID original vindo da lupa
-  DateTime? _dataEntradaManutencaoOriginal; // Novo: Para cálculo de tempo em reparo
+  String? _patrimonioOriginal; 
+  DateTime? _dataEntradaManutencaoOriginal;
   bool houveTroca = false;
   List<Map<String, dynamic>> listaTrocas = [];
   String? _labelEquipamentoAntigo;
@@ -183,15 +183,13 @@ class _RondaPageState extends State<RondaPage> {
         anoFabricacaoController.text = dados.anoFabricacao?.toString() ?? "";
         isLocado = dados.isLocado;
         locadoraSelecionada = dados.locadora;
-        isHomeOffice = dados.homeOfficeAutorizado; // Usa a autorização permanente
+        isHomeOffice = dados.homeOfficeAutorizado;
         responsavelHomeOfficeController.text = dados.responsavelExterno ?? "";
         motivoBaixaController.text = dados.motivoBaixa ?? "";
         defeito = dados.temDefeito;
         descricaoDefeitoController.text = dados.descricaoDefeito ?? "";
         _dataEntradaManutencaoOriginal = dados.dataEntradaManutencao;
         
-        // Se o item vem da lupa e é sem placa, o patrimonioController deve ficar vazio
-        // para o técnico digitar a nova. Caso contrário, preenche com o patrimônio real.
         if (valor.startsWith("SP_")) {
           patrimonioController.text = "";
         } else {
@@ -226,7 +224,6 @@ class _RondaPageState extends State<RondaPage> {
         setState(() => statusOperacional = 'Em uso');
       }
 
-      // POPUP DE TRANSFERÊNCIA
       if (dados.setor != widget.setor) {
         if (mounted) {
           showDialog(
@@ -257,7 +254,6 @@ class _RondaPageState extends State<RondaPage> {
                   onPressed: () {
                     Navigator.pop(ctx);
                     patrimonioController.clear();
-                    // Limpa os campos se o usuário não confirmar
                     setState(() {
                       marcaController.clear();
                       modeloController.clear();
@@ -288,7 +284,7 @@ class _RondaPageState extends State<RondaPage> {
         anoFabricacaoController.text = dados.anoFabricacao?.toString() ?? "";
         isLocado = dados.isLocado;
         locadoraSelecionada = dados.locadora;
-        isHomeOffice = dados.homeOfficeAutorizado; // Usa a autorização permanente
+        isHomeOffice = dados.homeOfficeAutorizado;
         responsavelHomeOfficeController.text = dados.responsavelExterno ?? "";
       });
     }
@@ -514,13 +510,12 @@ class _RondaPageState extends State<RondaPage> {
                             Navigator.pop(context);
                             if (controller != null) {
                               setState(() => controller.text = pat);
+                              _verificarEquipamentoTroca(pat, controller == patrimonioAntigoController);
                             } else {
-                              _patrimonioOriginal = pat; // Salva o ID original
+                              _patrimonioOriginal = pat;
                               setState(() {
-                                // Se for sem placa, deixa vazio para o técnico digitar a nova
-                                // Se tiver placa, já preenche o campo
                                 patrimonioController.text = pat.startsWith("SP_") ? "" : pat;
-                                possuiPatrimonio = true; // Força a chave para 'Sim' para permitir edição/confirmação
+                                possuiPatrimonio = true;
                               });
                               _verificarInventario(pat);
                             }
@@ -563,13 +558,12 @@ class _RondaPageState extends State<RondaPage> {
                             Navigator.pop(context);
                             if (controller != null) {
                               setState(() => controller.text = pat);
+                              _verificarEquipamentoTroca(pat, controller == patrimonioAntigoController);
                             } else {
-                              _patrimonioOriginal = pat; // Salva o ID original
+                              _patrimonioOriginal = pat;
                               setState(() {
-                                // Se for sem placa, deixa vazio para o técnico digitar a nova
-                                // Se tiver placa, já preenche o campo
                                 patrimonioController.text = pat.startsWith("SP_") ? "" : pat;
-                                possuiPatrimonio = true; // Força a chave para 'Sim' para permitir edição/confirmação
+                                possuiPatrimonio = true;
                               });
                               _verificarInventario(pat);
                             }
@@ -585,6 +579,20 @@ class _RondaPageState extends State<RondaPage> {
         ),
       ),
     );
+  }
+
+  Future<void> _verificarEquipamentoTroca(String valor, bool isAntigo) async {
+    if (valor.length < 3) return;
+    final AssetModel? dados = await _assetController.searchAsset(valor);
+    if (dados != null && mounted) {
+      setState(() {
+        if (isAntigo) {
+          _labelEquipamentoAntigo = "${dados.tipo} - ${dados.marca}";
+        } else {
+          _labelEquipamentoNovo = "${dados.tipo} - ${dados.marca}";
+        }
+      });
+    }
   }
 
   Future<void> _selecionarHora(BuildContext context, bool isRetirada) async {
@@ -615,25 +623,10 @@ class _RondaPageState extends State<RondaPage> {
     }
   }
 
-  Future<void> _verificarEquipamentoTroca(String valor, bool isAntigo) async {
-    if (valor.length < 3) return;
-    final AssetModel? dados = await _assetController.searchAsset(valor);
-    if (dados != null && mounted) {
-      setState(() {
-        if (isAntigo) {
-          _labelEquipamentoAntigo = "${dados.tipo} - ${dados.marca}";
-        } else {
-          _labelEquipamentoNovo = "${dados.tipo} - ${dados.marca}";
-        }
-      });
-    }
-  }
-
   void adicionarEquipamento() {
     final String currentPat = patrimonioController.text.trim();
     final bool isExistingNoPlate = _patrimonioOriginal != null && _patrimonioOriginal!.startsWith("SP_");
 
-    // Bloqueia apenas se não tiver patrimônio digitado E não for um item sem placa já existente selecionado na lupa
     if (currentPat.isEmpty && !isExistingNoPlate && possuiPatrimonio) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Erro: O Patrimônio é obrigatório'), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
@@ -669,16 +662,11 @@ class _RondaPageState extends State<RondaPage> {
       return;
     }
 
-    // Lógica de Setor
     String setorDestino = widget.setor;
     if (setorDivergente && setorDivergenteSelecionado != null) {
       setorDestino = setorDivergenteSelecionado!;
     }
 
-    // Lógica de Identificação:
-    // 1. Se digitou algo -> Usa o digitado
-    // 2. Se selecionou um sem placa na lupa e não digitou nada -> Continua "SEM PATRIMÔNIO"
-    // 3. Se marcou a chave como "Não" -> "SEM PATRIMÔNIO"
     String finalPatrimony = "SEM PATRIMÔNIO";
     if (currentPat.isNotEmpty) {
       finalPatrimony = currentPat;
@@ -712,11 +700,11 @@ class _RondaPageState extends State<RondaPage> {
         status: 'Ativo',
         semPatrimonio: !possuiPatrimonio,
         isHomeOffice: isHomeOffice,
-        homeOfficeAutorizado: isHomeOffice, // Sincroniza com o estado da chave
+        homeOfficeAutorizado: isHomeOffice,
         dataEntradaManutencao: finalDataManutencao,
         responsavelExterno: isHomeOffice ? responsavelHomeOfficeController.text.trim() : null,
         motivoBaixa: statusOperacional == 'Baixa Patrimonial' ? motivoBaixaController.text.trim() : null,
-        idAnterior: _patrimonioOriginal, // Passa o ID original para o repositório
+        idAnterior: _patrimonioOriginal,
         acessorios: Map<String, bool>.from(acessoriosSelecionados),
       ));
 
@@ -907,7 +895,7 @@ class _RondaPageState extends State<RondaPage> {
                     items: const ['Notebook', 'Desktop', 'Telefone', 'Smartphone', 'Impressora', 'TV', 'No-Break', 'Switch', 'Tablet', 'Leitor', 'Roteador', 'Access Point', 'Outro'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
                     onChanged: (v) => setState(() {
                       tipoEquipamento = v!;
-                      acessoriosSelecionados.clear(); // Limpa acessórios ao mudar o tipo para evitar confusão
+                      acessoriosSelecionados.clear();
                     }),
                   ),
                 ),
@@ -959,14 +947,11 @@ class _RondaPageState extends State<RondaPage> {
                 _verificarInventario(sel);
               },
               fieldViewBuilder: (ctx, ctrl, fNode, onSub) {
-                // Sincroniza o controlador do Autocomplete com o patrimonioController
                 if (patrimonioController.text != ctrl.text) {
-                  // Agendado para o próximo frame para evitar erro de build
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     if (mounted) ctrl.text = patrimonioController.text;
                   });
                 }
-
                 return TextField(
                   controller: ctrl,
                   focusNode: fNode,
@@ -990,10 +975,7 @@ class _RondaPageState extends State<RondaPage> {
                       ],
                     ),
                   ),
-                  onChanged: (v) {
-                    patrimonioController.text = v;
-                    // Removida a busca automática para evitar confusão durante a digitação
-                  },
+                  onChanged: (v) => patrimonioController.text = v,
                 );
               },
             ),
@@ -1014,8 +996,6 @@ class _RondaPageState extends State<RondaPage> {
               TextField(controller: processadorController, decoration: const InputDecoration(labelText: 'Processador (i5, i7, Ryzen...)', border: OutlineInputBorder())),
               const SizedBox(height: 10),
             ],
-
-            // CAMPOS DE ANO - VISÍVEIS APENAS PARA ADMIN/GERENTE
             if (isAdmin) ...[
               const Divider(height: 30),
               const Text("Dados Administrativos (Ciclo de Vida)", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo)),
@@ -1027,15 +1007,11 @@ class _RondaPageState extends State<RondaPage> {
               ),
               const SizedBox(height: 15),
             ],
-
             Wrap(
               spacing: 8,
               runSpacing: 8,
               children: [
-                // ACESSÓRIOS DINÂMICOS
                 ...acessoriosAtuais.map((acc) => _filterChip(acc, acessoriosSelecionados[acc] ?? false, (v) => setState(() => acessoriosSelecionados[acc] = v))),
-                
-                // STATUS FIXOS (AUDITORIA)
                 _filterChip('DEFEITO', defeito, (v) => setState(() => defeito = v), color: AppTheme.ruby),
                 _filterChip('LOCADO', isLocado, (v) => setState(() => isLocado = v), color: Colors.orange),
                 _filterChip('OUTRO SETOR', setorDivergente, (v) => setState(() => setorDivergente = v), color: Colors.purple),
@@ -1043,14 +1019,7 @@ class _RondaPageState extends State<RondaPage> {
             ),
             if (isHomeOffice) ...[
               const SizedBox(height: 10),
-              TextField(
-                controller: responsavelHomeOfficeController, 
-                decoration: const InputDecoration(
-                  labelText: 'Responsável pelo Item (Nome Completo) *', 
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.person_pin_outlined)
-                )
-              ),
+              TextField(controller: responsavelHomeOfficeController, decoration: const InputDecoration(labelText: 'Responsável pelo Item (Nome Completo) *', border: OutlineInputBorder(), prefixIcon: Icon(Icons.person_pin_outlined))),
             ],
             if (setorDivergente) ...[
               const SizedBox(height: 10),
@@ -1065,16 +1034,7 @@ class _RondaPageState extends State<RondaPage> {
             ],
             if (defeito || statusOperacional == 'Em manutenção') ...[
               const SizedBox(height: 10), 
-              TextField(
-                controller: descricaoDefeitoController, 
-                maxLines: 2,
-                decoration: InputDecoration(
-                  labelText: 'Detalhes Técnicos / Motivo da Manutenção *', 
-                  alignLabelWithHint: true,
-                  border: const OutlineInputBorder(), 
-                  hintText: statusOperacional == 'Em manutenção' ? 'Descreva o que será feito ou o problema encontrado...' : 'Descreva o defeito do equipamento...'
-                )
-              ),
+              TextField(controller: descricaoDefeitoController, maxLines: 2, decoration: InputDecoration(labelText: 'Detalhes Técnicos / Motivo da Manutenção *', alignLabelWithHint: true, border: const OutlineInputBorder(), hintText: statusOperacional == 'Em manutenção' ? 'Descreva o que será feito ou o problema encontrado...' : 'Descreva o defeito do equipamento...')),
               const SizedBox(height: 10),
             ],
             if (statusOperacional == 'Em manutenção') ...[
@@ -1083,15 +1043,7 @@ class _RondaPageState extends State<RondaPage> {
             ],
             if (statusOperacional == 'Baixa Patrimonial') ...[
               const SizedBox(height: 10),
-              TextField(
-                controller: motivoBaixaController, 
-                decoration: const InputDecoration(
-                  labelText: 'Motivo da Baixa Patrimonial *', 
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.gavel_rounded),
-                  hintText: 'Ex: Equipamento obsoleto / Sem reparo...'
-                )
-              ),
+              TextField(controller: motivoBaixaController, decoration: const InputDecoration(labelText: 'Motivo da Baixa Patrimonial *', border: OutlineInputBorder(), prefixIcon: Icon(Icons.gavel_rounded), hintText: 'Ex: Equipamento obsoleto / Sem reparo...')),
             ],
             if (isLocado) ...[
               const SizedBox(height: 10),
@@ -1106,19 +1058,10 @@ class _RondaPageState extends State<RondaPage> {
             const SizedBox(height: 15),
             Center(
               child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(colors: [AppTheme.electricBlue, AppTheme.cyanNeon]),
-                  borderRadius: BorderRadius.circular(15),
-                ),
+                decoration: BoxDecoration(gradient: LinearGradient(colors: [AppTheme.electricBlue, AppTheme.cyanNeon]), borderRadius: BorderRadius.circular(15)),
                 child: ElevatedButton.icon(
                   onPressed: adicionarEquipamento, 
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.transparent, 
-                    shadowColor: Colors.transparent,
-                    foregroundColor: Colors.white, 
-                    minimumSize: const Size(220, 55), 
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))
-                  ), 
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.transparent, shadowColor: Colors.transparent, foregroundColor: Colors.white, minimumSize: const Size(220, 55), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))), 
                   icon: const Icon(Icons.add_circle_outline, size: 22), 
                   label: Text('ADICIONAR ITEM', style: GoogleFonts.inter(fontWeight: FontWeight.w900, letterSpacing: 0.5))
                 ),
@@ -1138,7 +1081,7 @@ class _RondaPageState extends State<RondaPage> {
             const Divider(height: 40),
             Container(
               padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: Colors.orange.withValues(alpha: 15), borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.orange.withValues(alpha: 50))),
+              decoration: BoxDecoration(color: Colors.orange.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.orange.withValues(alpha: 0.3))),
               child: Column(
                 children: [
                   CheckboxListTile(title: const Text('Houve Troca de Equipamento?', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange)), value: houveTroca, activeColor: Colors.orange, onChanged: (v) => setState(() => houveTroca = v!)),
@@ -1167,16 +1110,8 @@ class _RondaPageState extends State<RondaPage> {
                         helperText: _labelEquipamentoAntigo != null ? "Item: $_labelEquipamentoAntigo" : null,
                         helperStyle: TextStyle(color: isDark ? Colors.white70 : Colors.indigo.shade900, fontWeight: FontWeight.bold),
                         border: const OutlineInputBorder(),
-                        prefixIcon: IconButton(
-                          icon: const Icon(Icons.qr_code_scanner, color: Colors.blue), 
-                          onPressed: () => _abrirLeitorQR(controller: patrimonioAntigoController),
-                          tooltip: "Escanear QR Code",
-                        ),
-                        suffixIcon: IconButton(
-                          icon: const Icon(Icons.search), 
-                          onPressed: () => _abrirBuscaInventario(controller: patrimonioAntigoController),
-                          tooltip: "Buscar no Inventário",
-                        ),
+                        prefixIcon: IconButton(icon: const Icon(Icons.qr_code_scanner, color: Colors.blue), onPressed: () => _abrirLeitorQR(controller: patrimonioAntigoController), tooltip: "Escanear QR Code"),
+                        suffixIcon: IconButton(icon: const Icon(Icons.search), onPressed: () => _abrirBuscaInventario(controller: patrimonioAntigoController), tooltip: "Buscar no Inventário"),
                       )
                     ),
                     const SizedBox(height: 10),
@@ -1188,16 +1123,8 @@ class _RondaPageState extends State<RondaPage> {
                         helperText: _labelEquipamentoNovo != null ? "Item: $_labelEquipamentoNovo" : null,
                         helperStyle: TextStyle(color: isDark ? Colors.white70 : Colors.indigo.shade900, fontWeight: FontWeight.bold),
                         border: const OutlineInputBorder(),
-                        prefixIcon: IconButton(
-                          icon: const Icon(Icons.qr_code_scanner, color: Colors.blue), 
-                          onPressed: () => _abrirLeitorQR(controller: patrimonioNovoController),
-                          tooltip: "Escanear QR Code",
-                        ),
-                        suffixIcon: IconButton(
-                          icon: const Icon(Icons.search), 
-                          onPressed: () => _abrirBuscaInventario(controller: patrimonioNovoController),
-                          tooltip: "Buscar no Inventário",
-                        ),
+                        prefixIcon: IconButton(icon: const Icon(Icons.qr_code_scanner, color: Colors.blue), onPressed: () => _abrirLeitorQR(controller: patrimonioNovoController), tooltip: "Escanear QR Code"),
+                        suffixIcon: IconButton(icon: const Icon(Icons.search), onPressed: () => _abrirBuscaInventario(controller: patrimonioNovoController), tooltip: "Buscar no Inventário"),
                       )
                     ),
                     const SizedBox(height: 10),

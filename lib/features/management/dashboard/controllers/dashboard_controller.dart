@@ -2,7 +2,6 @@ import 'package:flutter/material.dart' show DateTimeRange;
 import '../../../operation/rounds/models/round_model.dart';
 import '../../../operation/assets/models/asset_model.dart';
 import 'package:intl/intl.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class DashboardController {
   /// Filtra a lista de rondas baseada no período selecionado.
@@ -161,6 +160,33 @@ class DashboardController {
       }
     }
     return alerts;
+  }
+
+  /// Calcula o Ranking de Divergências por Departamento
+  List<Map<String, dynamic>> getDivergenceRanking(List<AssetModel> allAssets) {
+    Map<String, int> divergenceCount = {};
+    Map<String, int> totalCount = {};
+
+    for (var a in allAssets) {
+      totalCount[a.setor] = (totalCount[a.setor] ?? 0) + 1;
+      if (a.setorDivergente) {
+        divergenceCount[a.setor] = (divergenceCount[a.setor] ?? 0) + 1;
+      }
+    }
+
+    final ranking = divergenceCount.entries.map((e) {
+      final total = totalCount[e.key] ?? 1;
+      final percent = (e.value / total * 100);
+      return {
+        'setor': e.key,
+        'count': e.value,
+        'percent': percent,
+      };
+    }).toList();
+
+    // Ordena pelo maior número de divergências
+    ranking.sort((a, b) => (b['count'] as int).compareTo(a['count'] as int));
+    return ranking;
   }
 
   /// Calcula o Mapa de Calor de Auditoria (Semáforo de Risco)
