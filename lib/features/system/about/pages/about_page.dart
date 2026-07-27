@@ -58,6 +58,10 @@ class AboutPage extends StatelessWidget {
               "• VISUAL 'PREMIUM TECH': Repaginação completa da interface com novas fontes (Inter & JetBrains Mono).\n• MISSION CONTROL: Redesign do Dashboard com estilo central de comando, gradientes e gráficos fluidos.\n• GLASSMORPHISM: Efeitos de transparência e desfoque em menus e elementos de navegação.\n• HEALTH SCORE REAL: Saúde do patrimônio baseada em disponibilidade real e ciclo de vida.",
             ),
             _buildUpdate(
+              "3.2.8",
+              "• GOVERNANÇA HÍBRIDA: Itens em manutenção agora preservam seu departamento de origem no banco de dados.\n• DASHBOARD: Nova lógica de visualização - equipamentos em manutenção aparecem 'acinzentados' no setor de origem e são listados simultaneamente na TI.",
+            ),
+            _buildUpdate(
               "3.2.7",
               "• INTELIGÊNCIA: Automação de Substituição - Itens substituídos em ronda são transferidos automaticamente para a TI com status 'Reservado'.\n• RELATÓRIOS: Novo filtro e relatório exclusivo de 'Substituições' com detalhamento de setor anterior e motivo.\n• UX: Adicionada busca por lupa e scanner de QR Code nos campos de substituição (Patrimônio Antigo/Novo).",
             ),

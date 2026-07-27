@@ -1107,26 +1107,32 @@ class _RondaPageState extends State<RondaPage> {
                       onChanged: (v) => _verificarEquipamentoTroca(v, true),
                       decoration: InputDecoration(
                         labelText: 'Patrimônio Antigo', 
-                        helperText: _labelEquipamentoAntigo != null ? "Item: $_labelEquipamentoAntigo" : null,
-                        helperStyle: TextStyle(color: isDark ? Colors.white70 : Colors.indigo.shade900, fontWeight: FontWeight.bold),
                         border: const OutlineInputBorder(),
                         prefixIcon: IconButton(icon: const Icon(Icons.qr_code_scanner, color: Colors.blue), onPressed: () => _abrirLeitorQR(controller: patrimonioAntigoController), tooltip: "Escanear QR Code"),
                         suffixIcon: IconButton(icon: const Icon(Icons.search), onPressed: () => _abrirBuscaInventario(controller: patrimonioAntigoController), tooltip: "Buscar no Inventário"),
                       )
                     ),
+                    if (_labelEquipamentoAntigo != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4, left: 4),
+                        child: Text("ID: $_labelEquipamentoAntigo", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 11)),
+                      ),
                     const SizedBox(height: 10),
                     TextField(
                       controller: patrimonioNovoController, 
                       onChanged: (v) => _verificarEquipamentoTroca(v, false),
                       decoration: InputDecoration(
                         labelText: 'Patrimônio Novo', 
-                        helperText: _labelEquipamentoNovo != null ? "Item: $_labelEquipamentoNovo" : null,
-                        helperStyle: TextStyle(color: isDark ? Colors.white70 : Colors.indigo.shade900, fontWeight: FontWeight.bold),
                         border: const OutlineInputBorder(),
                         prefixIcon: IconButton(icon: const Icon(Icons.qr_code_scanner, color: Colors.blue), onPressed: () => _abrirLeitorQR(controller: patrimonioNovoController), tooltip: "Escanear QR Code"),
                         suffixIcon: IconButton(icon: const Icon(Icons.search), onPressed: () => _abrirBuscaInventario(controller: patrimonioNovoController), tooltip: "Buscar no Inventário"),
                       )
                     ),
+                    if (_labelEquipamentoNovo != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4, left: 4),
+                        child: Text("ID: $_labelEquipamentoNovo", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 11)),
+                      ),
                     const SizedBox(height: 10),
                     Row(
                       children: [

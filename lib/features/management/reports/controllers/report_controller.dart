@@ -150,8 +150,8 @@ class ReportController {
       if (periodo != null) {
         final DateTime endOfDay = DateTime(periodo.end.year, periodo.end.month, periodo.end.day, 23, 59, 59);
         queryRondas = queryRondas
-            .where('data_inicio', isGreaterThanOrEqualTo: periodo.start.toIso8601String())
-            .where('data_inicio', isLessThanOrEqualTo: endOfDay.toIso8601String());
+            .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(periodo.start))
+            .where('timestamp', isLessThanOrEqualTo: Timestamp.fromDate(endOfDay));
       }
 
       final snapshots = await queryRondas.get();
@@ -174,7 +174,7 @@ class ReportController {
             assetDoc = await _firestore.collection('inventario_mestre').doc(patAntigo).get();
           }
 
-          final assetData = assetDoc?.data();
+          final Map<String, dynamic>? assetData = assetDoc?.data() as Map<String, dynamic>?;
 
           substituicoes.add({
             'tipo': assetData?['tipo'] ?? '---',
