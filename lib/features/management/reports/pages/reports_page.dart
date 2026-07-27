@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:smart_ronda_ti/app/theme.dart';
+import 'package:smart_ronda_ti/features/system/auth/controllers/auth_controller.dart';
 import 'package:smart_ronda_ti/features/management/reports/controllers/report_controller.dart';
 import 'package:smart_ronda_ti/features/management/admin/controllers/admin_controller.dart';
 import 'package:intl/intl.dart';
@@ -16,6 +17,7 @@ class ReportsPage extends StatefulWidget {
 class _ReportsPageState extends State<ReportsPage> {
   final AdminController _adminController = AdminController();
   final ReportController _reportController = ReportController();
+  final AuthController _authController = AuthController();
   
   // Filtros Inventário
   String? _setorSelecionado;
@@ -31,6 +33,7 @@ class _ReportsPageState extends State<ReportsPage> {
   bool _apenasLocados = false;
   bool _apenasSemPatrimonio = false;
   bool _apenasSubstituicoes = false;
+  bool _apenasBaixas = false;
   bool _gerandoInventario = false;
 
   // Filtros Performance
@@ -38,6 +41,9 @@ class _ReportsPageState extends State<ReportsPage> {
   DateTimeRange? _periodoComparativo;
 
   Future<void> _handleGerarInventario() async {
+    final String currentUserName = _authController.currentUser?.displayName ?? 
+                                   _authController.currentUser?.email?.split('@')[0] ?? "Admin";
+
     setState(() => _gerandoInventario = true);
     await _reportController.gerarRelatorioInventario(
       context: context,
@@ -53,6 +59,9 @@ class _ReportsPageState extends State<ReportsPage> {
       apenasLocados: _apenasLocados,
       apenasSemPatrimonio: _apenasSemPatrimonio,
       apenasSubstituicoes: _apenasSubstituicoes,
+      apenasBaixas: _apenasBaixas,
+      periodo: _periodoPrincipal,
+      userName: currentUserName,
       formato: _formatoSelecionado!,
     );
     if (mounted) setState(() => _gerandoInventario = false);
@@ -60,11 +69,69 @@ class _ReportsPageState extends State<ReportsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     final content = SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // SEÇÃO 0: PERÍODO (MESTRE)
+          _sectionHeader("📅 DEFINIÇÃO DE PERÍODO", Icons.calendar_month_rounded),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: isDark ? AppTheme.charcoal : Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppTheme.electricBlue.withValues(alpha: 0.1)),
+            ),
+            child: Column(
+              children: [
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(color: AppTheme.electricBlue.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
+                    child: const Icon(Icons.date_range_rounded, color: AppTheme.electricBlue),
+                  ),
+                  title: const Text("Período de Análise", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                  subtitle: Text(
+                    _periodoPrincipal == null ? "Obrigatório para Performance e Trocas" : "${DateFormat('dd/MM').format(_periodoPrincipal!.start)} até ${DateFormat('dd/MM').format(_periodoPrincipal!.end)}",
+                    style: TextStyle(color: _periodoPrincipal == null ? AppTheme.ruby : Colors.grey, fontSize: 11),
+                  ),
+                  onTap: () async {
+                    final picked = await showDateRangePicker(context: context, firstDate: DateTime(2023), lastDate: DateTime.now());
+                    if (picked != null) setState(() => _periodoPrincipal = picked);
+                  },
+                  trailing: _periodoPrincipal != null ? IconButton(icon: const Icon(Icons.clear_rounded, size: 20), onPressed: () => setState(() => _periodoPrincipal = null)) : const Icon(Icons.chevron_right_rounded),
+                ),
+                if (_periodoPrincipal != null) ...[
+                  const Divider(),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(color: Colors.purple.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
+                      child: const Icon(Icons.compare_arrows_rounded, color: Colors.purple),
+                    ),
+                    title: const Text("Comparativo (Opcional)", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    subtitle: Text(
+                      _periodoComparativo == null ? "Toque para comparar meses" : "${DateFormat('dd/MM').format(_periodoComparativo!.start)} até ${DateFormat('dd/MM').format(_periodoComparativo!.end)}",
+                      style: const TextStyle(fontSize: 11),
+                    ),
+                    onTap: () async {
+                      final picked = await showDateRangePicker(context: context, firstDate: DateTime(2023), lastDate: DateTime.now());
+                      if (picked != null) setState(() => _periodoComparativo = picked);
+                    },
+                    trailing: _periodoComparativo != null ? IconButton(icon: const Icon(Icons.clear_rounded, size: 20), onPressed: () => setState(() => _periodoComparativo = null)) : const Icon(Icons.chevron_right_rounded),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 32),
+
           // SEÇÃO 1: INVENTÁRIO
           _sectionHeader("📦 GESTÃO DE INVENTÁRIO", Icons.inventory_2),
           const SizedBox(height: 20),
@@ -96,10 +163,10 @@ class _ReportsPageState extends State<ReportsPage> {
               _filterChip("🏠 HOME OFFICE", _apenasHomeOffice, (v) => setState(() => _apenasHomeOffice = v), color: Colors.blue),
               _filterChip("🤝 LOCADOS", _apenasLocados, (v) => setState(() => _apenasLocados = v), color: Colors.orange.shade800),
               _filterChip("🚫 SEM PATRIMÔNIO", _apenasSemPatrimonio, (v) => setState(() => _apenasSemPatrimonio = v), color: Colors.red.shade800),
+              _filterChip("📉 BAIXAS", _apenasBaixas, (v) => setState(() => _apenasBaixas = v), color: Colors.blueGrey.shade800),
               _filterChip("🔄 SUBSTITUIÇÕES", _apenasSubstituicoes, (v) => setState(() {
                 _apenasSubstituicoes = v;
                 if (v) {
-                  // Desativa outros filtros de condição para focar no relatório de trocas
                   _apenasDefeitos = false;
                   _apenasObsoletos = false;
                   _emManutencao = false;
@@ -107,6 +174,7 @@ class _ReportsPageState extends State<ReportsPage> {
                   _reservados = false;
                   _apenasHomeOffice = false;
                   _apenasSemPatrimonio = false;
+                  _apenasBaixas = false;
                 }
               }), color: Colors.teal.shade800),
             ],
@@ -114,7 +182,7 @@ class _ReportsPageState extends State<ReportsPage> {
           const SizedBox(height: 20),
           
           if (_apenasLocados) ...[
-            StreamBuilder<List<String>>(
+            StreamBuilder<List<Map<String, dynamic>>>(
               stream: _adminController.leasingCompaniesStream,
               builder: (context, snapshot) {
                 final locadoras = snapshot.data ?? [];
@@ -123,7 +191,7 @@ class _ReportsPageState extends State<ReportsPage> {
                   decoration: const InputDecoration(labelText: "Selecionar Locadora", border: OutlineInputBorder()),
                   items: [
                     const DropdownMenuItem(value: null, child: Text("Todas as Locadoras")),
-                    ...locadoras.map((l) => DropdownMenuItem(value: l, child: Text(l))),
+                    ...locadoras.map((l) => DropdownMenuItem(value: l['nome'], child: Text(l['nome']))),
                   ],
                   onChanged: (v) => setState(() => _locadoraSelecionada = v),
                 );
@@ -167,7 +235,7 @@ class _ReportsPageState extends State<ReportsPage> {
           ),
           const SizedBox(height: 30),
           _actionButton(
-            onPressed: _gerandoInventario ? null : _handleGerarInventario,
+            onPressed: (_gerandoInventario || (_apenasSubstituicoes && _periodoPrincipal == null)) ? null : _handleGerarInventario,
             label: _gerandoInventario ? "GERANDO..." : "GERAR RELATÓRIO DE INVENTÁRIO",
             icon: Icons.assignment,
           ),
@@ -177,36 +245,11 @@ class _ReportsPageState extends State<ReportsPage> {
           // SEÇÃO 2: PERFORMANCE
           _sectionHeader("📈 PERFORMANCE E METAS", Icons.stars),
           const SizedBox(height: 20),
-          ListTile(
-            tileColor: Colors.blue.withValues(alpha: 0.05),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            leading: const Icon(Icons.date_range, color: Colors.blue),
-            title: const Text("Período Principal"),
-            subtitle: Text(_periodoPrincipal == null ? "Selecione o período" : "${DateFormat('dd/MM').format(_periodoPrincipal!.start)} até ${DateFormat('dd/MM').format(_periodoPrincipal!.end)}"),
-            onTap: () async {
-              final picked = await showDateRangePicker(context: context, firstDate: DateTime(2023), lastDate: DateTime.now());
-              if (picked != null) setState(() => _periodoPrincipal = picked);
-            },
-          ),
-          const SizedBox(height: 8),
-          ListTile(
-            tileColor: Colors.purple.withValues(alpha: 0.05),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            leading: const Icon(Icons.compare_arrows, color: Colors.purple),
-            title: const Text("Período Comparativo (Opcional)"),
-            subtitle: Text(_periodoComparativo == null ? "Toque para comparar meses" : "${DateFormat('dd/MM').format(_periodoComparativo!.start)} até ${DateFormat('dd/MM').format(_periodoComparativo!.end)}"),
-            onTap: () async {
-              final picked = await showDateRangePicker(context: context, firstDate: DateTime(2023), lastDate: DateTime.now());
-              if (picked != null) setState(() => _periodoComparativo = picked);
-            },
-            trailing: _periodoComparativo != null ? IconButton(icon: const Icon(Icons.clear), onPressed: () => setState(() => _periodoComparativo = null)) : null,
-          ),
-          const SizedBox(height: 20),
           Row(
             children: [
               Expanded(
                 child: _actionButton(
-                  onPressed: () => _reportController.gerarRelatorioMetas(context, periodo: _periodoPrincipal, periodoComparativo: _periodoComparativo, formato: 'PDF'),
+                  onPressed: _periodoPrincipal == null ? null : () => _reportController.gerarRelatorioMetas(context, periodo: _periodoPrincipal, periodoComparativo: _periodoComparativo, userName: _authController.currentUser?.email?.split('@')[0], formato: 'PDF'),
                   label: "PDF METAS",
                   icon: Icons.picture_as_pdf,
                   color: Colors.red.shade900,
@@ -215,7 +258,7 @@ class _ReportsPageState extends State<ReportsPage> {
               const SizedBox(width: 12),
               Expanded(
                 child: _actionButton(
-                  onPressed: () => _reportController.gerarRelatorioMetas(context, periodo: _periodoPrincipal, formato: 'XLSX'),
+                  onPressed: _periodoPrincipal == null ? null : () => _reportController.gerarRelatorioMetas(context, periodo: _periodoPrincipal, formato: 'XLSX'),
                   label: "XLSX METAS",
                   icon: Icons.table_chart,
                   color: Colors.green.shade900,
@@ -225,7 +268,7 @@ class _ReportsPageState extends State<ReportsPage> {
           ),
           const SizedBox(height: 12),
           _actionButton(
-            onPressed: () => _reportController.gerarRelatorioMetas(context, periodo: _periodoPrincipal, formato: 'XML'),
+            onPressed: _periodoPrincipal == null ? null : () => _reportController.gerarRelatorioMetas(context, periodo: _periodoPrincipal, formato: 'XML'),
             label: "XML METAS ESTRATÉGICAS",
             icon: Icons.code,
             color: Colors.blueGrey.shade800,
@@ -240,6 +283,7 @@ class _ReportsPageState extends State<ReportsPage> {
                     periodo: _periodoPrincipal!, 
                     setor: _setorSelecionado,
                     locadora: _locadoraSelecionada,
+                    userName: _authController.currentUser?.email?.split('@')[0],
                     formato: 'PDF',
                   ),
                   label: "PDF INCIDÊNCIAS",

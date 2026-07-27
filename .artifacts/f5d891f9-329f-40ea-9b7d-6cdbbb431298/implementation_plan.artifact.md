@@ -1,44 +1,45 @@
-# Implementation Plan - Redesign Visual "Smart Tech 3.2.9"
+# Implementation Plan - Versão 3.2.10 🚀 (Evolução de Governança)
 
-Repaginar a interface completa do Smart Ronda TI para um visual tecnológico "Premium", com foco em fluidez, legibilidade e uma experiência de "Mission Control" no Dashboard.
+Esta versão foca em expandir a flexibilidade operacional (múltiplas substituições), refinar a inteligência de auditoria (semáforo de risco) e aprofundar o compliance administrativo (baixa patrimonial e contratos).
 
 ## User Review Required
 
 > [!IMPORTANT]
-> **Fontes**: Vou adotar a combinação **Inter** (para textos longos) e **JetBrains Mono** (para números e dados técnicos). Isso requer conexão com a internet no primeiro build para baixar as fontes via `google_fonts`.
-> **Cores**: A base do Dark será `0xFF0A0E14` (Deep Navy) com detalhes em `0xFF00E5FF` (Cyan Neon). O Light usará `0xFFF5F7FA` (Cool Grey).
+> **Múltiplas Trocas**: O fluxo de troca na ronda agora permite uma lista de itens. Não haverá mais limite de uma troca por ronda.
+> **Baixa Patrimonial**: O status "Descartado" será oficialmente renomeado para "Baixa Patrimonial", exigindo justificativa obrigatória.
 
 ## Proposed Changes
 
-### [Global]
-#### [MODIFY] [pubspec.yaml](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/pubspec.yaml)
-- Adicionar dependência `google_fonts: ^6.2.1`.
-- Atualizar versão para `3.2.9+13`.
+### [Step 1: Múltiplas Substituições na Ronda]
+- **[MODIFY] [RoundRepository](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/operation/rounds/repositories/round_repository.dart)**: Alterar `saveCompleteRound` para aceitar `List<Map<String, dynamic>> exchanges`.
+- **[MODIFY] [RondaPage](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/operation/rounds/pages/ronda_page.dart)**:
+    - Implementar `List<Map<String, dynamic>> _listaTrocas`.
+    - UI: Adicionar botão "ADICIONAR TROCA" que valida e move os dados dos campos para a lista.
+    - UI: Exibir lista de trocas pendentes com opção de remover.
 
-#### [MODIFY] [theme.dart](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/app/theme.dart)
-- Implementar o novo sistema de design centralizado.
-- Configurar `ColorScheme`, `TextTheme` (Inter/JetBrains Mono) e `CardTheme` (borderRadius 20dp).
+### [Step 2: Compliance e Baixa Patrimonial]
+- **[MODIFY] [AssetModel](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/operation/assets/models/asset_model.dart)**: Adicionar campo `motivoBaixa`.
+- **[MODIFY] [RondaPage](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/operation/rounds/pages/ronda_page.dart)**: Renomear status e adicionar campo de texto condicional.
 
-### [Dashboard & Management]
-#### [MODIFY] [dashboard_page.dart](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/management/dashboard/pages/dashboard_page.dart)
-- Refatorar para o estilo "Mission Control".
-- Implementar gradientes nos gráficos e efeito de vidro na Sidebar.
-- Atualizar rodapé para v3.2.9.
+### [Step 3: Central de Relatórios Inteligente]
+- **[MODIFY] [ReportsPage](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/management/reports/pages/reports_page.dart)**: Mover o filtro de data para o topo. Tornar obrigatório para relatórios de performance e trocas.
+- **[MODIFY] [ReportController](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/management/reports/controllers/report_controller.dart)**: Filtrar relatórios de substituição pelo período selecionado.
+- **[MODIFY] [ReportRepository](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/management/reports/repositories/report_repository.dart)**: Incluir nome do emissor no rodapé dos PDFs.
 
-### [Operational UI]
-#### [MODIFY] [home_page.dart](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/operation/rounds/pages/home_page.dart)
-- Modernizar botões de ação e banners de alerta.
-- Atualizar rodapé para v3.2.9.
+### [Step 4: BI e Dashboard (Semáforo de Risco)]
+- **[MODIFY] [DashboardController](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/management/dashboard/controllers/dashboard_controller.dart)**: Criar lógica de semáforo (0-15 Verde, 16-30 Amarelo, 30+ Vermelho).
+- **[MODIFY] [DashboardPage](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/management/dashboard/pages/dashboard_page.dart)**: Exibir o mapa de calor de auditoria.
 
-#### [MODIFY] [ronda_page.dart](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/operation/rounds/pages/ronda_page.dart)
-- Ajustar inputs e chips para o novo padrão fluido.
-
-#### [MODIFY] [about_page.dart](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/system/about/pages/about_page.dart)
-- Atualizar log de novidades da v3.2.9.
+### [Step 5: Gestão Contratual e Perfil]
+- **[MODIFY] [AdminPage](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/management/admin/pages/admin_page.dart)**: Submenu de detalhes contratuais para locadoras.
+- **[NEW] [ProfilePage](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/system/auth/pages/profile_page.dart)**: Tela de personalização de cargo, nascimento e matrícula.
 
 ## Verification Plan
 
-### Manual Verification
-- Testar legibilidade nos modos Light e Dark.
-- Validar se o Dashboard reflete o novo estilo "Premium Tech".
-- Confirmar que a navegação e botões mantêm suas funcionalidades originais.
+### Step 1
+- Realizar ronda com 2 trocas e validar transferência para TI no Castelo.
+- Gerar relatório de substituições e validar filtro de data.
+
+### Step 2
+- Dar baixa em um item e conferir se o motivo aparece no histórico/relatório.
+- Validar rodapé com nome do usuário no PDF.

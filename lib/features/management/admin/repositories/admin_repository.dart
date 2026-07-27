@@ -86,10 +86,27 @@ class AdminRepository {
     });
   }
 
-  Stream<List<String>> getLeasingCompaniesStream() {
+  Stream<List<Map<String, dynamic>>> getLeasingCompaniesStream() {
     return _firestore.collection('locadoras').orderBy('nome').snapshots().map((snap) => 
-      snap.docs.map((doc) => doc['nome'] as String).toList()
+      snap.docs.map((doc) {
+        final data = doc.data();
+        return {
+          'id': doc.id,
+          'nome': data['nome'] ?? '',
+          'versao_contrato': data['versao_contrato'] ?? 'v1.0',
+          'quantidade_contratada': data['quantidade_contratada'] ?? 0,
+          'valor_contrato': data['valor_contrato'] ?? 0.0,
+          'servicos_prestados': data['servicos_prestados'] ?? '',
+        };
+      }).toList()
     );
+  }
+
+  Future<void> updateLeasingCompanyDetails(String id, Map<String, dynamic> details) async {
+    await _firestore.collection('locadoras').doc(id).update({
+      ...details,
+      'ultima_atualizacao': FieldValue.serverTimestamp(),
+    });
   }
 
   Future<void> deleteLeasingCompany(String id) async {

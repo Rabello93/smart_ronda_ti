@@ -9,13 +9,13 @@ class RoundController {
     String? existingRoundId,
     required RoundModel round,
     required List<AssetModel> assets,
-    Map<String, dynamic>? exchangeData,
+    List<Map<String, dynamic>>? exchanges,
   }) {
     return _repository.saveCompleteRound(
       existingRoundId: existingRoundId,
       round: round,
       assets: assets,
-      exchangeData: exchangeData,
+      exchanges: exchanges,
     );
   }
 

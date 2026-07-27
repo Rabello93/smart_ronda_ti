@@ -1,33 +1,37 @@
-# Walkthrough - Versão 3.2.9 "Premium Tech" 💎⚡
+# Walkthrough - v3.2.10 "Governança e BI" 🚀🏛️
 
-Implementado um redesign visual completo do Smart Ronda TI, transformando-o em uma ferramenta tecnológica de elite com visual "Mission Control".
+Esta versão marca um salto na inteligência de dados e compliance do Smart Ronda TI, com foco em flexibilidade operacional e relatórios estratégicos.
 
 ## Alterações Realizadas
 
-### 🎨 Identidade Visual e Temas
-- **[theme.dart](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/app/theme.dart)**:
-    - Introdução do pacote `google_fonts`.
-    - Tipografia: **Inter** para interface e **JetBrains Mono** para dados técnicos.
-    - Cores: Paleta **Deep Navy** e **Cyan Neon** para o tema Dark, e **Cool Grey** para o Light.
-    - Bordas: Padronização de arredondamento em **20dp** para um aspecto mais fluido.
-
-### 📊 Dashboard "Mission Control"
-- **[dashboard_page.dart](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/management/dashboard/pages/dashboard_page.dart)**:
-    - Sidebar moderna com efeitos de transparência.
-    - **[dashboard_widgets.dart](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/shared/widgets/dashboard_widgets.dart)**:
-        - `SummaryCard` refatorado para o estilo HUD (Heads-Up Display).
-        - Gráficos agora utilizam gradientes e novos indicadores de saúde.
-        - Banners de alerta com visual de "alerta crítico de sistema".
-
-### 🏛️ Governança Híbrida (v3.2.8 + v3.2.9)
+### 🔄 Operação e Rondas
 - **[ronda_page.dart](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/operation/rounds/pages/ronda_page.dart)**:
-    - Ativos em manutenção agora aparecem acinzentados na busca.
-    - O setor de origem é preservado no banco de dados.
-- **[dashboard_page.dart](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/management/dashboard/pages/dashboard_page.dart)**:
-    - O setor **TI** agora monitora dinamicamente todos os equipamentos em reparo do hospital, sem tirá-los visualmente de seus setores originais.
+    - Implementada a **Lista de Trocas**, permitindo registrar múltiplas substituições em uma única ronda.
+    - Evolução do status "Descartado" para **"Baixa Patrimonial"**, agora com campo obrigatório para o motivo da baixa.
+    - Sincronização de fluxos: Itens substituídos são movidos automaticamente para a TI como "Reservado".
 
-## Verificação Final
-- ✅ **Version Alignment**: v3.2.9 (Build 45) aplicada globalmente.
-- ✅ **Legibilidade**: Testada e otimizada para ambos os temas.
-- ✅ **Navegação**: Sidebar fluida e responsiva.
-- ✅ **APK Build**: Novo nome de instalador `smart_ronda_ti_v3.2.9.apk`.
+### 📊 Business Intelligence (Dashboard)
+- **[dashboard_controller.dart](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/management/dashboard/controllers/dashboard_controller.dart)**:
+    - Nova lógica de **Health Score**: A saúde do patrimônio agora considera itens saudáveis vs itens com defeito, em manutenção ou obsoletos.
+    - Implementado o **Mapa de Calor de Auditoria**: Semáforo visual (Verde/Amarelo/Vermelho) baseado nos dias desde a última ronda.
+- **[dashboard_widgets.dart](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/shared/widgets/dashboard_widgets.dart)**:
+    - Adicionado o widget `AuditHeatMapWidget`.
+
+### 🛡️ Compliance e Gestão Administrativa
+- **[reports_page.dart](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/management/reports/pages/reports_page.dart)**:
+    - Redesign da Central de Relatórios: Filtro de período movido para o topo como passo obrigatório.
+    - Novo filtro para relatórios de **Baixas Patrimoniais**.
+- **[report_repository.dart](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/management/reports/repositories/report_repository.dart)**:
+    - Rodapé de PDFs agora inclui: "Relatório gerado por: [NOME DO USUÁRIO]".
+- **[admin_page.dart](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/management/admin/pages/admin_page.dart)**:
+    - Gestão de Locadoras expandida: Submenu para registrar Versão do Contrato, Itens Contratados, Valor e Serviços.
+
+### 👤 Perfil do Usuário
+- **[profile_page.dart](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/system/auth/pages/profile_page.dart)**:
+    - Nova tela para personalização de dados do técnico (Cargo, Data de Nascimento, Matrícula).
+    - Link de acesso rápido adicionado à Sidebar e HomePage.
+
+## Verificação de Integridade
+- ✅ **Saúde do Código**: Projeto analisado com `flutter analyze`, sem erros de compilação.
+- ✅ **Version Alignment**: v3.2.10 (Build 46) aplicada globalmente.
+- ✅ **Legibilidade**: Design "Premium Tech" consolidado em todos os módulos.

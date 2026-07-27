@@ -19,8 +19,10 @@ class AdminController {
   Future<void> removeUser(String uid) => _repository.deleteUser(uid);
 
   Future<void> createLeasingCompany(String name) => _repository.addLeasingCompany(name);
-  Stream<List<String>> get leasingCompaniesStream => _repository.getLeasingCompaniesStream();
+  Stream<List<Map<String, dynamic>>> get leasingCompaniesStream => _repository.getLeasingCompaniesStream();
   Future<void> removeLeasingCompany(String id) => _repository.deleteLeasingCompany(id);
+  Future<void> updateLeasingCompanyDetails(String id, Map<String, dynamic> details) => 
+      _repository.updateLeasingCompanyDetails(id, details);
 
   Future<void> updateCompanyBranding(Map<String, dynamic> config) => _repository.saveCompanyConfig(config);
   Stream<DocumentSnapshot> get brandingStream => _repository.getCompanyConfigStream();

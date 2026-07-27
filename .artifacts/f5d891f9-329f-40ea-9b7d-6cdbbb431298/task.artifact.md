@@ -1,24 +1,30 @@
-# Tasks - Versão 3.2.9 "Premium Tech"
+# Task List - v3.2.10 (Consolidated) 🏛️🚀
 
-- [x] **Global Version Alignment**
-    - [x] Update version in `pubspec.yaml` to `3.2.9+13`
-    - [x] Update version in `home_page.dart` footer
-    - [x] Update version in `dashboard_page.dart` footer
-    - [x] Update version in `android/app/build.gradle.kts` (v3.2.9, Build 45)
-    - [x] Update version in `report_repository.dart` (PDF footers)
-- [x] **Update Logs & Documentation**
-    - [x] Update "Sobre o Sistema" log in `about_page.dart` (Add v3.2.7, v3.2.8, v3.2.9)
-    - [x] Update `README.md` historical series
-    - [x] Create `RELEASENOTES_v3.2.9.md`
-- [x] **Visual Redesign (v3.2.9)**
-    - [x] Implement `AppTheme` with Google Fonts (Inter/JetBrains Mono)
-    - [x] Redesign `SummaryCard` and Dashboard widgets (HUD Style)
-    - [x] Refactor Sidebar with Glassmorphism and modern icons
-    - [x] Modernize Buttons and Inputs across the app
-- [x] **Operational Flow Adjustment (v3.2.8 Logic)**
-    - [x] Implement Hybrid Governance (Maintenance items keep origin sector)
-    - [x] Apply visual "greyed-out" style to maintenance items
-- [x] **Verification**
-    - [x] Verify theme switching (Light/Dark)
-    - [x] Verify version strings in all footers
-    - [x] Prepare for final deploy
+### 🛠️ Step 1: Múltiplas Substituições na Ronda
+- [x] Atualizar `RoundRepository.saveCompleteRound` para processar lista de trocas.
+- [x] Refatorar UI de trocas em `RondaPage` (Lista dinâmica).
+- [x] Atualizar `finalizarRonda` para enviar a lista.
+
+### 🛡️ Step 2: Compliance e Baixa Patrimonial
+- [x] Adicionar `motivoBaixa` no `AssetModel`.
+- [x] Renomear status para "Baixa Patrimonial" e adicionar campo obrigatório na Ronda.
+- [x] Criar novo filtro de relatório para itens com baixa.
+
+### 📊 Step 3: Central de Relatórios e Rodapé
+- [x] Reorganizar UI da `ReportsPage` (Data no topo).
+- [x] Implementar correção de período no relatório de trocas.
+- [x] Adicionar nome do usuário no rodapé do `ReportRepository`.
+
+### 🚦 Step 4: BI Dashboard (Semáforo)
+- [x] Implementar lógica de Semáforo de Risco por dias de inatividade.
+- [x] Adicionar widget visual no Dashboard.
+- [x] Ajustar Health Score para refletir realidade física.
+
+### 💼 Step 5: Gestão de Contratos e Perfil
+- [x] Submenu de locadoras com dados contratuais.
+- [x] Criar `ProfilePage` e integrar ao menu.
+
+### 🚀 Step 6: Alinhamento Global
+- [x] Bump version to 3.2.10 (v3.2.10+14).
+- [x] Update Release Notes and README.
+- [x] Final analysis and cleanup.

@@ -9,9 +9,7 @@ import 'package:smart_ronda_ti/features/system/auth/models/user_model.dart';
 import 'package:smart_ronda_ti/features/operation/assets/models/asset_model.dart';
 import 'package:smart_ronda_ti/features/system/audit/pages/log_page.dart';
 import 'package:smart_ronda_ti/features/management/reports/repositories/report_repository.dart';
-
 import 'package:smart_ronda_ti/shared/helpers/url_helper.dart';
-
 import 'package:smart_ronda_ti/features/management/reports/pages/reports_page.dart';
 
 class AdminPage extends StatefulWidget {
@@ -857,6 +855,54 @@ class _EmpresaTabState extends State<_EmpresaTab> {
 
 class _LocadorasTab extends StatelessWidget {
   const _LocadorasTab();
+
+  void _editarDetalhesLocadora(BuildContext context, Map<String, dynamic> loc) {
+    final AdminController controller = AdminController();
+    final versaoController = TextEditingController(text: loc['versao_contrato']);
+    final qtdController = TextEditingController(text: loc['quantidade_contratada'].toString());
+    final valorController = TextEditingController(text: loc['valor_contrato'].toString());
+    final servicosController = TextEditingController(text: loc['servicos_prestados']);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Contrato: ${loc['nome'].toUpperCase()}"),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(controller: versaoController, decoration: const InputDecoration(labelText: "Versão do Contrato", border: OutlineInputBorder())),
+              const SizedBox(height: 12),
+              TextField(controller: qtdController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: "Quantidade de Itens", border: OutlineInputBorder())),
+              const SizedBox(height: 12),
+              TextField(controller: valorController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: "Valor do Contrato", border: OutlineInputBorder())),
+              const SizedBox(height: 12),
+              TextField(controller: servicosController, maxLines: 3, decoration: const InputDecoration(labelText: "Serviços Prestados", border: OutlineInputBorder())),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("CANCELAR")),
+          ElevatedButton(
+            onPressed: () async {
+              await controller.updateLeasingCompanyDetails(loc['id'], {
+                'versao_contrato': versaoController.text.trim(),
+                'quantidade_contratada': int.tryParse(qtdController.text.trim()) ?? 0,
+                'valor_contrato': double.tryParse(valorController.text.trim()) ?? 0.0,
+                'servicos_prestados': servicosController.text.trim(),
+              });
+              if (context.mounted) {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Dados contratuais atualizados!"), backgroundColor: Colors.green));
+              }
+            },
+            child: const Text("SALVAR DETALHES"),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final AdminController controller = AdminController();
@@ -880,44 +926,62 @@ class _LocadorasTab extends StatelessWidget {
           ),
         ),
         Expanded(
-          child: StreamBuilder<List<String>>(
+          child: StreamBuilder<List<Map<String, dynamic>>>(
             stream: controller.leasingCompaniesStream,
             builder: (context, snapshot) {
               if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
               final list = snapshot.data!;
+              
               return ListView.builder(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 itemCount: list.length,
-                itemBuilder: (context, index) => Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).cardTheme.color,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-                  ),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                    leading: Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.orange.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(10),
+                itemBuilder: (context, index) {
+                  final loc = list[index];
+                  return Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardTheme.color,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                    ),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                      leading: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(Icons.business_center_rounded, color: Colors.orange, size: 20),
                       ),
-                      child: const Icon(Icons.business_center_rounded, color: Colors.orange, size: 20),
+                      title: Text(
+                        loc['nome'].toString().toUpperCase(), 
+                        style: GoogleFonts.inter(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 0.5)
+                      ),
+                      subtitle: Text(
+                        "Contrato: ${loc['versao_contrato']} | Itens: ${loc['quantidade_contratada']}", 
+                        style: const TextStyle(fontSize: 10, color: Colors.grey)
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.description_rounded, color: AppTheme.cyanNeon, size: 20), 
+                            onPressed: () => _editarDetalhesLocadora(context, loc),
+                            tooltip: "Detalhes do Contrato"
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline_rounded, color: AppTheme.ruby, size: 20), 
+                            onPressed: () async {
+                              await controller.removeLeasingCompany(loc['id']);
+                              await controller.registerLog(action: "DEL LOCADORA", details: "Excluiu locadora: ${loc['nome']}");
+                            }
+                          ),
+                        ],
+                      ),
                     ),
-                    title: Text(
-                      list[index].toUpperCase(), 
-                      style: GoogleFonts.inter(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 0.5)
-                    ),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete_outline_rounded, color: AppTheme.ruby, size: 20), 
-                      onPressed: () async {
-                        await controller.removeLeasingCompany(list[index].toLowerCase());
-                        await controller.registerLog(action: "DEL LOCADORA", details: "Excluiu locadora: ${list[index]}");
-                      }
-                    ),
-                  ),
-                ),
+                  );
+                },
               );
             },
           ),

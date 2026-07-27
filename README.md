@@ -17,6 +17,12 @@ O app foi desenvolvido para otimizar as rondas técnicas em ambiente corporativo
 
 ## 🚀 Série Histórica (Evolução)
 
+### [3.2.10 Stable] - 2024-07-26
+- **BI & Inteligência**: Mapa de Calor de Auditoria (Semáforo de Risco) e Health Score real.
+- **Operação**: Múltiplas substituições por ronda e fluxo de Baixa Patrimonial com motivo.
+- **Gestão**: Detalhes contratuais de locadoras e Perfil do Usuário customizável.
+- **Compliance**: Assinatura de emissor em todos os rodapés de relatórios PDF.
+
 ### [3.2.9 Stable] - 2024-07-20
 - **Redesign Premium Tech**: Repaginação completa da interface com tipografia Inter e JetBrains Mono.
 - **Mission Control Dashboard**: Novo visual para indicadores com gradientes, efeitos de vidro e HUD.

@@ -11,7 +11,7 @@ class RoundRepository {
     String? existingRoundId,
     required RoundModel round,
     required List<AssetModel> assets,
-    Map<String, dynamic>? exchangeData,
+    List<Map<String, dynamic>>? exchanges,
   }) async {
     WriteBatch batch = _firestore.batch();
     
@@ -51,21 +51,23 @@ class RoundRepository {
       }
     }
 
-    if (exchangeData != null) {
-      DocumentReference exchangeRef = roundRef.collection('equipamentos').doc();
-      exchangeData['is_troca'] = true;
-      batch.set(exchangeRef, exchangeData);
+    if (exchanges != null && exchanges.isNotEmpty) {
+      for (var exchangeData in exchanges) {
+        DocumentReference exchangeRef = roundRef.collection('equipamentos').doc();
+        exchangeData['is_troca'] = true;
+        batch.set(exchangeRef, exchangeData);
 
-      // INTELIGENCIA 3.2.7: Transferência automática do item substituído para a TI
-      String? patAntigo = exchangeData['patrimonio_antigo']?.toString().trim();
-      if (patAntigo != null && patAntigo.isNotEmpty && patAntigo != "SEM PATRIMÔNIO") {
-        DocumentReference oldAssetRef = _firestore.collection('inventario_mestre').doc(patAntigo);
-        batch.set(oldAssetRef, {
-          'setor': 'TI',
-          'status_operacional': 'Reservado',
-          'observacao_interna': 'Substituído em ronda no setor ${round.setor}. Motivo: ${exchangeData['motivo'] ?? 'Não informado'}.',
-          'data_ultima_substituicao': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
+        // INTELIGENCIA: Transferência automática do item substituído para a TI
+        String? patAntigo = exchangeData['patrimonio_antigo']?.toString().trim();
+        if (patAntigo != null && patAntigo.isNotEmpty && patAntigo != "SEM PATRIMÔNIO") {
+          DocumentReference oldAssetRef = _firestore.collection('inventario_mestre').doc(patAntigo);
+          batch.set(oldAssetRef, {
+            'setor': 'TI',
+            'status_operacional': 'Reservado',
+            'observacao_interna': 'Substituído em ronda no setor ${round.setor}. Motivo: ${exchangeData['motivo'] ?? 'Não informado'}.',
+            'data_ultima_substituicao': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true));
+        }
       }
     }
     

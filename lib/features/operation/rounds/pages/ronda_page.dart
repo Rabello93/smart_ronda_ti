@@ -53,6 +53,7 @@ class _RondaPageState extends State<RondaPage> {
   final TextEditingController descricaoDefeitoController = TextEditingController();
   final TextEditingController motivoDivergenciaController = TextEditingController();
   final TextEditingController responsavelHomeOfficeController = TextEditingController();
+  final TextEditingController motivoBaixaController = TextEditingController();
   
   final TextEditingController anoFabricacaoController = TextEditingController();
 
@@ -77,6 +78,7 @@ class _RondaPageState extends State<RondaPage> {
   String? _patrimonioOriginal; // Rastreia o ID original vindo da lupa
   DateTime? _dataEntradaManutencaoOriginal; // Novo: Para cálculo de tempo em reparo
   bool houveTroca = false;
+  List<Map<String, dynamic>> listaTrocas = [];
   bool buscandoInventario = false;
   UserModel? _usuarioLogado;
 
@@ -125,7 +127,9 @@ class _RondaPageState extends State<RondaPage> {
 
   Future<void> _carregarLocadoras() async {
     _adminController.leasingCompaniesStream.listen((lista) {
-      if (mounted) setState(() => locadoras = lista);
+      if (mounted) {
+        setState(() => locadoras = lista.map((e) => e['nome'].toString()).toList());
+      }
     });
   }
 
@@ -154,6 +158,7 @@ class _RondaPageState extends State<RondaPage> {
     patrimonioNovoController.dispose();
     motivoTrocaController.dispose();
     responsavelHomeOfficeController.dispose();
+    motivoBaixaController.dispose();
     super.dispose();
   }
 
@@ -178,6 +183,7 @@ class _RondaPageState extends State<RondaPage> {
         locadoraSelecionada = dados.locadora;
         isHomeOffice = dados.homeOfficeAutorizado; // Usa a autorização permanente
         responsavelHomeOfficeController.text = dados.responsavelExterno ?? "";
+        motivoBaixaController.text = dados.motivoBaixa ?? "";
         defeito = dados.temDefeito;
         descricaoDefeitoController.text = dados.descricaoDefeito ?? "";
         _dataEntradaManutencaoOriginal = dados.dataEntradaManutencao;
@@ -640,6 +646,13 @@ class _RondaPageState extends State<RondaPage> {
       return;
     }
 
+    if (statusOperacional == 'Baixa Patrimonial' && motivoBaixaController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Erro: Informe o motivo da baixa patrimonial'), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
+      );
+      return;
+    }
+
     // Lógica de Setor
     String setorDestino = widget.setor;
     if (setorDivergente && setorDivergenteSelecionado != null) {
@@ -686,6 +699,7 @@ class _RondaPageState extends State<RondaPage> {
         homeOfficeAutorizado: isHomeOffice, // Sincroniza com o estado da chave
         dataEntradaManutencao: finalDataManutencao,
         responsavelExterno: isHomeOffice ? responsavelHomeOfficeController.text.trim() : null,
+        motivoBaixa: statusOperacional == 'Baixa Patrimonial' ? motivoBaixaController.text.trim() : null,
         idAnterior: _patrimonioOriginal, // Passa o ID original para o repositório
         acessorios: Map<String, bool>.from(acessoriosSelecionados),
       ));
@@ -702,6 +716,7 @@ class _RondaPageState extends State<RondaPage> {
       descricaoDefeitoController.clear();
       anoFabricacaoController.clear();
       responsavelHomeOfficeController.clear();
+      motivoBaixaController.clear();
       acessoriosSelecionados.clear();
       defeito = false;
       isLocado = false;
@@ -719,8 +734,31 @@ class _RondaPageState extends State<RondaPage> {
     );
   }
 
+  void _adicionarTrocaLista() {
+    if (patrimonioAntigoController.text.trim().isEmpty || patrimonioNovoController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Informe os patrimônios para registrar a troca")));
+      return;
+    }
+
+    setState(() {
+      listaTrocas.add({
+        'patrimonio_antigo': patrimonioAntigoController.text.trim(),
+        'patrimonio_novo': patrimonioNovoController.text.trim(),
+        'hora_retirada': horaRetirada.toIso8601String(),
+        'hora_instalacao': horaInstalacao.toIso8601String(),
+        'motivo': motivoTrocaController.text.trim(),
+      });
+      
+      patrimonioAntigoController.clear();
+      patrimonioNovoController.clear();
+      motivoTrocaController.clear();
+      horaRetirada = DateTime.now();
+      horaInstalacao = DateTime.now();
+    });
+  }
+
   Future<void> finalizarRonda() async {
-    if (equipamentos.isEmpty && !houveTroca) {
+    if (equipamentos.isEmpty && listaTrocas.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Adicione pelo menos um item ou registre uma troca'), behavior: SnackBarBehavior.floating),
       );
@@ -737,18 +775,6 @@ class _RondaPageState extends State<RondaPage> {
       int defeitos = equipamentos.where((e) => e.temDefeito).length;
       int alugados = equipamentos.where((e) => e.isLocado).length;
 
-      Map<String, dynamic>? dadosTroca;
-      if (houveTroca) {
-        dadosTroca = {
-          'tipo': 'TROCA DE EQUIPAMENTO',
-          'patrimonio_antigo': patrimonioAntigoController.text.trim(),
-          'patrimonio_novo': patrimonioNovoController.text.trim(),
-          'hora_retirada': horaRetirada.toIso8601String(),
-          'hora_instalacao': horaInstalacao.toIso8601String(),
-          'motivo': motivoTrocaController.text.trim(),
-        };
-      }
-
       await _roundController.finalizeRound(
         existingRoundId: widget.rondaId,
         round: RoundModel(
@@ -757,15 +783,15 @@ class _RondaPageState extends State<RondaPage> {
           tecnico: widget.tecnico,
           tecnicoId: widget.tecnicoId,
           itensTotal: equipamentos.length,
-          trocasTotal: houveTroca ? 1 : 0,
+          trocasTotal: listaTrocas.length,
           defeitosTotal: defeitos,
           alugadosTotal: alugados,
         ),
         assets: equipamentos,
-        exchangeData: dadosTroca,
+        exchanges: listaTrocas,
       );
 
-      await _adminController.registerLog(action: widget.rondaId != null ? "ATUALIZAR RONDA" : "FINALIZAR RONDA", details: "Salvou ronda no setor ${widget.setor}. Itens: ${equipamentos.length}, Defeitos: $defeitos");
+      await _adminController.registerLog(action: widget.rondaId != null ? "ATUALIZAR RONDA" : "FINALIZAR RONDA", details: "Salvou ronda no setor ${widget.setor}. Itens: ${equipamentos.length}, Trocas: ${listaTrocas.length}");
 
       if (!mounted) return;
       Navigator.pop(context);
@@ -870,7 +896,7 @@ class _RondaPageState extends State<RondaPage> {
                   child: DropdownButtonFormField<String>(
                     initialValue: statusOperacional,
                     decoration: const InputDecoration(labelText: 'Status Op.', border: OutlineInputBorder()),
-                    items: const ['Em uso', 'Reservado', 'Em manutenção', 'Descartado'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
+                    items: const ['Em uso', 'Reservado', 'Em manutenção', 'Baixa Patrimonial'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
                     onChanged: (v) => setState(() => statusOperacional = v!),
                   ),
                 ),
@@ -1035,6 +1061,18 @@ class _RondaPageState extends State<RondaPage> {
               const SizedBox(height: 8),
               const Text("ℹ️ Este item manterá seu departamento de origem, mas será listado na TI para controle técnico.", style: TextStyle(fontSize: 12, color: Colors.blueGrey, fontStyle: FontStyle.italic)),
             ],
+            if (statusOperacional == 'Baixa Patrimonial') ...[
+              const SizedBox(height: 10),
+              TextField(
+                controller: motivoBaixaController, 
+                decoration: const InputDecoration(
+                  labelText: 'Motivo da Baixa Patrimonial *', 
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.gavel_rounded),
+                  hintText: 'Ex: Equipamento obsoleto / Sem reparo...'
+                )
+              ),
+            ],
             if (isLocado) ...[
               const SizedBox(height: 10),
               DropdownButtonFormField<String>(
@@ -1080,12 +1118,25 @@ class _RondaPageState extends State<RondaPage> {
             const Divider(height: 40),
             Container(
               padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: Colors.orange.withAlpha(15), borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.orange.withAlpha(50))),
+              decoration: BoxDecoration(color: Colors.orange.withValues(alpha: 15), borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.orange.withValues(alpha: 50))),
               child: Column(
                 children: [
                   CheckboxListTile(title: const Text('Houve Troca de Equipamento?', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange)), value: houveTroca, activeColor: Colors.orange, onChanged: (v) => setState(() => houveTroca = v!)),
                   if (houveTroca) ...[
                     const SizedBox(height: 10),
+                    if (listaTrocas.isNotEmpty) ...[
+                      const Text("Trocas para registrar nesta ronda:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                      const SizedBox(height: 8),
+                      ...listaTrocas.asMap().entries.map((e) => Card(
+                        child: ListTile(
+                          dense: true,
+                          title: Text("${e.value['patrimonio_antigo']} ➔ ${e.value['patrimonio_novo']}"),
+                          subtitle: Text("Motivo: ${e.value['motivo']}"),
+                          trailing: IconButton(icon: const Icon(Icons.delete, color: Colors.red, size: 18), onPressed: () => setState(() => listaTrocas.removeAt(e.key))),
+                        ),
+                      )),
+                      const Divider(),
+                    ],
                     TextField(
                       controller: patrimonioAntigoController, 
                       decoration: InputDecoration(
@@ -1131,6 +1182,13 @@ class _RondaPageState extends State<RondaPage> {
                     ),
                     const SizedBox(height: 10),
                     TextField(controller: motivoTrocaController, decoration: const InputDecoration(labelText: 'Motivo da Troca', border: OutlineInputBorder())),
+                    const SizedBox(height: 12),
+                    ElevatedButton.icon(
+                      onPressed: _adicionarTrocaLista, 
+                      icon: const Icon(Icons.add_shopping_cart), 
+                      label: const Text("ADICIONAR TROCA À LISTA"),
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.orange, foregroundColor: Colors.white),
+                    ),
                   ],
                 ],
               ),

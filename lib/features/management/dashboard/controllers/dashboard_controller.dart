@@ -2,6 +2,7 @@ import 'package:flutter/material.dart' show DateTimeRange;
 import '../../../operation/rounds/models/round_model.dart';
 import '../../../operation/assets/models/asset_model.dart';
 import 'package:intl/intl.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class DashboardController {
   /// Filtra a lista de rondas baseada no período selecionado.
@@ -21,9 +22,6 @@ class DashboardController {
     }
     return counts.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
   }
-
-  /// Calcula o ranking de rondas por setor. (Legado)
-  List<MapEntry<String, int>> getRankingPorSetor(List<RoundModel> rounds) => getRankingPorDepartamento(rounds);
 
   /// Calcula o ranking de rondas por técnico.
   List<MapEntry<String, int>> getRankingPorTecnico(List<RoundModel> rounds) {
@@ -68,17 +66,13 @@ class DashboardController {
   Map<String, double> getInventoryCoverage(List<AssetModel> allAssets, List<RoundModel> roundsInPeriod) {
     if (allAssets.isEmpty) return {'auditado': 0, 'pendente': 0};
     
-    // Nova Lógica 3.2.9: Saúde Física do Parque
-    // Um item deixa de ser "saudável" se:
-    // 1. Tem defeito relatado
-    // 2. Está em manutenção
-    // 3. É obsoleto (+5 anos)
-    
+    // Nova Lógica 3.2.10: Saúde Física do Parque
     int total = allAssets.length;
     int problematicos = allAssets.where((a) => 
       a.temDefeito || 
       a.statusOperacional == 'Em manutenção' || 
-      a.isObsoleto
+      a.isObsoleto ||
+      a.statusOperacional == 'Baixa Patrimonial'
     ).length;
 
     int saudaveis = total - problematicos;
@@ -153,7 +147,6 @@ class DashboardController {
     
     for (var dep in departamentos) {
       final nome = dep['nome'] as String;
-      // Encontra a última ronda desse departamento
       final rondasDoDep = allRounds.where((r) => r.setor == nome).toList()
         ..sort((a, b) => b.dataInicio.compareTo(a.dataInicio));
       
@@ -168,5 +161,28 @@ class DashboardController {
       }
     }
     return alerts;
+  }
+
+  /// Calcula o Mapa de Calor de Auditoria (Semáforo de Risco)
+  Map<String, List<String>> getAuditHeatMap(List<RoundModel> allRondas, List<Map<String, dynamic>> departamentos) {
+    Map<String, List<String>> heatMap = {'verde': [], 'amarelo': [], 'vermelho': []};
+    final now = DateTime.now();
+
+    for (var dep in departamentos) {
+      final nome = dep['nome'] as String;
+      final rondasDoDep = allRondas.where((r) => r.setor == nome).toList()
+        ..sort((a, b) => b.dataInicio.compareTo(a.dataInicio));
+
+      if (rondasDoDep.isEmpty) {
+        heatMap['vermelho']!.add(nome);
+      } else {
+        final lastRound = rondasDoDep.first.dataInicio;
+        final diff = now.difference(lastRound).inDays;
+        if (diff <= 15) heatMap['verde']!.add(nome);
+        else if (diff <= 30) heatMap['amarelo']!.add(nome);
+        else heatMap['vermelho']!.add(nome);
+      }
+    }
+    return heatMap;
   }
 }

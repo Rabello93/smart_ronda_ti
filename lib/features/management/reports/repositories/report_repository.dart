@@ -53,7 +53,7 @@ class ReportRepository {
     );
   }
 
-  static pw.Widget _buildFooter(Map<String, dynamic> config) {
+  static pw.Widget _buildFooter(Map<String, dynamic> config, {String? userName}) {
     final now = DateTime.now();
     final dateStr = "${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}";
     
@@ -73,13 +73,15 @@ class ReportRepository {
                 pw.Text("CNPJ: ${config['cnpj']}", style: const pw.TextStyle(fontSize: 7)),
               if (config['contato'] != null && config['contato'].isNotEmpty)
                 pw.Text("Contato: ${config['contato']}", style: const pw.TextStyle(fontSize: 7)),
+              if (userName != null)
+                pw.Text("Gerado por: ${userName.toUpperCase()}", style: pw.TextStyle(fontSize: 7, fontWeight: pw.FontWeight.bold, color: PdfColors.blueGrey700)),
             ]
           ),
           pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.end,
             children: [
               pw.Text("Gerado em: $dateStr", style: const pw.TextStyle(fontSize: 7, color: PdfColors.grey700)),
-              pw.Text("Smart Ronda TI v3.2.9 - Governança de Ativos", style: const pw.TextStyle(fontSize: 6, color: PdfColors.grey500)),
+              pw.Text("Smart Ronda TI v3.2.10 - Governança de Ativos", style: const pw.TextStyle(fontSize: 6, color: PdfColors.grey500)),
             ]
           ),
         ]
@@ -89,7 +91,7 @@ class ReportRepository {
 
   // --- PDF EXPORTS ---
 
-  static Future<void> exportarLocacaoParaPDF(BuildContext context, List<Map<String, dynamic>> itens, String titulo) async {
+  static Future<void> exportarLocacaoParaPDF(BuildContext context, List<Map<String, dynamic>> itens, String titulo, {String? userName}) async {
     final messenger = (context.mounted) ? ScaffoldMessenger.of(context) : null;
     try {
       final pdf = pw.Document();
@@ -104,7 +106,7 @@ class ReportRepository {
         pw.MultiPage(
           pageFormat: PdfPageFormat.a4.landscape,
           header: (pw.Context context) => _buildHeader(config, titulo, logoImage),
-          footer: (pw.Context context) => _buildFooter(config),
+          footer: (pw.Context context) => _buildFooter(config, userName: userName),
           build: (pw.Context context) => [
             pw.SizedBox(height: 10),
             pw.TableHelper.fromTextArray(
@@ -171,7 +173,8 @@ class ReportRepository {
     bool? apenasDefeitos,
     bool? apenasSemPatrimonio,
     bool? apenasObsoletos,
-    BuildContext? context
+    BuildContext? context,
+    String? userName,
   }) async {
     final messenger = (context != null && context.mounted) ? ScaffoldMessenger.of(context) : null;
     try {
@@ -222,7 +225,7 @@ class ReportRepository {
             equip['serie'] ?? '---',
             equip['locadora'] ?? 'PRÓPRIO',
             isObsoleto ? "SIM ($idade anos)" : 'NÃO',
-            (equip['tem_defeito'] == true || equip['status_operacional'] == 'Em manutenção') ? 'SIM' : 'NÃO',
+            (equip['tem_defeito'] == true || equip['status_operacional'] == 'Em manutenção' || equip['status_operacional'] == 'Baixa Patrimonial') ? 'SIM' : 'NÃO',
             equip['status_operacional'] ?? (equip['status'] ?? 'OK'),
           ]);
         }
@@ -264,7 +267,7 @@ class ReportRepository {
         pw.MultiPage(
           pageFormat: PdfPageFormat.a4.landscape,
           header: (pw.Context context) => _buildHeader(config, "RELATÓRIO TÉCNICO", logoImage),
-          footer: (pw.Context context) => _buildFooter(config),
+          footer: (pw.Context context) => _buildFooter(config, userName: userName),
           build: (pw.Context context) => [
             pw.SizedBox(height: 10),
             pw.Center(child: pw.Text(apenasObsoletos == true ? "RELATÓRIO DE OBSOLESCÊNCIA (+5 ANOS)" : "AUDITORIA DE RONDAS", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 16))),
@@ -451,6 +454,7 @@ class ReportRepository {
     required BuildContext context,
     required List<Map<String, dynamic>> dados,
     required DateTimeRange periodo,
+    String? userName,
   }) async {
     final messenger = (context.mounted) ? ScaffoldMessenger.of(context) : null;
     try {
@@ -465,7 +469,7 @@ class ReportRepository {
       pdf.addPage(pw.MultiPage(
         pageFormat: PdfPageFormat.a4.landscape,
         header: (pw.Context context) => _buildHeader(config, "ANÁLISE DE INCIDÊNCIAS CRÍTICAS", logoImage),
-        footer: (pw.Context context) => _buildFooter(config),
+        footer: (pw.Context context) => _buildFooter(config, userName: userName),
         build: (pw.Context context) => [
           pw.Text("Período de Análise: $dateStr", style: const pw.TextStyle(fontSize: 12)),
           pw.SizedBox(height: 15),
@@ -694,7 +698,7 @@ class ReportRepository {
     } catch (e) { messenger?.showSnackBar(SnackBar(content: Text("Erro: $e"), backgroundColor: Colors.red)); }
   }
 
-  static Future<void> exportarLogsParaPDF(BuildContext context) async {
+  static Future<void> exportarLogsParaPDF(BuildContext context, {String? userName}) async {
     final messenger = context.mounted ? ScaffoldMessenger.of(context) : null;
     try {
       final pdf = pw.Document();
@@ -708,7 +712,7 @@ class ReportRepository {
       pdf.addPage(pw.MultiPage(
         pageFormat: PdfPageFormat.a4.landscape,
         header: (pw.Context context) => _buildHeader(config, "LOGS DO SISTEMA", logoImage),
-        footer: (pw.Context context) => _buildFooter(config),
+        footer: (pw.Context context) => _buildFooter(config, userName: userName),
         build: (pw.Context context) => [
           pw.SizedBox(height: 20),
           pw.TableHelper.fromTextArray(
@@ -735,7 +739,7 @@ class ReportRepository {
     } catch (e) { messenger?.showSnackBar(SnackBar(content: Text("Erro: $e"), backgroundColor: Colors.red)); }
   }
 
-  static Future<void> exportarSubstituicoesParaPDF(BuildContext context, List<Map<String, dynamic>> itens, String titulo) async {
+  static Future<void> exportarSubstituicoesParaPDF(BuildContext context, List<Map<String, dynamic>> itens, String titulo, {String? userName}) async {
     final messenger = (context.mounted) ? ScaffoldMessenger.of(context) : null;
     try {
       final pdf = pw.Document();
@@ -748,7 +752,7 @@ class ReportRepository {
         pw.MultiPage(
           pageFormat: PdfPageFormat.a4.landscape,
           header: (pw.Context context) => _buildHeader(config, titulo, logoImage),
-          footer: (pw.Context context) => _buildFooter(config),
+          footer: (pw.Context context) => _buildFooter(config, userName: userName),
           build: (pw.Context context) => [
             pw.SizedBox(height: 10),
             pw.TableHelper.fromTextArray(
@@ -842,7 +846,7 @@ class ReportRepository {
     }
   }
 
-  static Future<void> exportarRelatorioMetas(BuildContext context, {DateTimeRange? periodo, DateTimeRange? periodoComparativo}) async {
+  static Future<void> exportarRelatorioMetas(BuildContext context, {DateTimeRange? periodo, DateTimeRange? periodoComparativo, String? userName}) async {
     final messenger = (context.mounted) ? ScaffoldMessenger.of(context) : null;
     try {
       final pdf = pw.Document();
@@ -883,7 +887,7 @@ class ReportRepository {
       pdf.addPage(pw.MultiPage(
         pageFormat: PdfPageFormat.a4.landscape,
         header: (pw.Context context) => _buildHeader(config, "RELATÓRIO DE PERFORMANCE E METAS", logoImage),
-        footer: (pw.Context context) => _buildFooter(config),
+        footer: (pw.Context context) => _buildFooter(config, userName: userName),
         build: (pw.Context context) => [
           pw.SizedBox(height: 10),
           pw.Text("Período Principal: ${start.day}/${start.month}/${start.year} - ${end.day}/${end.month}/${end.year}", style: const pw.TextStyle(fontSize: 12)),

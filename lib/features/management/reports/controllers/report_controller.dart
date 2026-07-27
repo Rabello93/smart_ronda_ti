@@ -19,16 +19,25 @@ class ReportController {
     bool apenasLocados = false,
     bool apenasSemPatrimonio = false,
     bool apenasSubstituicoes = false,
+    bool apenasBaixas = false,
+    DateTimeRange? periodo,
+    String? userName,
     required String formato,
   }) async {
     try {
       if (apenasSubstituicoes) {
-        return _gerarRelatorioSubstituicoes(context, formato, setor);
+        return _gerarRelatorioSubstituicoes(context, formato, setor, periodo, userName);
       }
 
       Query query = _firestore.collection('inventario_mestre');
 
       if (setor != null) query = query.where('setor', isEqualTo: setor);
+      
+      if (periodo != null) {
+        query = query
+            .where('ultima_atualizacao', isGreaterThanOrEqualTo: Timestamp.fromDate(periodo.start))
+            .where('ultima_atualizacao', isLessThanOrEqualTo: Timestamp.fromDate(periodo.end));
+      }
       
       final snapshot = await query.get();
       var itens = snapshot.docs.map((d) {
@@ -51,7 +60,7 @@ class ReportController {
         itens = itens.where((i) => i['tipo'] == tipo).toList();
       }
 
-      final bool temFiltroCondicao = apenasDefeitos || apenasObsoletos || emManutencao || emDivergencia || reservados || apenasHomeOffice;
+      final bool temFiltroCondicao = apenasDefeitos || apenasObsoletos || emManutencao || emDivergencia || reservados || apenasHomeOffice || apenasBaixas;
 
       if (temFiltroCondicao) {
         itens = itens.where((i) {
@@ -67,6 +76,7 @@ class ReportController {
           final status = i['status_operacional'];
           if (emManutencao && status == 'Em manutenção') condicaoMatch = true;
           if (reservados && status == 'Reservado') condicaoMatch = true;
+          if (apenasBaixas && status == 'Baixa Patrimonial') condicaoMatch = true;
           if (emDivergencia && i['setor_divergente'] == true) condicaoMatch = true;
           if (apenasHomeOffice && i['home_office_autorizado'] == true) condicaoMatch = true;
           
@@ -92,6 +102,7 @@ class ReportController {
       if (emManutencao) tags.add("MANUTENÇÃO");
       if (emDivergencia) tags.add("DIVERGENTES");
       if (reservados) tags.add("RESERVADOS");
+      if (apenasBaixas) tags.add("BAIXA PATRIMONIAL");
       if (apenasHomeOffice) tags.add("HOME OFFICE");
       if (apenasSemPatrimonio) tags.add("SEM PATRIMÔNIO");
 
@@ -106,7 +117,8 @@ class ReportController {
           await ReportRepository.exportarLocacaoParaPDF(
             context, 
             itens, 
-            titulo
+            titulo,
+            userName: userName,
           );
         } else if (formato == 'CSV') {
           await ReportRepository.exportarInventarioParaCSV(itens, titulo);
@@ -129,12 +141,17 @@ class ReportController {
     }
   }
 
-  Future<void> _gerarRelatorioSubstituicoes(BuildContext context, String formato, String? setorFiltro) async {
+  Future<void> _gerarRelatorioSubstituicoes(BuildContext context, String formato, String? setorFiltro, DateTimeRange? periodo, String? userName) async {
     try {
-      // Busca todas as rondas (limitado a um período razoável ou todas se for o caso)
       Query queryRondas = _firestore.collection('rondas').orderBy('timestamp', descending: true);
       if (setorFiltro != null) queryRondas = queryRondas.where('setor', isEqualTo: setorFiltro);
       
+      if (periodo != null) {
+        queryRondas = queryRondas
+            .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(periodo.start))
+            .where('timestamp', isLessThanOrEqualTo: Timestamp.fromDate(periodo.end));
+      }
+
       final snapshots = await queryRondas.get();
       List<Map<String, dynamic>> substituicoes = [];
 
@@ -180,7 +197,7 @@ class ReportController {
 
       if (context.mounted) {
         if (formato == 'PDF') {
-          await ReportRepository.exportarSubstituicoesParaPDF(context, substituicoes, "Relatório de Substituições");
+          await ReportRepository.exportarSubstituicoesParaPDF(context, substituicoes, "Relatório de Substituições", userName: userName);
         } else if (formato == 'XLSX') {
           await ReportRepository.exportarSubstituicoesParaXLSX(substituicoes, "Relatório de Substituições");
         } else {
@@ -193,9 +210,9 @@ class ReportController {
     }
   }
 
-  Future<void> gerarRelatorioMetas(BuildContext context, {DateTimeRange? periodo, DateTimeRange? periodoComparativo, required String formato}) async {
+  Future<void> gerarRelatorioMetas(BuildContext context, {DateTimeRange? periodo, DateTimeRange? periodoComparativo, String? userName, required String formato}) async {
     if (formato == 'PDF') {
-      await ReportRepository.exportarRelatorioMetas(context, periodo: periodo, periodoComparativo: periodoComparativo);
+      await ReportRepository.exportarRelatorioMetas(context, periodo: periodo, periodoComparativo: periodoComparativo, userName: userName);
     } else if (formato == 'XLSX') {
       await ReportRepository.exportarRelatorioMetasXLSX(context, periodo: periodo);
     } else {
@@ -207,6 +224,7 @@ class ReportController {
     required DateTimeRange periodo, 
     String? setor, 
     String? locadora,
+    String? userName,
     String formato = 'PDF',
   }) async {
     try {
@@ -295,7 +313,7 @@ class ReportController {
             if (item['data_entrada_manutencao'] == null) item['data_entrada_manutencao'] = roundTimestamp;
             item['data_saida_manutencao'] = null;
           } 
-          else if (currentStatus == 'Descartado' && (item['em_manutencao'] == true || item['data_entrada_manutencao'] != null)) {
+          else if (currentStatus == 'Baixa Patrimonial' && (item['em_manutencao'] == true || item['data_entrada_manutencao'] != null)) {
             item['data_saida_manutencao'] = roundTimestamp;
             item['teve_manutencao_concluida'] = true;
             item['foi_descartado'] = true;
@@ -311,7 +329,7 @@ class ReportController {
           if (data['is_home_office'] == true) item['count_home_office']++;
           
           item['ultimo_status'] = currentStatus;
-          item['ultimo_setor'] = currentStatus == 'Descartado' ? 'BAIXA PATRIMONIAL' : (data['setor'] ?? '---');
+          item['ultimo_setor'] = currentStatus == 'Baixa Patrimonial' ? 'BAIXA PATRIMONIAL' : (data['setor'] ?? '---');
         }
       }
 
@@ -355,7 +373,7 @@ class ReportController {
               'ultimo_setor': data['setor'] ?? '---',
               'data_entrada_manutencao': data['data_entrada_manutencao'],
               'data_saida_manutencao': null,
-              'foi_descartado': data['status_operacional'] == 'Descartado',
+              'foi_descartado': data['status_operacional'] == 'Baixa Patrimonial',
             };
           } else {
             final item = agregador[key]!;
@@ -375,7 +393,7 @@ class ReportController {
         item['tem_defeito'] == true ||
         item['em_manutencao'] == true ||
         item['teve_manutencao_concluida'] == true ||
-        item['ultimo_status'] == 'Descartado' ||
+        item['ultimo_status'] == 'Baixa Patrimonial' ||
         item['count_divergencia'] > 0 || 
         item['count_home_office'] > 0
       ).toList();
@@ -391,7 +409,7 @@ class ReportController {
         if (formato == 'XLSX') {
           await ReportRepository.exportarRelatorioIncidenciasXLSX(context: context, dados: listaFinal, periodo: periodo);
         } else {
-          await ReportRepository.exportarRelatorioIncidencias(context: context, dados: listaFinal, periodo: periodo);
+          await ReportRepository.exportarRelatorioIncidencias(context: context, dados: listaFinal, periodo: periodo, userName: userName);
         }
       }
     } catch (e) {

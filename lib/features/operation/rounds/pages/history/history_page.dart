@@ -123,6 +123,7 @@ class _HistoryPageState extends State<HistoryPage> {
                   onPressed: () => ReportRepository.exportarRondasParaPDF(
                     setor: setorFiltro,
                     context: context,
+                    userName: userData?.nome,
                   ),
                   tooltip: "Exportar PDF",
                 ),

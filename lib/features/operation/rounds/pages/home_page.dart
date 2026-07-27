@@ -16,6 +16,7 @@ import 'package:smart_ronda_ti/shared/widgets/dashboard_widgets.dart';
 import 'package:smart_ronda_ti/features/system/auth/models/user_model.dart';
 import 'package:smart_ronda_ti/app/theme.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:smart_ronda_ti/features/system/auth/pages/profile_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class HomePage extends StatefulWidget {
@@ -151,6 +152,11 @@ class _HomePageState extends State<HomePage> {
 
         return Scaffold(
           appBar: AppBar(
+            leading: IconButton(
+              icon: const Icon(Icons.person_pin_rounded, color: AppTheme.cyanNeon),
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfilePage())),
+              tooltip: "Meu Perfil",
+            ),
             title: Text("SMART RONDA", style: GoogleFonts.inter(fontWeight: FontWeight.w900, letterSpacing: 1)),
             backgroundColor: isAdmin ? AppTheme.deepNavy : Colors.blue.shade900,
             foregroundColor: Colors.white,
@@ -186,7 +192,7 @@ class _HomePageState extends State<HomePage> {
           persistentFooterButtons: [
             Center(
               child: Text(
-                "Smart Ronda TI - v3.2.9",
+                "Smart Ronda TI - v3.2.10",
                 style: AppTheme.monoStyle(fontSize: 9, color: Colors.grey),
               ),
             ),

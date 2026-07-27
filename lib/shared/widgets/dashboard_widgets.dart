@@ -193,7 +193,7 @@ class RankingItem extends StatelessWidget {
               ),
               AnimatedContainer(
                 duration: const Duration(milliseconds: 800),
-                width: MediaQuery.of(context).size.width * 0.5 * progress, // Simplified width
+                width: (MediaQuery.of(context).size.width * 0.3) * progress,
                 height: 6,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -561,6 +561,73 @@ class ComparisonChart extends StatelessWidget {
             );
           }).toList(),
         ),
+      ),
+    );
+  }
+}
+
+class AuditHeatMapWidget extends StatelessWidget {
+  final Map<String, List<String>> data;
+
+  const AuditHeatMapWidget({super.key, required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    int total = data.values.fold(0, (sum, list) => sum + list.length);
+    if (total == 0) return const Center(child: Text("NENHUM DADO DISPONÍVEL"));
+
+    return Column(
+      children: [
+        Row(
+          children: [
+            _bar('CRÍTICO (+30D)', data['vermelho']!.length, total, AppTheme.ruby),
+            const SizedBox(width: 4),
+            _bar('ATENÇÃO (16-30D)', data['amarelo']!.length, total, AppTheme.amberNeon),
+            const SizedBox(width: 4),
+            _bar('SEGURO (0-15D)', data['verde']!.length, total, AppTheme.emerald),
+          ],
+        ),
+        const SizedBox(height: 20),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            ...data['vermelho']!.map((name) => _indicator(name, AppTheme.ruby, isDark)),
+            ...data['amarelo']!.map((name) => _indicator(name, AppTheme.amberNeon, isDark)),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _bar(String label, int count, int total, Color color) {
+    double flex = (count / total).clamp(0.05, 1.0);
+    return Expanded(
+      flex: (flex * 100).toInt(),
+      child: Container(
+        height: 12,
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(4),
+          boxShadow: [BoxShadow(color: color.withValues(alpha: 0.3), blurRadius: 8)],
+        ),
+      ),
+    );
+  }
+
+  Widget _indicator(String name, Color color, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Text(
+        name.toUpperCase(),
+        style: TextStyle(color: color, fontSize: 8, fontWeight: FontWeight.bold, letterSpacing: 0.5),
       ),
     );
   }

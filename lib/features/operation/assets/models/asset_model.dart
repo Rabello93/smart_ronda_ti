@@ -20,6 +20,7 @@ class AssetModel {
   final bool semPatrimonio;
   final bool temDefeito;
   final String? descricaoDefeito;
+  final String? motivoBaixa;
   final String status;
   final int? anoFabricacao;
   final int? anoEntradaUnidade;
@@ -50,6 +51,7 @@ class AssetModel {
     this.semPatrimonio = false,
     this.temDefeito = false,
     this.descricaoDefeito,
+    this.motivoBaixa,
     this.status = 'Ativo',
     this.anoFabricacao,
     this.anoEntradaUnidade,
@@ -84,6 +86,7 @@ class AssetModel {
       semPatrimonio: map['sem_patrimonio'] ?? false,
       temDefeito: map['tem_defeito'] ?? false,
       descricaoDefeito: map['descricao_defeito'],
+      motivoBaixa: map['motivo_baixa'],
       status: map['status'] ?? 'Ativo',
       anoFabricacao: map['ano_fabricacao'],
       anoEntradaUnidade: map['ano_entrada_unidade'],
@@ -121,6 +124,7 @@ class AssetModel {
       'sem_patrimonio': semPatrimonio,
       'tem_defeito': temDefeito,
       'descricao_defeito': descricaoDefeito,
+      'motivo_baixa': motivoBaixa,
       'status': status,
       'ano_fabricacao': anoFabricacao,
       'ano_entrada_unidade': anoEntradaUnidade,
