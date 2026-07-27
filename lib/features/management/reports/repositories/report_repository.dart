@@ -113,8 +113,8 @@ class ReportRepository {
             pw.Text("RELATÓRIO EXECUTIVO DE CAPACIDADE (OPEX)", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
             pw.SizedBox(height: 20),
             ...locadoras.map((loc) {
-              final String nome = loc['nome'].toString();
-              final Map<String, int> contratados = Map<String, int>.from(loc['itens_contratados'] ?? {});
+              final String nome = loc['nome']?.toString() ?? 'DESCONHECIDO';
+              final Map<String, int> contratados = Map<String, int>.from(loc['itens_contratados'] ?? <String, int>{});
               final assetsDestaLocadora = assets.where((a) => a.locadora?.toUpperCase() == nome.toUpperCase()).toList();
 
               return pw.Column(

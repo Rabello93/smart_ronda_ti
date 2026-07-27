@@ -20,19 +20,12 @@ class _ReportsPageState extends State<ReportsPage> {
   final ReportController _reportController = ReportController();
   final AuthController _authController = AuthController();
   
-  UserModel? _meuPerfil;
 
   @override
   void initState() {
     super.initState();
-    _carregarPerfil();
   }
 
-  void _carregarPerfil() {
-    _authController.profileStream.listen((user) {
-      if (mounted) setState(() => _meuPerfil = user);
-    });
-  }
 
   // Filtros Inventário
   String? _setorSelecionado;
@@ -58,7 +51,7 @@ class _ReportsPageState extends State<ReportsPage> {
   Future<void> _handleGerarInventario() async {
     setState(() => _gerandoInventario = true);
     
-    final profile = await _authController.profileStream.first;
+    final UserModel? profile = await _authController.profileStream.first;
     final String currentUserName = profile?.nome ?? 
                                    _authController.currentUser?.displayName ?? 
                                    _authController.currentUser?.email?.split('@')[0] ?? "Admin";
@@ -268,7 +261,7 @@ class _ReportsPageState extends State<ReportsPage> {
               Expanded(
                 child: _actionButton(
                   onPressed: _periodoPrincipal == null ? null : () async {
-                    final profile = await _authController.profileStream.first;
+                    final UserModel? profile = await _authController.profileStream.first;
                     final String currentUserName = profile?.nome ?? 
                                                    _authController.currentUser?.displayName ?? 
                                                    _authController.currentUser?.email?.split('@')[0] ?? "Admin";
@@ -309,7 +302,7 @@ class _ReportsPageState extends State<ReportsPage> {
               Expanded(
                 child: _actionButton(
                   onPressed: _periodoPrincipal == null ? null : () async {
-                    final profile = await _authController.profileStream.first;
+                    final UserModel? profile = await _authController.profileStream.first;
                     final String currentUserName = profile?.nome ?? 
                                                    _authController.currentUser?.displayName ?? 
                                                    _authController.currentUser?.email?.split('@')[0] ?? "Admin";
@@ -349,7 +342,7 @@ class _ReportsPageState extends State<ReportsPage> {
           const SizedBox(height: 20),
           _actionButton(
             onPressed: () async {
-              final profile = await _authController.profileStream.first;
+              final UserModel? profile = await _authController.profileStream.first;
               final String currentUserName = profile?.nome ?? 
                                              _authController.currentUser?.displayName ?? 
                                              _authController.currentUser?.email?.split('@')[0] ?? "Admin";

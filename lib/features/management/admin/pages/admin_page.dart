@@ -465,11 +465,11 @@ class _DepartamentosTab extends StatelessWidget {
               children: [
                 ElevatedButton.icon(
                   onPressed: () async {
-                    final AuthController auth = AuthController();
-                    final profile = await auth.profileStream.first;
+                    final AuthController authController = AuthController();
+                    final profile = await authController.profileStream.first;
                     final String currentUserName = profile?.nome ?? 
-                                                   auth.currentUser?.displayName ?? 
-                                                   auth.currentUser?.email?.split('@')[0] ?? "Admin";
+                                                   authController.currentUser?.displayName ?? 
+                                                   authController.currentUser?.email?.split('@')[0] ?? "Admin";
                     final itensSnapshot = await controller.getSectorStream(setor).first;
                     final itensMap = itensSnapshot.map((e) => e.toMap()..['patrimonio'] = e.patrimonio).toList();
                     if (context.mounted) ReportRepository.exportarMapaAtivosSetor(setor: setor, itens: itensMap, context: context, userName: currentUserName);
@@ -852,6 +852,8 @@ class _EmpresaTabState extends State<_EmpresaTab> {
 class _LocadorasTab extends StatelessWidget {
   const _LocadorasTab();
 
+  static const List<String> _tiposSuportados = ['Notebook', 'Desktop', 'Monitor', 'Impressora', 'Telefone', 'Tablet', 'Smartphone'];
+
   void _editarDetalhesLocadora(BuildContext context, Map<String, dynamic> loc) {
     final AdminController controller = AdminController();
     final versaoController = TextEditingController(text: loc['versao_contrato']);
@@ -867,7 +869,6 @@ class _LocadorasTab extends StatelessWidget {
     DateTime? vigenciaFim = loc['vigencia_fim'] != null ? (loc['vigencia_fim'] as Timestamp).toDate() : null;
     
     Map<String, int> itensContratados = Map<String, int>.from(loc['itens_contratados'] ?? {});
-    final List<String> tiposSuportados = ['Notebook', 'Desktop', 'Monitor', 'Impressora', 'Telefone', 'Tablet', 'Smartphone'];
 
     showDialog(
       context: context,
@@ -938,7 +939,7 @@ class _LocadorasTab extends StatelessWidget {
                 ),
                 const Text("Quantidades Contratadas:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                 const SizedBox(height: 8),
-                ...tiposSuportados.map((tipo) {
+                ..._tiposSuportados.map((tipo) {
                   final ctrl = TextEditingController(text: (itensContratados[tipo] ?? 0).toString());
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 8),
