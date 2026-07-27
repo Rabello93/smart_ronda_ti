@@ -249,13 +249,17 @@ class _ReportsPageState extends State<ReportsPage> {
             children: [
               Expanded(
                 child: _actionButton(
-                  onPressed: _periodoPrincipal == null ? null : () => _reportController.gerarRelatorioMetas(
-                    context, 
-                    periodo: _periodoPrincipal, 
-                    periodoComparativo: _periodoComparativo, 
-                    userName: _authController.currentUser?.email?.split('@')[0],
-                    formato: 'PDF'
-                  ),
+                  onPressed: _periodoPrincipal == null ? null : () {
+                    final String currentUserName = _authController.currentUser?.displayName ?? 
+                                                   _authController.currentUser?.email?.split('@')[0] ?? "Admin";
+                    _reportController.gerarRelatorioMetas(
+                      context, 
+                      periodo: _periodoPrincipal, 
+                      periodoComparativo: _periodoComparativo, 
+                      userName: currentUserName,
+                      formato: 'PDF'
+                    );
+                  },
                   label: "PDF METAS",
                   icon: Icons.picture_as_pdf,
                   color: Colors.red.shade900,
@@ -284,14 +288,18 @@ class _ReportsPageState extends State<ReportsPage> {
             children: [
               Expanded(
                 child: _actionButton(
-                  onPressed: _periodoPrincipal == null ? null : () => _reportController.gerarRelatorioIncidencias(
-                    context, 
-                    periodo: _periodoPrincipal!, 
-                    setor: _setorSelecionado,
-                    locadora: _locadoraSelecionada,
-                    userName: _authController.currentUser?.email?.split('@')[0],
-                    formato: 'PDF',
-                  ),
+                  onPressed: _periodoPrincipal == null ? null : () {
+                    final String currentUserName = _authController.currentUser?.displayName ?? 
+                                                   _authController.currentUser?.email?.split('@')[0] ?? "Admin";
+                    _reportController.gerarRelatorioIncidencias(
+                      context, 
+                      periodo: _periodoPrincipal!, 
+                      setor: _setorSelecionado,
+                      locadora: _locadoraSelecionada,
+                      userName: currentUserName,
+                      formato: 'PDF',
+                    );
+                  },
                   label: "PDF INCIDÊNCIAS",
                   icon: Icons.picture_as_pdf,
                   color: Colors.red.shade900,

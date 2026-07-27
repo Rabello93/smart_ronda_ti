@@ -426,6 +426,7 @@ class _DepartamentosTab extends StatelessWidget {
 
   void _abrirHistoricoSetor(BuildContext context, String setor, bool isAuthorized) {
     final AssetController controller = AssetController();
+    final AuthController _authController = AuthController();
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -497,97 +498,87 @@ class _DepartamentosTab extends StatelessWidget {
     final AuthController authController = AuthController();
     final TextEditingController setorController = TextEditingController();
 
-    return StreamBuilder<UserModel?>(
-      stream: authController.profileStream,
-      builder: (context, profSnap) {
-        final meuNivel = profSnap.data?.nivelAcesso ?? 'normal';
-        final bool canCreate = meuNivel == 'master' || meuNivel == 'gerente';
-        final bool isAuthorized = meuNivel == 'master' || meuNivel == 'gerente';
-
-        return Column(
-          children: [
-            if (canCreate)
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: setorController,
-                        decoration: const InputDecoration(labelText: "Novo Departamento", border: OutlineInputBorder()),
+    return Column(
+      children: [
+        if (authController.currentUser != null)
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: setorController,
+                    decoration: const InputDecoration(labelText: "Novo Departamento", border: OutlineInputBorder()),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                ElevatedButton(
+                  onPressed: () async {
+                    if (setorController.text.trim().isEmpty) return;
+                    await controller.createSector(setorController.text.trim());
+                    await controller.registerLog(action: "ADD DEPARTAMENTO", details: "Criou departamento: ${setorController.text}");
+                    setorController.clear();
+                  },
+                  child: const Icon(Icons.add),
+                ),
+              ],
+            ),
+          ),
+        Expanded(
+          child: StreamBuilder<List<Map<String, dynamic>>>(
+            stream: controller.sectorsStream,
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+              final setores = snapshot.data!;
+              return ListView.builder(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                itemCount: setores.length,
+                itemBuilder: (context, index) {
+                  final s = setores[index];
+                  return Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardTheme.color,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                    ),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      leading: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppTheme.electricBlue.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: const Icon(Icons.location_on_rounded, color: AppTheme.electricBlue, size: 24),
+                      ),
+                      title: Text(
+                        s['nome'].toString().toUpperCase(), 
+                        style: GoogleFonts.inter(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 0.5)
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.insights_rounded, color: AppTheme.cyanNeon, size: 20), 
+                            onPressed: () => _abrirHistoricoSetor(context, s['nome'], true),
+                            tooltip: "Mapa do Departamento"
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline_rounded, color: AppTheme.ruby, size: 20), 
+                            onPressed: () => _handleDeleteDepartamento(context, s, controller),
+                            tooltip: "Excluir Departamento"
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(width: 10),
-                    ElevatedButton(
-                      onPressed: () async {
-                        if (setorController.text.trim().isEmpty) return;
-                        await controller.createSector(setorController.text.trim());
-                        await controller.registerLog(action: "ADD DEPARTAMENTO", details: "Criou departamento: ${setorController.text}");
-                        setorController.clear();
-                      },
-                      child: const Icon(Icons.add),
-                    ),
-                  ],
-                ),
-              ),
-            Expanded(
-              child: StreamBuilder<List<Map<String, dynamic>>>(
-                stream: controller.sectorsStream,
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-                  final setores = snapshot.data!;
-                  return ListView.builder(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    itemCount: setores.length,
-                    itemBuilder: (context, index) {
-                      final s = setores[index];
-                      return Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).cardTheme.color,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-                        ),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          leading: Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: AppTheme.electricBlue.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: const Icon(Icons.location_on_rounded, color: AppTheme.electricBlue, size: 24),
-                          ),
-                          title: Text(
-                            s['nome'].toString().toUpperCase(), 
-                            style: GoogleFonts.inter(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 0.5)
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.insights_rounded, color: AppTheme.cyanNeon, size: 20), 
-                                onPressed: () => _abrirHistoricoSetor(context, s['nome'], isAuthorized),
-                                tooltip: "Mapa do Departamento"
-                              ),
-                              if (canCreate)
-                                IconButton(
-                                  icon: const Icon(Icons.delete_outline_rounded, color: AppTheme.ruby, size: 20), 
-                                  onPressed: () => _handleDeleteDepartamento(context, s, controller),
-                                  tooltip: "Excluir Departamento"
-                                ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
                   );
                 },
-              ),
-            ),
-          ],
-        );
-      }
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }
@@ -869,7 +860,6 @@ class _LocadorasTab extends StatelessWidget {
     DateTime? vigenciaInicio = loc['vigencia_inicio'] != null ? (loc['vigencia_inicio'] as Timestamp).toDate() : null;
     DateTime? vigenciaFim = loc['vigencia_fim'] != null ? (loc['vigencia_fim'] as Timestamp).toDate() : null;
     
-    // Mapa de Quantidades
     Map<String, int> itensContratados = Map<String, int>.from(loc['itens_contratados'] ?? {});
     final List<String> tiposSuportados = ['Notebook', 'Desktop', 'Monitor', 'Impressora', 'Telefone', 'Tablet', 'Smartphone'];
 
@@ -926,7 +916,6 @@ class _LocadorasTab extends StatelessWidget {
                   maxLines: 2, 
                   decoration: const InputDecoration(labelText: "Escopo de Serviços", border: OutlineInputBorder()),
                 ),
-                
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 16),
                   child: Divider(),
@@ -959,14 +948,12 @@ class _LocadorasTab extends StatelessWidget {
             TextButton(onPressed: () => Navigator.pop(context), child: const Text("CANCELAR")),
             ElevatedButton(
               onPressed: () async {
-                final int totalQtd = itensContratados.values.fold(0, (sum, val) => sum + val);
                 await controller.updateLeasingCompanyDetails(loc['id'], {
                   'versao_contrato': versaoController.text.trim(),
                   'valor_contrato': double.tryParse(valorController.text.trim()) ?? 0.0,
                   'sla_contratado': slaController.text.trim(),
                   'servicos_prestados': servicosController.text.trim(),
                   'itens_contratados': itensContratados,
-                  'quantidade_contratada': totalQtd,
                   'vigencia_inicio': vigenciaInicio != null ? Timestamp.fromDate(vigenciaInicio!) : null,
                   'vigencia_fim': vigenciaFim != null ? Timestamp.fromDate(vigenciaFim!) : null,
                 });

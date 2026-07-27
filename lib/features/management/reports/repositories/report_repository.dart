@@ -74,8 +74,8 @@ class ReportRepository {
                 pw.Text("CNPJ: ${config['cnpj']}", style: const pw.TextStyle(fontSize: 7)),
               if (config['contato'] != null && config['contato'].isNotEmpty)
                 pw.Text("Contato: ${config['contato']}", style: const pw.TextStyle(fontSize: 7)),
-              if (userName != null)
-                pw.Text("Gerado por: ${userName.toUpperCase()}", style: pw.TextStyle(fontSize: 7, fontWeight: pw.FontWeight.bold, color: PdfColors.blueGrey700)),
+              if (userName != null && userName.trim().isNotEmpty)
+                pw.Text("Gerado por: ${userName.toUpperCase()}", style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: PdfColors.indigo900)),
             ]
           ),
           pw.Column(
