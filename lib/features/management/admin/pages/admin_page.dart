@@ -855,6 +855,10 @@ class _LocadorasTab extends StatelessWidget {
     final versaoController = TextEditingController(text: loc['versao_contrato']);
     final valorController = TextEditingController(text: loc['valor_contrato'].toString());
     final slaController = TextEditingController(text: loc['sla_contratado']);
+    final cnpjLocController = TextEditingController(text: loc['cnpj']);
+    final emailLocController = TextEditingController(text: loc['email']);
+    final telLocController = TextEditingController(text: loc['telefone']);
+    final endLocController = TextEditingController(text: loc['endereco']);
     final servicosController = TextEditingController(text: loc['servicos_prestados']);
     
     DateTime? vigenciaInicio = loc['vigencia_inicio'] != null ? (loc['vigencia_inicio'] as Timestamp).toDate() : null;
@@ -906,10 +910,19 @@ class _LocadorasTab extends StatelessWidget {
                   decoration: const InputDecoration(labelText: "Valor Mensal", border: OutlineInputBorder()),
                 ),
                 const SizedBox(height: 12),
-                TextField(
-                  controller: slaController, 
-                  decoration: const InputDecoration(labelText: "SLA Contratado (ex: 4h, NBD)", border: OutlineInputBorder()),
+                TextField(controller: cnpjLocController, decoration: const InputDecoration(labelText: "CNPJ da Empresa", border: OutlineInputBorder())),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(child: TextField(controller: emailLocController, decoration: const InputDecoration(labelText: "E-mail de Contato", border: OutlineInputBorder()))),
+                    const SizedBox(width: 10),
+                    Expanded(child: TextField(controller: telLocController, decoration: const InputDecoration(labelText: "Telefone/WhatsApp", border: OutlineInputBorder()))),
+                  ],
                 ),
+                const SizedBox(height: 12),
+                TextField(controller: endLocController, decoration: const InputDecoration(labelText: "Endereço Físico", border: OutlineInputBorder())),
+                const SizedBox(height: 12),
+                TextField(controller: slaController, decoration: const InputDecoration(labelText: "SLA Contratado (ex: 4h, NBD)", border: OutlineInputBorder())),
                 const SizedBox(height: 12),
                 TextField(
                   controller: servicosController, 
@@ -952,6 +965,10 @@ class _LocadorasTab extends StatelessWidget {
                   'versao_contrato': versaoController.text.trim(),
                   'valor_contrato': double.tryParse(valorController.text.trim()) ?? 0.0,
                   'sla_contratado': slaController.text.trim(),
+                  'cnpj': cnpjLocController.text.trim(),
+                  'email': emailLocController.text.trim(),
+                  'telefone': telLocController.text.trim(),
+                  'endereco': endLocController.text.trim(),
                   'servicos_prestados': servicosController.text.trim(),
                   'itens_contratados': itensContratados,
                   'vigencia_inicio': vigenciaInicio != null ? Timestamp.fromDate(vigenciaInicio!) : null,
