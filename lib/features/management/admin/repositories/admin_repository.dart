@@ -97,16 +97,38 @@ class AdminRepository {
           'quantidade_contratada': data['quantidade_contratada'] ?? 0,
           'valor_contrato': data['valor_contrato'] ?? 0.0,
           'servicos_prestados': data['servicos_prestados'] ?? '',
+          'sla_contratado': data['sla_contratado'] ?? '---',
+          'itens_contratados': Map<String, int>.from(data['itens_contratados'] ?? {}),
+          'vigencia_inicio': data['vigencia_inicio'],
+          'vigencia_fim': data['vigencia_fim'],
         };
       }).toList()
     );
   }
 
   Future<void> updateLeasingCompanyDetails(String id, Map<String, dynamic> details) async {
-    await _firestore.collection('locadoras').doc(id).update({
+    final userDoc = await _firestore.collection('tecnicos').doc(_auth.currentUser?.uid).get();
+    final name = userDoc.exists ? userDoc.get('nome') : "Admin";
+
+    final batch = _firestore.batch();
+    final locRef = _firestore.collection('locadoras').doc(id);
+    
+    batch.update(locRef, {
       ...details,
       'ultima_atualizacao': FieldValue.serverTimestamp(),
+      'atualizado_por': name,
     });
+
+    // Registra no histórico da locadora
+    final logRef = locRef.collection('logs_contrato').doc();
+    batch.set(logRef, {
+      'timestamp': FieldValue.serverTimestamp(),
+      'usuario': name,
+      'detalhes': "Alteração de dados contratuais.",
+      'valor_mensal': details['valor_contrato'],
+    });
+
+    await batch.commit();
   }
 
   Future<void> deleteLeasingCompany(String id) async {

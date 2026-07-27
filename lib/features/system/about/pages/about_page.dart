@@ -33,7 +33,7 @@ class AboutPage extends StatelessWidget {
                       Icon(Icons.checklist_rtl, size: 80, color: Colors.blue),
                       SizedBox(height: 10),
                       Text("Smart Ronda TI", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                  Text("Versão 3.2.11", style: TextStyle(color: Colors.grey)),
+                      Text("Versão 3.3.0 Build 48", style: TextStyle(color: Colors.grey)),
                 ],
               ),
             ),
@@ -46,7 +46,11 @@ class AboutPage extends StatelessWidget {
             const SizedBox(height: 20),
             _sectionTitle("🚀 Log de Atualizações"),
             _buildUpdate(
-              "3.2.11 (Atual)",
+              "3.3.0 (Atual)",
+              "• INTELIGÊNCIA PREDITIVA: Implementação do Equipment Health Score (0-100%) baseado em idade e histórico.\n• PLANO DE AÇÃO: Sugestões automáticas de gestão (Capex/Manutenção) nos relatórios PDF.\n• MÓDULO DE LOCAÇÃO: Cockpit de auditoria contratual que cruza inventário real vs capacidade contratada.",
+            ),
+            _buildUpdate(
+              "3.2.11",
               "• RASTREABILIDADE AUTOMÁTICA: Cada ativo agora possui um histórico de movimentação que registra cada troca de departamento.\n• RANKING DE DIVERGÊNCIAS: Novo indicador no Dashboard que aponta os setores com maior índice de ativos fora do lugar.",
             ),
             _buildUpdate(

@@ -1,17 +1,15 @@
-# Task List - v3.2.11 (Rastreabilidade e BI) 🛰️📊
+# Task List - v3.3.0 (Inteligência Preditiva) 🧠📈
 
-### 🛰️ Step 1: Rastreabilidade Automática
-- [x] Refatorar `RoundRepository.saveCompleteRound` para detectar mudanças de setor.
-- [x] Implementar gravação na sub-coleção `movimentacoes` de cada ativo.
-
-### 📉 Step 2: Dashboard de Divergências
-- [x] Criar lógica `getDivergenceRanking` no `DashboardController`.
-- [x] Implementar visualização de Ranking de Divergências no `DashboardPage`.
-- [x] Adicionar métricas de porcentagem de erro por setor.
-
-### 🚀 Step 3: Alinhamento e Finalização
-- [x] Atualizar versão para 3.2.11 em `pubspec.yaml` e `build.gradle.kts`.
-- [x] Atualizar log de novidades na `AboutPage` (Incluindo restauração da v3.2.8).
-- [x] Corrigir erros de compilação de tipos no `ReportController`.
-- [x] Melhorar visibilidade de identificação de itens na ronda.
-- [x] Adicionar legenda detalhada no mapa de calor.
+- [ ] **Step 1: UI Health Score**
+    - [ ] Exibir Health Score nos modais de detalhes do equipamento em `DashboardPage`.
+    - [ ] Aplicar cores dinâmicas baseadas no score.
+- [ ] **Step 2: Simulador de Contratos**
+    - [ ] Implementar lógica `simulateCapacity` no `DashboardController`.
+    - [ ] Criar interface de simulação na aba Contratos do Dashboard.
+- [ ] **Step 3: Auditoria Contratual**
+    - [ ] Implementar logs de alteração de contrato no `AdminRepository`.
+    - [ ] Exibir data da última atualização de contrato na lista de locadoras.
+- [ ] **Step 4: Relatórios Premium**
+    - [ ] Adicionar formatação condicional (cores) no `ReportRepository` para ações recomendadas.
+- [ ] **Step 5: Finalização**
+    - [ ] Sincronizar versões e gerar APK v3.3.0.

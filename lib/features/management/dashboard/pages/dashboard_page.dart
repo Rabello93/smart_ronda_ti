@@ -90,6 +90,7 @@ class _DashboardPageState extends State<DashboardPage> {
               _buildDrawerItem(4, Icons.business, "Ativos", isDark),
               _buildDrawerItem(5, Icons.location_on, "Departamentos", isDark),
               _buildDrawerItem(6, Icons.analytics, "Status", isDark),
+              _buildDrawerItem(7, Icons.assignment_turned_in_rounded, "Contratos", isDark),
               const Spacer(),
               const Divider(),
               ListTile(
@@ -180,6 +181,7 @@ class _DashboardPageState extends State<DashboardPage> {
         NavigationRailDestination(icon: Icon(Icons.account_tree_rounded), label: Text("Ativos")),
         NavigationRailDestination(icon: Icon(Icons.lan_rounded), label: Text("Departamentos")),
         NavigationRailDestination(icon: Icon(Icons.query_stats_rounded), label: Text("Status")),
+        NavigationRailDestination(icon: Icon(Icons.assignment_turned_in_rounded), label: Text("Contratos")),
       ],
       trailing: Expanded(
         child: Align(
@@ -232,6 +234,7 @@ class _DashboardPageState extends State<DashboardPage> {
       case 4: return _buildAtivosTab(textColor);
       case 5: return _buildDepartamentosTab(textColor);
       case 6: return _buildStatusTab(textColor);
+      case 7: return _buildContratosTab(textColor);
       default: return _buildGeralTab(rondas, allRondas, textColor);
     }
   }
@@ -363,6 +366,8 @@ class _DashboardPageState extends State<DashboardPage> {
                       children: [
                         SummaryCard(title: "Inventário Total", value: allAssets.length.toString(), icon: Icons.storage, color: Colors.teal),
                         const SizedBox(width: 12),
+                        SummaryCard(title: "Saúde do Parque", value: "${coverage['auditado']!.toInt()}%", icon: Icons.health_and_safety_rounded, color: Colors.green),
+                        const SizedBox(width: 12),
                         SummaryCard(title: "Auditados no Período", value: _dashboardController.getTotalItens(filteredRondas).toString(), icon: Icons.inventory_2, color: Colors.orange),
                         const SizedBox(width: 12),
                         SummaryCard(title: "Defeitos (Total)", value: allAssets.where((a) => a.temDefeito || a.statusOperacional == 'Em manutenção').length.toString(), icon: Icons.error, color: Colors.red),
@@ -390,7 +395,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const SectionTitle(title: "Saúde do Patrimônio"),
+                            const SectionTitle(title: "Health Index"),
                             const SizedBox(height: 16),
                             Container(
                               padding: const EdgeInsets.all(16),
@@ -580,7 +585,11 @@ class _DashboardPageState extends State<DashboardPage> {
               margin: const EdgeInsets.only(bottom: 12),
               decoration: BoxDecoration(color: isDark ? AppTheme.charcoal : Colors.white, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppTheme.ruby.withValues(alpha: 0.1))),
               child: ListTile(
-                leading: Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: AppTheme.ruby.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(14)), child: const Icon(Icons.gpp_maybe_rounded, color: AppTheme.ruby)),
+                leading: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(color: AppTheme.ruby.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(14)),
+                  child: const Icon(Icons.gpp_maybe_rounded, color: AppTheme.ruby),
+                ),
                 title: Text("${item.tipo.toUpperCase()} - PAT: ${item.patrimonio}", style: GoogleFonts.inter(fontWeight: FontWeight.w900, fontSize: 13)),
                 subtitle: Text("DEPTO: ${item.setor.toUpperCase()}\nMOTIVO: ${item.descricaoDefeito ?? 'NÃO INFORMADO'}", style: const TextStyle(fontSize: 11)),
                 isThreeLine: true,
@@ -683,7 +692,7 @@ class _DashboardPageState extends State<DashboardPage> {
           const SizedBox(height: 12),
           _buildStatusStreamCard(stream: _assetController.getObsoleteStream(), title: "OBSOLETOS (+5 ANOS)", icon: Icons.timer_rounded, color: AppTheme.amberNeon),
           const SizedBox(height: 48),
-          Text("INFO: SISTEMA DE GOVERNANÇA HÍBRIDA v3.2.11", style: AppTheme.monoStyle(fontSize: 9, color: Colors.grey, fontWeight: FontWeight.bold)),
+          Text("INFO: SISTEMA DE GOVERNANÇA HÍBRIDA v3.3.0", style: AppTheme.monoStyle(fontSize: 9, color: Colors.grey, fontWeight: FontWeight.bold)),
         ],
       ),
     );
@@ -745,7 +754,24 @@ class _DashboardPageState extends State<DashboardPage> {
           child: itens.isEmpty ? const Text("Vazio.") : ListView.builder(
             shrinkWrap: true,
             itemCount: itens.length,
-            itemBuilder: (context, index) => Card(child: ListTile(dense: true, title: Text("${itens[index].tipo} - ${itens[index].patrimonio}"), subtitle: Text("Status: ${itens[index].statusOperacional}"))),
+            itemBuilder: (context, index) {
+              final i = itens[index];
+              final score = i.healthScore;
+              final Color scoreColor = score >= 80 ? AppTheme.emerald : (score >= 50 ? AppTheme.amberNeon : AppTheme.ruby);
+              return Card(
+                margin: const EdgeInsets.symmetric(vertical: 4),
+                child: ListTile(
+                  dense: true, 
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(color: scoreColor.withValues(alpha: 0.1), shape: BoxShape.circle),
+                    child: Text("${score.toInt()}", style: AppTheme.monoStyle(fontSize: 10, fontWeight: FontWeight.bold, color: scoreColor)),
+                  ),
+                  title: Text("${i.tipo} - ${i.patrimonio}", style: const TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: Text("Status: ${i.statusOperacional}\nSaúde: $score%"),
+                ),
+              );
+            },
           ),
         ),
         actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text("FECHAR"))],
@@ -754,11 +780,37 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   void _showItensList(BuildContext context, String title, List<AssetModel> itens) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        backgroundColor: isDark ? AppTheme.deepNavy : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: Text(title),
-        content: SizedBox(width: 500, child: itens.isEmpty ? const Text("Vazio.") : ListView.builder(shrinkWrap: true, itemCount: itens.length, itemBuilder: (context, index) => Card(child: ListTile(title: Text(itens[index].patrimonio), subtitle: Text(itens[index].tipo))))),
+        content: SizedBox(
+          width: 500, 
+          child: itens.isEmpty ? const Text("Vazio.") : ListView.builder(
+            shrinkWrap: true, 
+            itemCount: itens.length, 
+            itemBuilder: (context, index) {
+              final i = itens[index];
+              final score = i.healthScore;
+              final Color scoreColor = score >= 80 ? AppTheme.emerald : (score >= 50 ? AppTheme.amberNeon : AppTheme.ruby);
+              return Card(
+                child: ListTile(
+                  dense: true,
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(color: scoreColor.withValues(alpha: 0.1), shape: BoxShape.circle),
+                    child: Text("${score.toInt()}", style: AppTheme.monoStyle(fontSize: 10, fontWeight: FontWeight.bold, color: scoreColor)),
+                  ),
+                  title: Text(i.patrimonio), 
+                  subtitle: Text("${i.tipo}\nSaúde: $score%"),
+                ),
+              );
+            },
+          ),
+        ),
         actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text("Fechar"))],
       ),
     );
@@ -795,7 +847,219 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
+  Widget _buildContratosTab(Color textColor) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return StreamBuilder<List<Map<String, dynamic>>>(
+      stream: _adminController.leasingCompaniesStream,
+      builder: (context, locSnapshot) {
+        final locadoras = locSnapshot.data ?? [];
+        
+        return StreamBuilder<List<AssetModel>>(
+          stream: _assetController.getAllAssetsStream(),
+          builder: (context, assetSnapshot) {
+            final allAssets = assetSnapshot.data ?? [];
+            final locAssets = allAssets.where((a) => a.isLocado).toList();
+
+            if (locadoras.isEmpty) {
+              return const Center(child: Text("Nenhuma locadora cadastrada no sistema."));
+            }
+
+            return ListView.builder(
+              padding: const EdgeInsets.all(24),
+              itemCount: locadoras.length,
+              itemBuilder: (context, index) {
+                final loc = locadoras[index];
+                final String nome = loc['nome'].toString();
+                final Map<String, int> contratados = Map<String, int>.from(loc['itens_contratados'] ?? {});
+                
+                final assetsDestaLocadora = locAssets.where((a) => a.locadora?.toUpperCase() == nome.toUpperCase()).toList();
+
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 24),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppTheme.charcoal : Colors.white,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(nome.toUpperCase(), style: GoogleFonts.inter(fontWeight: FontWeight.w900, fontSize: 18, color: AppTheme.cyanNeon)),
+                                Text("CONTRATO: ${loc['versao_contrato']} | SLA: ${loc['sla_contratado']}", style: AppTheme.monoStyle(fontSize: 10, color: Colors.grey)),
+                              ],
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(color: AppTheme.emerald.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                              child: Text(
+                                "VALOR: R\$ ${loc['valor_contrato']}", 
+                                style: AppTheme.monoStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.emerald)
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Divider(height: 1),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        child: TextButton.icon(
+                          onPressed: () => _showSimuladorContrato(nome, contratados, assetsDestaLocadora),
+                          icon: const Icon(Icons.calculate_rounded),
+                          label: const Text("SIMULAR EXPANSÃO DE SETOR"),
+                          style: TextButton.styleFrom(foregroundColor: AppTheme.electricBlue),
+                        ),
+                      ),
+                      if (contratados.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.all(20),
+                          child: Text("Nenhum item definido em contrato.", style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic)),
+                        )
+                      else
+                        Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                            children: contratados.entries.map((entry) {
+                              final tipo = entry.key;
+                              final qtdContratada = entry.value;
+                              final qtdReal = assetsDestaLocadora.where((a) => a.tipo == tipo).length;
+                              final diff = qtdContratada - qtdReal;
+                              final bool hasDeficit = diff < 0;
+
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 16),
+                                child: Column(
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(tipo.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                        _badgeContrato(
+                                          hasDeficit ? "DÉFICIT: ${diff.abs()}" : "DISPONÍVEL: $diff", 
+                                          hasDeficit ? AppTheme.ruby : AppTheme.emerald
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Stack(
+                                      children: [
+                                        Container(
+                                          height: 10,
+                                          decoration: BoxDecoration(color: isDark ? Colors.white10 : Colors.grey.shade100, borderRadius: BorderRadius.circular(5)),
+                                        ),
+                                        AnimatedContainer(
+                                          duration: const Duration(milliseconds: 800),
+                                          height: 10,
+                                          width: (qtdContratada > 0) 
+                                              ? (MediaQuery.of(context).size.width * 0.4) * (qtdReal / qtdContratada).clamp(0.0, 1.0)
+                                              : 0,
+                                          decoration: BoxDecoration(
+                                            gradient: LinearGradient(colors: [
+                                              hasDeficit ? AppTheme.ruby : AppTheme.electricBlue,
+                                              hasDeficit ? Colors.redAccent : AppTheme.cyanNeon,
+                                            ]),
+                                            borderRadius: BorderRadius.circular(5),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text("USO REAL: $qtdReal", style: AppTheme.monoStyle(fontSize: 9, color: Colors.grey)),
+                                        Text("CONTRATO: $qtdContratada", style: AppTheme.monoStyle(fontSize: 9, color: Colors.grey)),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                    ],
+                  ),
+                );
+              },
+            );
+          }
+        );
+      }
+    );
+  }
+
+  Widget _badgeContrato(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(color: color, fontSize: 9, fontWeight: FontWeight.w900),
+      ),
+    );
+  }
+
+  void _showSimuladorContrato(String locadora, Map<String, int> contratados, List<AssetModel> assets) {
+    final TextEditingController extraCtrl = TextEditingController(text: "0");
+    
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) {
+          final int extra = int.tryParse(extraCtrl.text) ?? 0;
+          final simulation = _dashboardController.simulateCapacity(assets, contratados, extra);
+          final deficits = simulation['deficit'] as Map<String, int>;
+
+          return AlertDialog(
+            backgroundColor: Theme.of(context).brightness == Brightness.dark ? AppTheme.deepNavy : Colors.white,
+            title: Text("Simulador: $locadora"),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text("Quantos novos usuários deseja simular?", style: TextStyle(fontSize: 12)),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: extraCtrl,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: "Usuários Extras"),
+                  onChanged: (v) => setModalState(() {}),
+                ),
+                const SizedBox(height: 20),
+                if (extra > 0) ...[
+                  const Divider(),
+                  const SizedBox(height: 10),
+                  const Text("DÉFICIT PROJETADO:", style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.ruby, fontSize: 14)),
+                  const SizedBox(height: 10),
+                  if (deficits.isEmpty)
+                    const Text("✅ Contrato suporta a expansão!", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold))
+                  else
+                    ...deficits.entries.map((e) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Text("• ${e.key}: ${e.value} unidades em falta", style: const TextStyle(color: AppTheme.ruby, fontSize: 13)),
+                    )),
+                ],
+              ],
+            ),
+            actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text("FECHAR"))],
+          );
+        }
+      ),
+    );
+  }
+
   Widget _buildFooter(Color textColor) {
-    return Container(padding: const EdgeInsets.symmetric(vertical: 8), child: Center(child: Text('Smart Ronda TI - v3.2.11', style: TextStyle(color: textColor.withValues(alpha: 0.5), fontSize: 10))));
+    return Container(padding: const EdgeInsets.symmetric(vertical: 8), child: Center(child: Text('Smart Ronda TI - v3.3.0 Build 48', style: TextStyle(color: textColor.withValues(alpha: 0.5), fontSize: 10))));
   }
 }

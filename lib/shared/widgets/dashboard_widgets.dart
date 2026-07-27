@@ -591,11 +591,11 @@ class AuditHeatMapWidget extends StatelessWidget {
         const SizedBox(height: 12),
         Row(
           children: [
-            _bar('CRÍTICO (+30D)', data['vermelho']!.length, total, AppTheme.ruby),
+            _bar('SEGURO (0-15D)', data['verde']!.length, total, AppTheme.emerald),
             const SizedBox(width: 4),
             _bar('ATENÇÃO (16-30D)', data['amarelo']!.length, total, AppTheme.amberNeon),
             const SizedBox(width: 4),
-            _bar('SEGURO (0-15D)', data['verde']!.length, total, AppTheme.emerald),
+            _bar('CRÍTICO (+30D)', data['vermelho']!.length, total, AppTheme.ruby),
           ],
         ),
         const SizedBox(height: 20),
@@ -603,8 +603,9 @@ class AuditHeatMapWidget extends StatelessWidget {
           spacing: 8,
           runSpacing: 8,
           children: [
-            ...data['vermelho']!.map((name) => _indicator(name, AppTheme.ruby, isDark)),
+            ...data['verde']!.map((name) => _indicator(name, AppTheme.emerald, isDark)),
             ...data['amarelo']!.map((name) => _indicator(name, AppTheme.amberNeon, isDark)),
+            ...data['vermelho']!.map((name) => _indicator(name, AppTheme.ruby, isDark)),
           ],
         ),
       ],

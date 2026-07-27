@@ -1,49 +1,39 @@
-# Implementation Plan - v3.2.11 (Rastreabilidade e BI) 🛰️📊
+# Implementation Plan - v3.3.0 🚀📈🏛️ (Inteligência Preditiva & OPEX Pro)
 
-Esta versão foca na rastreabilidade histórica dos ativos e no aprofundamento das métricas de divergência por departamento, transformando dados operacionais em insights de gestão.
+Esta versão transforma o Smart Ronda TI em uma plataforma de consultoria estratégica, automatizando o diagnóstico de saúde do parque tecnológico e fornecendo um simulador financeiro para contratos de locação.
 
 ## User Review Required
 
 > [!IMPORTANT]
-> **Histórico de Movimentação**: Cada ativo no "Castelo" passará a ter uma sub-coleção no Firestore chamada `movimentacoes`. Isso registrará automaticamente toda vez que um item mudar de departamento.
-> **Impacto no Banco**: A gravação da ronda será ligeiramente mais lenta (frações de segundo) pois verificaremos o local anterior de cada item antes de atualizar.
+> **Health Score Visível**: A nota de saúde (0-100%) agora será exibida em todos os modais de detalhes do equipamento. Isso mudará a percepção de risco para os técnicos.
+> **Simulador de Capacidade**: Criaremos uma ferramenta no Dashboard onde o gestor pode simular o impacto de novos usuários/setores no contrato atual de locação.
 
 ## Proposed Changes
 
-### [Operation - Rastreabilidade]
-#### [MODIFY] [RoundRepository](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/operation/rounds/repositories/round_repository.dart)
-- No método `saveCompleteRound`, antes de atualizar o `inventario_mestre`, buscar o documento atual do ativo.
-- Se o campo `setor` for diferente do novo setor da ronda:
-    - Adicionar um registro na sub-coleção `inventario_mestre > [ID] > movimentacoes`.
-    - Campos do registro: `origem`, `destino`, `data`, `tecnico_uid`, `ronda_id`.
-
 ### [Management - Dashboard & BI]
-#### [MODIFY] [DashboardController](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/management/dashboard/controllers/dashboard_controller.dart)
-- Criar método `getDivergenceRanking(List<AssetModel> allAssets)`:
-    - Filtrar ativos onde `setorDivergente == true`.
-    - Agrupar contagem por departamento (`setor`).
-    - Retornar lista ordenada decrescente.
+#### [MODIFY] [dashboard_page.dart](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/management/dashboard/pages/dashboard_page.dart)
+- **Detalhes do Equipamento**: Incluir o campo "Score de Saúde" com cor dinâmica (Verde/Amarelo/Vermelho) nos modais de lista.
+- **Aba Contratos**: Implementar o **Simulador de Expansão** (Input de usuários extras e cálculo automático de déficit).
 
-#### [MODIFY] [DashboardPage](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/management/dashboard/pages/dashboard_page.dart)
-- Adicionar uma nova seção visual (ou aba) chamada **"Ranking de Divergências"**.
-- Exibir os Top 5 departamentos com mais itens fora do lugar, usando porcentagem relativa ao total de ativos do setor.
+#### [MODIFY] [dashboard_controller.dart](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/management/dashboard/controllers/dashboard_controller.dart)
+- Criar método `simulateCapacity(List<AssetModel> currentAssets, Map<String, int> contractedMap, int extraUsers)`:
+    - Calcula o déficit imediato baseado na média de itens por usuário ou entrada manual.
+
+### [Management - Admin]
+#### [MODIFY] [admin_repository.dart](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/management/admin/repositories/admin_repository.dart)
+- Implementar histórico de alterações contratuais para cada locadora (Log de Compliance).
+
+### [Management - Relatórios]
+#### [MODIFY] [report_repository.dart](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/management/reports/repositories/report_repository.dart)
+- **Refinamento PDF**: Adicionar cores condicionais na coluna "Ação Sugerida" para chamar atenção do gestor para itens críticos.
 
 ### [Global/Versão]
-#### [MODIFY] [pubspec.yaml](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/pubspec.yaml)
-- Incrementar versão para **3.2.11+15**.
-
-#### [MODIFY] [build.gradle.kts](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/android/app/build.gradle.kts)
-- Atualizar `versionName` para "3.2.11" e `versionCode` para 47.
-
-#### [MODIFY] [about_page.dart](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/system/about/pages/about_page.dart)
-- Incluir o log de novidades da v3.2.11.
+#### [MODIFY] [pubspec.yaml](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/pubspec.yaml), [build.gradle.kts](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/android/app/build.gradle.kts)
+- Finalizar o bump para v3.3.0 Build 48.
 
 ## Verification Plan
 
-### Rastreabilidade Automática
-- Realizar uma ronda no setor "TI" com um item que hoje consta no "Financeiro".
-- Verificar no Firestore se a sub-coleção `movimentacoes` do item foi criada com o salto de Financeiro -> TI.
-
-### Dashboard de BI
-- Marcar propositalmente 3 itens de setores diferentes como "Divergentes" na ronda.
-- Validar se o gráfico de Ranking no Dashboard reflete corretamente esses números.
+### Manual Verification
+- Acessar o Dashboard > Contratos e simular a entrada de 20 novos usuários. Verificar se o sistema aponta a necessidade de novos notebooks corretamente.
+- Abrir os detalhes de um notebook antigo (+5 anos) e validar se o Health Score está abaixo de 70% e em cor amarela/vermelha.
+- Gerar um PDF de Inventário e validar as cores na coluna de recomendação.

@@ -1,29 +1,28 @@
-# Walkthrough - v3.2.11 "Rastreabilidade e Inteligência" 🛰️📊
+# Walkthrough - v3.3.0 "Inteligência Preditiva e OPEX" 🧠📈🏛️
 
-Esta versão foca em dar "memória" aos ativos do hospital e fornecer inteligência analítica sobre a organização dos departamentos.
+Esta versão transforma o sistema em uma plataforma de consultoria estratégica, automatizando o diagnóstico do parque tecnológico e a gestão financeira de contratos.
 
 ## Alterações Realizadas
 
-### 🛰️ Rastreabilidade Automática (GPS do Ativo)
-- **[RoundRepository](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/operation/rounds/repositories/round_repository.dart)**:
-    - Implementado gatilho de detecção de movimento.
-    - Toda vez que um item é auditado em um setor diferente do original, o sistema grava automaticamente na sub-coleção `movimentacoes`.
-    - O registro inclui: Setor de Origem, Setor de Destino, Data/Hora e Técnico responsável.
+### 🧠 Algoritmo de Health Score (Saúde do Ativo)
+- **[AssetModel](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/operation/assets/models/asset_model.dart)**:
+    - Implementado motor de cálculo (0-100%) que penaliza ativos antigos, com defeito ou fora do setor original.
+    - Criada lógica de **Recomendação Automática** baseada no score.
 
-### 📈 Dashboard de BI (Divergências)
-- **[DashboardController](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/management/dashboard/controllers/dashboard_controller.dart)**:
-    - Novo método `getDivergenceRanking` para calcular quais setores possuem mais itens fora do lugar.
+### 📋 Cockpit de Gestão Contratual (OPEX)
+- **[AdminPage](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/management/admin/pages/admin_page.dart)**:
+    - Locadoras agora permitem configurar quantidades contratadas **por tipo de item** (ex: 100 Notebooks, 50 Monitores).
+    - Registro de Valor Mensal e Escopo de Serviços.
 - **[DashboardPage](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/management/dashboard/pages/dashboard_page.dart)**:
-    - Adicionado o painel **"Ranking de Divergências por Setor"**.
-    - Exibe a quantidade de erros e a porcentagem relativa ao total de itens do departamento.
+    - Nova aba **"Contratos"** que cruza o inventário real com o contratado.
+    - Alertas visuais de **Déficit de Equipamentos** (quando o uso real supera o contrato).
 
-### 🛠️ Refinamentos e Correções
-- **[DashboardWidgets](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/shared/widgets/dashboard_widgets.dart)**:
-    - Adicionada legenda ao Mapa de Calor (Seguro/Atenção/Crítico).
-- **[AboutPage](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/system/about/pages/about_page.dart)**:
-    - Atualizado o histórico de versões para a v3.2.11.
+### 📊 Relatórios Inteligentes
+- **[ReportRepository](file:///C:/Users/fabio/ronda_equipamentos/smart_ronda_ti/lib/features/management/reports/repositories/report_repository.dart)**:
+    - PDFs de Auditoria agora possuem a coluna **"Ação Sugerida"**.
+    - O sistema sugere "Planejar Troca (CAPEX)" para itens velhos ou "Monitorar SLA" para itens em manutenção.
 
 ## Verificação de Integridade
-- ✅ **Movimentação**: Testada a gravação de logs ao mudar itens de setor.
-- ✅ **Métricas**: Ranking de divergências validado com dados reais.
-- ✅ **Version Alignment**: v3.2.11 (Build 47) aplicada globalmente.
+- ✅ **Cálculos**: Média de saúde do parque refletida no gráfico principal do Dashboard.
+- ✅ **Capacidade**: Testada a detecção de déficit em contratos de locação.
+- ✅ **Version Alignment**: v3.3.0 (Build 48) aplicada globalmente.

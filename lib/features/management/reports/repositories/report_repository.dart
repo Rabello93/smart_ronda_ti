@@ -11,6 +11,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:intl/intl.dart';
 import 'package:csv/csv.dart';
 import 'package:excel/excel.dart' as ex;
+import '../../../operation/assets/models/asset_model.dart';
 
 class ReportRepository {
   // --- HELPERS ---
@@ -81,7 +82,7 @@ class ReportRepository {
             crossAxisAlignment: pw.CrossAxisAlignment.end,
             children: [
               pw.Text("Gerado em: $dateStr", style: const pw.TextStyle(fontSize: 7, color: PdfColors.grey700)),
-              pw.Text("Smart Ronda TI v3.2.10 - Governança de Ativos", style: const pw.TextStyle(fontSize: 6, color: PdfColors.grey500)),
+              pw.Text("Smart Ronda TI v3.3.0 Build 48 - Inteligência Preditiva", style: const pw.TextStyle(fontSize: 6, color: PdfColors.grey500)),
             ]
           ),
         ]
@@ -90,6 +91,77 @@ class ReportRepository {
   }
 
   // --- PDF EXPORTS ---
+
+  static Future<void> exportarAnaliseContratualPDF(BuildContext context, List<Map<String, dynamic>> locadoras, List<AssetModel> assets, {String? userName}) async {
+    final messenger = (context.mounted) ? ScaffoldMessenger.of(context) : null;
+    try {
+      final pdf = pw.Document();
+      final firestore = FirebaseFirestore.instance;
+      DocumentSnapshot configDoc = await firestore.collection('config').doc('empresa').get();
+      Map<String, dynamic> config = configDoc.exists ? (configDoc.data() as Map<String, dynamic>) : {};
+      pw.MemoryImage? logoImage = await _fetchLogo(config);
+
+      pdf.addPage(
+        pw.MultiPage(
+          pageFormat: PdfPageFormat.a4,
+          header: (pw.Context context) => _buildHeader(config, "ANÁLISE ESTRATÉGICA DE CONTRATOS", logoImage),
+          footer: (pw.Context context) => _buildFooter(config, userName: userName),
+          build: (pw.Context context) => [
+            pw.Text("RELATÓRIO EXECUTIVO DE CAPACIDADE (OPEX)", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+            pw.SizedBox(height: 20),
+            ...locadoras.map((loc) {
+              final String nome = loc['nome'].toString();
+              final Map<String, int> contratados = Map<String, int>.from(loc['itens_contratados'] ?? {});
+              final assetsDestaLocadora = assets.where((a) => a.locadora?.toUpperCase() == nome.toUpperCase()).toList();
+
+              return pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Container(
+                    padding: const pw.EdgeInsets.all(10),
+                    decoration: const pw.BoxDecoration(color: PdfColors.grey200),
+                    child: pw.Row(
+                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                      children: [
+                        pw.Text(nome.toUpperCase(), style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12)),
+                        pw.Text("VALOR MENSAL: R\$ ${loc['valor_contrato']}", style: const pw.TextStyle(fontSize: 10)),
+                      ],
+                    ),
+                  ),
+                  pw.SizedBox(height: 10),
+                  pw.TableHelper.fromTextArray(
+                    headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 8),
+                    headerDecoration: const pw.BoxDecoration(color: PdfColors.blueGrey800),
+                    headers: const ['TIPO', 'CONTRATADO', 'USO REAL', 'DISPONÍVEL', 'STATUS'],
+                    data: contratados.entries.map((entry) {
+                      final qtdContratada = entry.value;
+                      final qtdReal = assetsDestaLocadora.where((a) => a.tipo == entry.key).length;
+                      final diff = qtdContratada - qtdReal;
+                      return [
+                        entry.key.toUpperCase(),
+                        qtdContratada.toString(),
+                        qtdReal.toString(),
+                        diff.toString(),
+                        diff < 0 ? "DÉFICIT" : (diff == 0 ? "LIMITE" : "OK"),
+                      ];
+                    }).toList(),
+                  ),
+                  pw.SizedBox(height: 20),
+                ],
+              );
+            }),
+          ],
+        ),
+      );
+
+      final output = await getTemporaryDirectory();
+      final file = File("${output.path}/analise_contratual_${DateTime.now().millisecondsSinceEpoch}.pdf");
+      await file.writeAsBytes(await pdf.save());
+      await Share.shareXFiles([XFile(file.path)], text: 'Análise Contratual Smart Ronda');
+    } catch (e) {
+      messenger?.showSnackBar(SnackBar(content: Text("Erro PDF Contratos: $e"), backgroundColor: Colors.red));
+    }
+  }
 
   static Future<void> exportarLocacaoParaPDF(BuildContext context, List<Map<String, dynamic>> itens, String titulo, {String? userName}) async {
     final messenger = (context.mounted) ? ScaffoldMessenger.of(context) : null;
@@ -112,23 +184,14 @@ class ReportRepository {
             pw.TableHelper.fromTextArray(
               headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 8),
               headerDecoration: const pw.BoxDecoration(color: PdfColors.indigo900),
-              headers: const ['TIPO', 'PATRIMÔNIO', 'MARCA', 'MODELO', 'SÉRIE / MAC', 'LOCADORA', 'SETOR ATUAL', 'INFORMAÇÃO'],
+              headers: const ['TIPO', 'PATRIMÔNIO', 'MARCA', 'MODELO', 'SETOR ATUAL', 'INFORMAÇÃO', 'AÇÃO SUGERIDA'],
               data: itens.map((i) {
-                String info = i['descricao_defeito'] ?? (i['status_operacional'] ?? 'OK');
+                final asset = AssetModel.fromMap(i, i['patrimonio'] ?? '');
                 
-                // Se for relatório de obsoletos
+                String info = i['descricao_defeito'] ?? (i['status_operacional'] ?? 'OK');
                 if (titulo.contains("OBSOLETOS")) {
                   int? ano = i['ano_fabricacao'];
                   if (ano != null) info = "${DateTime.now().year - ano} ANOS";
-                } else if (titulo.contains("DIVERGENTES")) {
-                  info = "ORIGEM: ${i['motivo_divergencia'] ?? 'NÃO INF.'}";
-                } else if (titulo.contains("HOME OFFICE")) {
-                  info = "RESP: ${i['responsavel_externo'] ?? 'NÃO INF.'}";
-                }
-
-                String serieMac = i['serie'] ?? '---';
-                if (i['mac_address'] != null && i['mac_address'].toString().isNotEmpty && i['mac_address'] != '---') {
-                  serieMac += "\nMAC: ${i['mac_address']}";
                 }
 
                 return [
@@ -136,10 +199,16 @@ class ReportRepository {
                   i['patrimonio'] ?? (i['serie'] ?? 'S/P'),
                   i['marca'] ?? '---',
                   i['modelo'] ?? '---',
-                  serieMac,
-                  i['locadora'] ?? 'PRÓPRIO',
                   i['setor'] ?? '---',
                   info.toUpperCase(),
+                  pw.Text(
+                    asset.actionRecommendation.toUpperCase(),
+                    style: pw.TextStyle(
+                      fontSize: 7, 
+                      fontWeight: pw.FontWeight.bold,
+                      color: asset.healthScore < 50 ? PdfColors.red : (asset.healthScore < 80 ? PdfColors.orange : PdfColors.green)
+                    ),
+                  ),
                 ];
               }).toList(),
             ),
@@ -158,7 +227,7 @@ class ReportRepository {
       final output = await getTemporaryDirectory();
       final file = File("${output.path}/relatorio_${DateTime.now().millisecondsSinceEpoch}.pdf");
       await file.writeAsBytes(await pdf.save());
-      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: titulo));
+      await Share.shareXFiles([XFile(file.path)], text: titulo);
     } catch (e) {
       messenger?.showSnackBar(SnackBar(content: Text("Erro PDF: $e"), backgroundColor: Colors.red));
     }
@@ -178,7 +247,6 @@ class ReportRepository {
   }) async {
     final messenger = (context != null && context.mounted) ? ScaffoldMessenger.of(context) : null;
     try {
-      if (context != null && !context.mounted) return;
       final pdf = pw.Document();
       final firestore = FirebaseFirestore.instance;
 
@@ -190,7 +258,7 @@ class ReportRepository {
       Query query = firestore.collection('rondas').orderBy('timestamp', descending: true);
       QuerySnapshot rondasSnapshot = await query.get();
 
-      List<List<String>> tableData = [];
+      List<List<dynamic>> tableData = [];
       int currentYear = DateTime.now().year;
 
       for (var doc in rondasSnapshot.docs) {
@@ -207,13 +275,14 @@ class ReportRepository {
           if (apenasDefeitos == true && equip['status'] != 'Defeito') continue;
           
           bool semPlaca = equip['sem_patrimonio'] == true || equip['patrimonio']?.toString().toLowerCase().contains("sem patrimônio") == true;
-          
           if (apenasSemPatrimonio == true && !semPlaca) continue;
 
           int? anoFab = equip['ano_fabricacao'];
           int idade = anoFab != null ? (currentYear - anoFab) : 0;
           bool isObsoleto = anoFab != null && (idade >= 5);
           if (apenasObsoletos == true && !isObsoleto) continue;
+
+          final asset = AssetModel.fromMap(equip, '');
 
           tableData.add([
             ronda['data_inicio']?.toString().substring(0, 10) ?? '',
@@ -223,38 +292,16 @@ class ReportRepository {
             equip['marca'] ?? '---',
             equip['modelo'] ?? '---',
             equip['serie'] ?? '---',
-            equip['locadora'] ?? 'PRÓPRIO',
             isObsoleto ? "SIM ($idade anos)" : 'NÃO',
             (equip['tem_defeito'] == true || equip['status_operacional'] == 'Em manutenção' || equip['status_operacional'] == 'Baixa Patrimonial') ? 'SIM' : 'NÃO',
-            equip['status_operacional'] ?? (equip['status'] ?? 'OK'),
+            pw.Text(
+              asset.actionRecommendation.toUpperCase(),
+              style: pw.TextStyle(
+                color: asset.healthScore < 50 ? PdfColors.red : (asset.healthScore < 80 ? PdfColors.orange : PdfColors.green),
+                fontWeight: pw.FontWeight.bold,
+              ),
+            ),
           ]);
-        }
-      }
-
-      if (apenasObsoletos == true) {
-        QuerySnapshot mestreSnap = await firestore.collection('inventario_mestre').get();
-        for (var doc in mestreSnap.docs) {
-          final equip = doc.data() as Map<String, dynamic>;
-          int? anoFab = equip['ano_fabricacao'];
-          int idade = anoFab != null ? (currentYear - anoFab) : 0;
-          if (anoFab != null && (idade >= 5)) {
-            bool jaExiste = tableData.any((row) => row[3] == doc.id);
-            if (!jaExiste) {
-              tableData.add([
-                'INV. MESTRE',
-                equip['setor']?.toString().toUpperCase() ?? '---',
-                equip['tipo'] ?? '',
-                doc.id,
-                equip['marca'] ?? '---',
-                equip['modelo'] ?? '---',
-                equip['serie'] ?? '---',
-                equip['locadora'] ?? 'PRÓPRIO',
-                "SIM ($idade anos)",
-                "NÃO", // Defeito
-                equip['status_operacional'] ?? 'OK',
-              ]);
-            }
-          }
         }
       }
 
@@ -276,7 +323,7 @@ class ReportRepository {
               headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 8),
               cellStyle: const pw.TextStyle(fontSize: 7),
               headerDecoration: const pw.BoxDecoration(color: PdfColors.blueGrey900),
-              headers: const ['DATA', 'SETOR', 'TIPO', 'PATRIMÔNIO', 'MARCA', 'MODELO', 'SÉRIE', 'LOCADORA', 'OBSOLETO', 'DEFEITO', 'STATUS'],
+              headers: const ['DATA', 'SETOR', 'TIPO', 'PATRIMÔNIO', 'MARCA', 'MODELO', 'SÉRIE', 'OBSOLETO', 'DEFEITO', 'AÇÃO SUGERIDA'],
               data: tableData,
             ),
             pw.SizedBox(height: 20),
@@ -294,7 +341,7 @@ class ReportRepository {
       final output = await getTemporaryDirectory();
       final file = File("${output.path}/relatorio_${DateTime.now().millisecondsSinceEpoch}.pdf");
       await file.writeAsBytes(await pdf.save());
-      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: 'Relatório PDF'));
+      await Share.shareXFiles([XFile(file.path)], text: 'Relatório PDF');
     } catch (e) {
       messenger?.showSnackBar(SnackBar(content: Text("Erro PDF: $e"), backgroundColor: Colors.red));
     }
@@ -310,10 +357,7 @@ class ReportRepository {
         if (titulo.contains("OBSOLETOS")) {
           int? ano = i['ano_fabricacao'];
           if (ano != null) info = "${DateTime.now().year - ano} ANOS";
-        } else if (titulo.contains("HOME OFFICE")) {
-          info = "RESPONSAVEL: ${i['responsavel_externo'] ?? 'NAO INF.'}";
         }
-
         rows.add([
           i['tipo'] ?? '',
           i['patrimonio'] ?? '',
@@ -332,7 +376,7 @@ class ReportRepository {
       final file = File("${directory.path}/relatorio_${DateTime.now().millisecondsSinceEpoch}.csv");
       await file.writeAsBytes([0xEF, 0xBB, 0xBF]); 
       await file.writeAsString(csvData);
-      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: titulo));
+      await Share.shareXFiles([XFile(file.path)], text: titulo);
     } catch (e) {
       debugPrint("Erro CSV: $e");
     }
@@ -365,8 +409,6 @@ class ReportRepository {
         if (titulo.contains("OBSOLETOS")) {
           int? ano = item['ano_fabricacao'];
           if (ano != null) info = "${DateTime.now().year - ano} ANOS";
-        } else if (titulo.contains("HOME OFFICE")) {
-          info = "RESPONSÁVEL: ${item['responsavel_externo'] ?? 'NÃO INF.'}";
         }
 
         sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: r + 1)).value = ex.TextCellValue(item['tipo']?.toString() ?? '');
@@ -386,13 +428,13 @@ class ReportRepository {
         ..createSync(recursive: true)
         ..writeAsBytesSync(fileBytes!);
 
-      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: titulo));
+      await Share.shareXFiles([XFile(file.path)], text: titulo);
     } catch (e) {
       debugPrint("Erro XLSX: $e");
     }
   }
 
-  static Future<void> exportarMapaAtivosSetor({required String setor, required List<Map<String, dynamic>> itens, required BuildContext context}) async {
+  static Future<void> exportarMapaAtivosSetor({required String setor, required List<Map<String, dynamic>> itens, required BuildContext context, String? userName}) async {
     final messenger = (context.mounted) ? ScaffoldMessenger.of(context) : null;
     try {
       final pdf = pw.Document();
@@ -404,7 +446,7 @@ class ReportRepository {
       pdf.addPage(pw.MultiPage(
         pageFormat: PdfPageFormat.a4.landscape,
         header: (pw.Context context) => _buildHeader(config, "MAPA DE ATIVOS", logoImage),
-        footer: (pw.Context context) => _buildFooter(config),
+        footer: (pw.Context context) => _buildFooter(config, userName: userName),
         build: (pw.Context context) => [
           pw.SizedBox(height: 10),
           pw.Header(level: 0, child: pw.Text("SETOR ${setor.toUpperCase()}")),
@@ -412,7 +454,7 @@ class ReportRepository {
           pw.TableHelper.fromTextArray(
             headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 8),
             headerDecoration: const pw.BoxDecoration(color: PdfColors.indigo900),
-            headers: const ['TIPO', 'PATRIMÔNIO', 'MARCA', 'MODELO', 'SÉRIE / MAC', 'LOCADORA', 'STATUS OP.', 'INFORMAÇÃO'],
+            headers: const ['TIPO', 'PATRIMÔNIO', 'MARCA', 'MODELO', 'SÉRIE / MAC', 'STATUS OP.', 'INFORMAÇÃO', 'AÇÃO SUGERIDA'],
             data: itens.map((i) {
               String serieMac = i['serie'] ?? '---';
               if (i['mac_address'] != null && i['mac_address'].toString().isNotEmpty && i['mac_address'] != '---') {
@@ -421,15 +463,23 @@ class ReportRepository {
               String info = i['status_operacional'] ?? 'Em uso';
               if (i['tem_defeito'] == true) info = "DEFEITO: ${i['descricao_defeito'] ?? 'Não inf.'}";
 
+              final asset = AssetModel.fromMap(i, i['patrimonio'] ?? '');
+
               return [
                 i['tipo'] ?? '', 
                 i['patrimonio'] ?? 'S/P', 
                 i['marca'] ?? '---',
                 i['modelo'] ?? '---',
                 serieMac,
-                i['locadora'] ?? 'PRÓPRIO',
                 i['status_operacional'] ?? 'Em uso',
                 info.toUpperCase(),
+                pw.Text(
+                  asset.actionRecommendation.toUpperCase(),
+                  style: pw.TextStyle(
+                    color: asset.healthScore < 50 ? PdfColors.red : (asset.healthScore < 80 ? PdfColors.orange : PdfColors.green),
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
               ];
             }).toList(),
           ),
@@ -446,7 +496,7 @@ class ReportRepository {
       final output = await getTemporaryDirectory();
       final file = File("${output.path}/relatorio_${DateTime.now().millisecondsSinceEpoch}.pdf");
       await file.writeAsBytes(await pdf.save());
-      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: 'Mapa de Ativos'));
+      await Share.shareXFiles([XFile(file.path)], text: 'Mapa de Ativos');
     } catch (e) { messenger?.showSnackBar(SnackBar(content: Text("Erro: $e"), backgroundColor: Colors.red)); }
   }
 
@@ -542,7 +592,7 @@ class ReportRepository {
       final output = await getTemporaryDirectory();
       final file = File("${output.path}/relatorio_incidencias_${DateTime.now().millisecondsSinceEpoch}.pdf");
       await file.writeAsBytes(await pdf.save());
-      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: 'Relatório de Incidências'));
+      await Share.shareXFiles([XFile(file.path)], text: 'Relatório de Incidências');
     } catch (e) { messenger?.showSnackBar(SnackBar(content: Text("Erro: $e"), backgroundColor: Colors.red)); }
   }
 
@@ -616,7 +666,7 @@ class ReportRepository {
         ..createSync(recursive: true)
         ..writeAsBytesSync(fileBytes!);
 
-      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: 'Mapa de Incidências Excel'));
+      await Share.shareXFiles([XFile(file.path)], text: 'Mapa de Incidências Excel');
     } catch (e) {
       debugPrint("Erro Incidencias XLSX: $e");
     }
@@ -659,17 +709,15 @@ class ReportRepository {
           xml.writeln('        <Serie>${equip['serie'] ?? ''}</Serie>');
           xml.writeln('      </Equipamento>');
         }
-
         xml.writeln('    </Equipamentos>');
         xml.writeln('  </Ronda>');
       }
-
       xml.writeln('</RelatorioRondas>');
 
       final output = await getTemporaryDirectory();
       final file = File("${output.path}/relatorio_${DateTime.now().millisecondsSinceEpoch}.xml");
       await file.writeAsString(xml.toString());
-      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: 'Relatório XML'));
+      await Share.shareXFiles([XFile(file.path)], text: 'Relatório XML');
     } catch (e) {
       messenger?.showSnackBar(SnackBar(content: Text("Erro XML: $e"), backgroundColor: Colors.red));
     }
@@ -694,7 +742,7 @@ class ReportRepository {
       final output = await getTemporaryDirectory();
       final file = File("${output.path}/relatorio_${DateTime.now().millisecondsSinceEpoch}.xml");
       await file.writeAsString(xml.toString());
-      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: 'Mapa de Ativos XML'));
+      await Share.shareXFiles([XFile(file.path)], text: 'Mapa de Ativos XML');
     } catch (e) { messenger?.showSnackBar(SnackBar(content: Text("Erro: $e"), backgroundColor: Colors.red)); }
   }
 
@@ -735,7 +783,7 @@ class ReportRepository {
       final output = await getTemporaryDirectory();
       final file = File("${output.path}/relatorio_${DateTime.now().millisecondsSinceEpoch}.pdf");
       await file.writeAsBytes(await pdf.save());
-      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: 'Logs de Auditoria'));
+      await Share.shareXFiles([XFile(file.path)], text: 'Logs de Auditoria');
     } catch (e) { messenger?.showSnackBar(SnackBar(content: Text("Erro: $e"), backgroundColor: Colors.red)); }
   }
 
@@ -792,7 +840,7 @@ class ReportRepository {
       final output = await getTemporaryDirectory();
       final file = File("${output.path}/substituicoes_${DateTime.now().millisecondsSinceEpoch}.pdf");
       await file.writeAsBytes(await pdf.save());
-      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: titulo));
+      await Share.shareXFiles([XFile(file.path)], text: titulo);
     } catch (e) { messenger?.showSnackBar(SnackBar(content: Text("Erro PDF: $e"), backgroundColor: Colors.red)); }
   }
 
@@ -840,7 +888,7 @@ class ReportRepository {
         ..createSync(recursive: true)
         ..writeAsBytesSync(fileBytes!);
 
-      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: titulo));
+      await Share.shareXFiles([XFile(file.path)], text: titulo);
     } catch (e) {
       debugPrint("Erro XLSX: $e");
     }
@@ -940,7 +988,7 @@ class ReportRepository {
       final output = await getTemporaryDirectory();
       final file = File("${output.path}/relatorio_${DateTime.now().millisecondsSinceEpoch}.pdf");
       await file.writeAsBytes(await pdf.save());
-      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: 'Relatório de Metas'));
+      await Share.shareXFiles([XFile(file.path)], text: 'Relatório de Metas');
     } catch (e) { messenger?.showSnackBar(SnackBar(content: Text("Erro: $e"), backgroundColor: Colors.red)); }
   }
 
@@ -996,7 +1044,7 @@ class ReportRepository {
         ..createSync(recursive: true)
         ..writeAsBytesSync(fileBytes!);
 
-      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: 'Relatório de Metas Excel'));
+      await Share.shareXFiles([XFile(file.path)], text: 'Relatório de Metas Excel');
     } catch (e) {
       debugPrint("Erro Metas XLSX: $e");
     }
@@ -1044,7 +1092,6 @@ class ReportRepository {
         xml.writeln('      <Itens>${data['itens_total']}</Itens>');
         xml.writeln('    </Ronda>');
       }
-
       xml.writeln('  </Realizado>');
       xml.writeln('  <Sumario>');
       xml.writeln('    <TotalRondas>$rondasRealizadas</TotalRondas>');
@@ -1057,7 +1104,7 @@ class ReportRepository {
       final output = await getTemporaryDirectory();
       final file = File("${output.path}/relatorio_${DateTime.now().millisecondsSinceEpoch}.xml");
       await file.writeAsString(xml.toString());
-      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: 'Dados de Metas para Excel'));
+      await Share.shareXFiles([XFile(file.path)], text: 'Dados de Metas para Excel');
     } catch (e) { messenger?.showSnackBar(SnackBar(content: Text("Erro: $e"), backgroundColor: Colors.red)); }
   }
 
@@ -1177,7 +1224,7 @@ class ReportRepository {
                   crossAxisAlignment: pw.CrossAxisAlignment.end,
                   children: [
                     pw.Text("Gerado em: $dateStr", style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
-                    pw.Text("Smart Ronda TI v3.2.9", style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
+                    pw.Text("Smart Ronda TI v3.3.0 Build 48", style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
                   ],
                 ),
               ],
@@ -1189,7 +1236,7 @@ class ReportRepository {
       final output = await getTemporaryDirectory();
       final file = File("${output.path}/proposta_comercial_smart_ronda.pdf");
       await file.writeAsBytes(await pdf.save());
-      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: 'Proposta Comercial Smart Ronda TI'));
+      await Share.shareXFiles([XFile(file.path)], text: 'Proposta Comercial Smart Ronda TI');
     } catch (e) {
       debugPrint("Erro ao gerar proposta: $e");
     }

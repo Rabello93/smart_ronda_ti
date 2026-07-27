@@ -314,6 +314,19 @@ class _ReportsPageState extends State<ReportsPage> {
               ),
             ],
           ),
+          const Padding(padding: EdgeInsets.symmetric(vertical: 20), child: Divider()),
+          _sectionHeader("🤝 AUDITORIA CONTRATUAL", Icons.handshake_rounded),
+          const SizedBox(height: 20),
+          _actionButton(
+            onPressed: () {
+              final String currentUserName = _authController.currentUser?.displayName ?? 
+                                             _authController.currentUser?.email?.split('@')[0] ?? "Admin";
+              _reportController.gerarRelatorioContratos(context, userName: currentUserName);
+            },
+            label: "PDF ANÁLISE DE CONTRATOS (OPEX)",
+            icon: Icons.picture_as_pdf,
+            color: Colors.blueGrey.shade900,
+          ),
           const SizedBox(height: 40),
         ],
       ),

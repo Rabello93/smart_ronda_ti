@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../repositories/report_repository.dart';
+import '../../../operation/assets/models/asset_model.dart';
 
 class ReportController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -168,7 +169,6 @@ class ReportController {
           final troca = eDoc.data() as Map<String, dynamic>;
           final String patAntigo = troca['patrimonio_antigo'] ?? '---';
           
-          // Tenta buscar detalhes do item antigo no Castelo para enriquecer o relatório
           DocumentSnapshot? assetDoc;
           if (patAntigo != '---' && patAntigo != 'SEM PATRIMÔNIO') {
             assetDoc = await _firestore.collection('inventario_mestre').doc(patAntigo).get();
@@ -183,9 +183,9 @@ class ReportController {
             'modelo': assetData?['modelo'] ?? '---',
             'serie': assetData?['serie'] ?? '---',
             'locadora': assetData?['locadora'] ?? 'PRÓPRIO',
-            'departamento_anterior': setorRonda, // O setor onde a troca foi registrada
+            'departamento_anterior': setorRonda,
             'data': dataRonda,
-            'departamento_atual': 'TI', // Inteligência 3.2.7: vai para TI
+            'departamento_atual': 'TI',
             'status': 'RESERVADO',
             'motivo': troca['motivo'] ?? '---',
           });
@@ -203,7 +203,6 @@ class ReportController {
         } else if (formato == 'XLSX') {
           await ReportRepository.exportarSubstituicoesParaXLSX(substituicoes, "Relatório de Substituições");
         } else {
-          // CSV ou XML genérico se necessário, mas o foco é PDF/Excel
           await ReportRepository.exportarInventarioParaCSV(substituicoes, "Relatório de Substituições");
         }
       }
@@ -253,7 +252,6 @@ class ReportController {
 
           final String patRaw = (data['patrimonio'] ?? '').toString();
           final String serieRaw = (data['serie'] ?? '').toString();
-          final String macRaw = (data['mac_address'] ?? '').toString();
           
           String normalizedPat = patRaw;
           if (patRaw == "SEM PATRIMÔNIO" || patRaw.isEmpty || patRaw == "null") {
@@ -280,7 +278,7 @@ class ReportController {
               'marca': data['marca'] ?? base['marca'] ?? '---',
               'modelo': data['modelo'] ?? base['modelo'] ?? '---',
               'serie': serieRaw.isNotEmpty ? serieRaw : (base['serie'] ?? '---'),
-              'mac_address': macRaw.isNotEmpty ? macRaw : (base['mac_address'] ?? '---'),
+              'mac_address': data['mac_address'] ?? base['mac_address'] ?? '---',
               'locadora': data['locadora'] ?? base['locadora'] ?? 'PRÓPRIO',
               'tem_defeito': false,
               'descricao_defeito': '---',
@@ -417,6 +415,24 @@ class ReportController {
       }
     } catch (e) {
       if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Erro: $e"), backgroundColor: Colors.red));
+    }
+  }
+
+  Future<void> gerarRelatorioContratos(BuildContext context, {String? userName}) async {
+    try {
+      final locadorasSnap = await _firestore.collection('locadoras').get();
+      final assetsSnap = await _firestore.collection('inventario_mestre').where('is_locado', isEqualTo: true).get();
+      
+      final locadoras = locadorasSnap.docs.map((d) => {...d.data(), 'id': d.id}).toList();
+      final assets = assetsSnap.docs.map((d) => AssetModel.fromMap(d.data(), d.id)).toList();
+
+      if (context.mounted) {
+        await ReportRepository.exportarAnaliseContratualPDF(context, locadoras, assets, userName: userName);
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Erro ao gerar relatório de contratos: $e"), backgroundColor: Colors.red));
+      }
     }
   }
 }

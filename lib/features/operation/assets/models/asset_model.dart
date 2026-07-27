@@ -143,4 +143,35 @@ class AssetModel {
     if (anoFabricacao == null) return false;
     return (DateTime.now().year - anoFabricacao!) >= 5;
   }
+
+  double get healthScore {
+    double score = 100.0;
+
+    // Fator 1: Idade (Obsolescência)
+    if (isObsoleto) score -= 30.0;
+
+    // Fator 2: Defeitos
+    if (temDefeito) score -= 30.0;
+
+    // Fator 3: Manutenção
+    if (statusOperacional == 'Em manutenção') score -= 20.0;
+
+    // Fator 4: Divergência de Setor
+    if (setorDivergente) score -= 10.0;
+
+    // Fator 5: Baixa Patrimonial (Estado crítico/final)
+    if (statusOperacional == 'Baixa Patrimonial') score = 0.0;
+
+    return score.clamp(0.0, 100.0);
+  }
+
+  String get actionRecommendation {
+    final score = healthScore;
+    if (score == 0) return "Ativo Desativado / Baixa";
+    if (score < 50) return "Prioridade de Substituição (CAPEX)";
+    if (isObsoleto) return "Fim de Vida Útil - Planejar Troca";
+    if (temDefeito || statusOperacional == 'Em manutenção') return "Monitorar SLA de Reparo";
+    if (score < 80) return "Avaliar Manutenção Preventiva";
+    return "Operação Nominal - Saudável";
+  }
 }

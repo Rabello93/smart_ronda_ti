@@ -11,6 +11,7 @@ import 'package:smart_ronda_ti/features/system/audit/pages/log_page.dart';
 import 'package:smart_ronda_ti/features/management/reports/repositories/report_repository.dart';
 import 'package:smart_ronda_ti/shared/helpers/url_helper.dart';
 import 'package:smart_ronda_ti/features/management/reports/pages/reports_page.dart';
+import 'package:intl/intl.dart';
 
 class AdminPage extends StatefulWidget {
   const AdminPage({super.key});
@@ -464,9 +465,11 @@ class _DepartamentosTab extends StatelessWidget {
               children: [
                 ElevatedButton.icon(
                   onPressed: () async {
+                    final String currentUserName = _authController.currentUser?.displayName ?? 
+                                                   _authController.currentUser?.email?.split('@')[0] ?? "Admin";
                     final itensSnapshot = await controller.getSectorStream(setor).first;
                     final itensMap = itensSnapshot.map((e) => e.toMap()..['patrimonio'] = e.patrimonio).toList();
-                    if (context.mounted) ReportRepository.exportarMapaAtivosSetor(setor: setor, itens: itensMap, context: context);
+                    if (context.mounted) ReportRepository.exportarMapaAtivosSetor(setor: setor, itens: itensMap, context: context, userName: currentUserName);
                   },
                   icon: const Icon(Icons.picture_as_pdf),
                   label: const Text("PDF"),
@@ -859,46 +862,123 @@ class _LocadorasTab extends StatelessWidget {
   void _editarDetalhesLocadora(BuildContext context, Map<String, dynamic> loc) {
     final AdminController controller = AdminController();
     final versaoController = TextEditingController(text: loc['versao_contrato']);
-    final qtdController = TextEditingController(text: loc['quantidade_contratada'].toString());
     final valorController = TextEditingController(text: loc['valor_contrato'].toString());
+    final slaController = TextEditingController(text: loc['sla_contratado']);
     final servicosController = TextEditingController(text: loc['servicos_prestados']);
+    
+    DateTime? vigenciaInicio = loc['vigencia_inicio'] != null ? (loc['vigencia_inicio'] as Timestamp).toDate() : null;
+    DateTime? vigenciaFim = loc['vigencia_fim'] != null ? (loc['vigencia_fim'] as Timestamp).toDate() : null;
+    
+    // Mapa de Quantidades
+    Map<String, int> itensContratados = Map<String, int>.from(loc['itens_contratados'] ?? {});
+    final List<String> tiposSuportados = ['Notebook', 'Desktop', 'Monitor', 'Impressora', 'Telefone', 'Tablet', 'Smartphone'];
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text("Contrato: ${loc['nome'].toUpperCase()}"),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(controller: versaoController, decoration: const InputDecoration(labelText: "Versão do Contrato", border: OutlineInputBorder())),
-              const SizedBox(height: 12),
-              TextField(controller: qtdController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: "Quantidade de Itens", border: OutlineInputBorder())),
-              const SizedBox(height: 12),
-              TextField(controller: valorController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: "Valor do Contrato", border: OutlineInputBorder())),
-              const SizedBox(height: 12),
-              TextField(controller: servicosController, maxLines: 3, decoration: const InputDecoration(labelText: "Serviços Prestados", border: OutlineInputBorder())),
-            ],
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) => AlertDialog(
+          title: Text("Contrato: ${loc['nome'].toUpperCase()}"),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(controller: versaoController, decoration: const InputDecoration(labelText: "Nº / Versão do Contrato", border: OutlineInputBorder())),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton.icon(
+                        onPressed: () async {
+                          final p = await showDatePicker(context: context, firstDate: DateTime(2020), lastDate: DateTime(2035), initialDate: vigenciaInicio ?? DateTime.now());
+                          if (p != null) setModalState(() => vigenciaInicio = p);
+                        },
+                        icon: const Icon(Icons.calendar_today, size: 16),
+                        label: Text(vigenciaInicio == null ? "Início" : DateFormat('dd/MM/yy').format(vigenciaInicio!), style: const TextStyle(fontSize: 10)),
+                      ),
+                    ),
+                    Expanded(
+                      child: TextButton.icon(
+                        onPressed: () async {
+                          final p = await showDatePicker(context: context, firstDate: DateTime(2020), lastDate: DateTime(2035), initialDate: vigenciaFim ?? DateTime.now());
+                          if (p != null) setModalState(() => vigenciaFim = p);
+                        },
+                        icon: const Icon(Icons.event, size: 16),
+                        label: Text(vigenciaFim == null ? "Término" : DateFormat('dd/MM/yy').format(vigenciaFim!), style: const TextStyle(fontSize: 10)),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: valorController, 
+                  keyboardType: TextInputType.number, 
+                  decoration: const InputDecoration(labelText: "Valor Mensal", border: OutlineInputBorder()),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: slaController, 
+                  decoration: const InputDecoration(labelText: "SLA Contratado (ex: 4h, NBD)", border: OutlineInputBorder()),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: servicosController, 
+                  maxLines: 2, 
+                  decoration: const InputDecoration(labelText: "Escopo de Serviços", border: OutlineInputBorder()),
+                ),
+                
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  child: Divider(),
+                ),
+                const Text("Quantidades Contratadas:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                const SizedBox(height: 8),
+                ...tiposSuportados.map((tipo) {
+                  final ctrl = TextEditingController(text: (itensContratados[tipo] ?? 0).toString());
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      children: [
+                        Expanded(flex: 2, child: Text(tipo, style: const TextStyle(fontSize: 12))),
+                        Expanded(
+                          child: TextField(
+                            controller: ctrl,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.all(8), border: OutlineInputBorder()),
+                            onChanged: (v) => itensContratados[tipo] = int.tryParse(v) ?? 0,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+              ],
+            ),
           ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text("CANCELAR")),
+            ElevatedButton(
+              onPressed: () async {
+                final int totalQtd = itensContratados.values.fold(0, (sum, val) => sum + val);
+                await controller.updateLeasingCompanyDetails(loc['id'], {
+                  'versao_contrato': versaoController.text.trim(),
+                  'valor_contrato': double.tryParse(valorController.text.trim()) ?? 0.0,
+                  'sla_contratado': slaController.text.trim(),
+                  'servicos_prestados': servicosController.text.trim(),
+                  'itens_contratados': itensContratados,
+                  'quantidade_contratada': totalQtd,
+                  'vigencia_inicio': vigenciaInicio != null ? Timestamp.fromDate(vigenciaInicio!) : null,
+                  'vigencia_fim': vigenciaFim != null ? Timestamp.fromDate(vigenciaFim!) : null,
+                });
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Contrato atualizado!"), backgroundColor: Colors.green));
+                }
+              },
+              child: const Text("SALVAR CONTRATO"),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("CANCELAR")),
-          ElevatedButton(
-            onPressed: () async {
-              await controller.updateLeasingCompanyDetails(loc['id'], {
-                'versao_contrato': versaoController.text.trim(),
-                'quantidade_contratada': int.tryParse(qtdController.text.trim()) ?? 0,
-                'valor_contrato': double.tryParse(valorController.text.trim()) ?? 0.0,
-                'servicos_prestados': servicosController.text.trim(),
-              });
-              if (context.mounted) {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Dados contratuais atualizados!"), backgroundColor: Colors.green));
-              }
-            },
-            child: const Text("SALVAR DETALHES"),
-          ),
-        ],
       ),
     );
   }
@@ -958,9 +1038,19 @@ class _LocadorasTab extends StatelessWidget {
                         loc['nome'].toString().toUpperCase(), 
                         style: GoogleFonts.inter(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 0.5)
                       ),
-                      subtitle: Text(
-                        "Contrato: ${loc['versao_contrato']} | Itens: ${loc['quantidade_contratada']}", 
-                        style: const TextStyle(fontSize: 10, color: Colors.grey)
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Contrato: ${loc['versao_contrato']} | Itens: ${loc['quantidade_contratada']}", 
+                            style: const TextStyle(fontSize: 10, color: Colors.grey)
+                          ),
+                          if (loc['atualizado_por'] != null)
+                            Text(
+                              "Última alt.: ${loc['atualizado_por']}", 
+                              style: const TextStyle(fontSize: 8, fontStyle: FontStyle.italic, color: Colors.blueGrey)
+                            ),
+                        ],
                       ),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,

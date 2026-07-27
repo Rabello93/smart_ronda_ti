@@ -61,25 +61,20 @@ class DashboardController {
     return trend;
   }
 
-  /// Calcula o Health Score do Patrimônio (Itens Saudáveis vs Total)
+  /// Calcula o Health Score do Patrimônio (Média de Saúde do Parque)
   Map<String, double> getInventoryCoverage(List<AssetModel> allAssets, List<RoundModel> roundsInPeriod) {
     if (allAssets.isEmpty) return {'auditado': 0, 'pendente': 0};
     
-    // Nova Lógica 3.2.10: Saúde Física do Parque
-    int total = allAssets.length;
-    int problematicos = allAssets.where((a) => 
-      a.temDefeito || 
-      a.statusOperacional == 'Em manutenção' || 
-      a.isObsoleto ||
-      a.statusOperacional == 'Baixa Patrimonial'
-    ).length;
-
-    int saudaveis = total - problematicos;
-    if (saudaveis < 0) saudaveis = 0;
+    // Nova Lógica 3.3.0: Média do Health Score Real
+    // auditado = Média das notas de saúde de todos os ativos
+    // pendente = O "Gap" para chegar em 100%
+    
+    double totalScore = allAssets.fold(0.0, (sum, a) => sum + a.healthScore);
+    double averageScore = totalScore / allAssets.length;
 
     return {
-      'auditado': saudaveis.toDouble(),
-      'pendente': problematicos.toDouble(),
+      'auditado': averageScore,
+      'pendente': 100.0 - averageScore,
     };
   }
 
@@ -210,5 +205,38 @@ class DashboardController {
       }
     }
     return heatMap;
+  }
+
+  /// Simula a capacidade contratada baseada em novos usuários
+  Map<String, dynamic> simulateCapacity(List<AssetModel> allAssets, Map<String, int> contractedMap, int extraUsers) {
+    Map<String, int> currentUsage = {};
+    for (var a in allAssets.where((a) => a.isLocado)) {
+      currentUsage[a.tipo] = (currentUsage[a.tipo] ?? 0) + 1;
+    }
+
+    Map<String, int> needed = {};
+    Map<String, int> deficit = {};
+
+    // Assume 1 Notebook, 1 Monitor por usuário extra como padrão
+    needed['Notebook'] = extraUsers;
+    needed['Monitor'] = extraUsers;
+
+    for (var entry in needed.entries) {
+      final tipo = entry.key;
+      final extra = entry.value;
+      final contratado = contractedMap[tipo] ?? 0;
+      final emUso = currentUsage[tipo] ?? 0;
+      
+      final totalFinal = emUso + extra;
+      if (totalFinal > contratado) {
+        deficit[tipo] = totalFinal - contratado;
+      }
+    }
+
+    return {
+      'current_usage': currentUsage,
+      'needed_extra': needed,
+      'deficit': deficit,
+    };
   }
 }
