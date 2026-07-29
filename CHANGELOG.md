@@ -6,6 +6,7 @@
 - **Simulador por Departamento**: Expansão da inteligência de simulação para prever aditivos baseados no perfil de cada setor.
 - **Filtros Avançados**: Central de Relatórios agora permite filtrar por Marca, Modelo e Processador.
 - **Home Office Facilitado**: Switch de autorização permanente direto na edição do Castelo (Admin).
+- **Limpeza de Versão**: Remoção definitiva de tags de build e restauração da hierarquia interativa de ativos.
 
 ## [3.3.1] - 2026-07-27
 ### 📈 Eficiência Executiva
