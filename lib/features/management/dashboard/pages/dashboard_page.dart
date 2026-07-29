@@ -1176,6 +1176,6 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget _buildFooter(Color textColor) {
-    return Container(padding: const EdgeInsets.symmetric(vertical: 8), child: Center(child: Text('Smart Ronda TI - v3.3.0 Build 48', style: TextStyle(color: textColor.withValues(alpha: 0.5), fontSize: 10))));
+    return Container(padding: const EdgeInsets.symmetric(vertical: 8), child: Center(child: Text('Smart Ronda TI - v3.3.2', style: TextStyle(color: textColor.withValues(alpha: 0.5), fontSize: 10))));
   }
 }

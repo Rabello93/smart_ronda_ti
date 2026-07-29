@@ -33,7 +33,7 @@ class AboutPage extends StatelessWidget {
                       Icon(Icons.checklist_rtl, size: 80, color: Colors.blue),
                       SizedBox(height: 10),
                       Text("Smart Ronda TI", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                      Text("Versão 3.3.0 Build 48", style: TextStyle(color: Colors.grey)),
+                      Text("Versão 3.3.2", style: TextStyle(color: Colors.grey)),
                 ],
               ),
             ),
