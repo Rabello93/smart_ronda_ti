@@ -644,14 +644,51 @@ class _DashboardPageState extends State<DashboardPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 children: listaOrdenada.map((entry) {
                   final isProprio = entry.key == "PATRIMÔNIO PRÓPRIO";
+                  
+                  // Agrupamento de Segundo Nível: Por Tipo
+                  Map<String, List<AssetModel>> porTipo = {};
+                  for (var i in entry.value) {
+                    porTipo.putIfAbsent(i.tipo, () => []).add(i);
+                  }
+
                   return Container(
                     margin: const EdgeInsets.only(bottom: 16),
-                    decoration: BoxDecoration(color: isDark ? AppTheme.charcoal : Colors.white, borderRadius: BorderRadius.circular(24), border: Border.all(color: Colors.white.withValues(alpha: 0.05))),
+                    decoration: BoxDecoration(
+                      color: isDark ? AppTheme.charcoal : Colors.white, 
+                      borderRadius: BorderRadius.circular(24), 
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.05))
+                    ),
                     child: ExpansionTile(
-                      leading: Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: (isProprio ? AppTheme.electricBlue : Colors.orange).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)), child: Icon(isProprio ? Icons.inventory_2_rounded : Icons.business_center_rounded, color: isProprio ? AppTheme.electricBlue : Colors.orange, size: 20)),
+                      leading: Container(
+                        padding: const EdgeInsets.all(10), 
+                        decoration: BoxDecoration(
+                          color: (isProprio ? AppTheme.electricBlue : Colors.orange).withValues(alpha: 0.1), 
+                          borderRadius: BorderRadius.circular(12)
+                        ), 
+                        child: Icon(
+                          isProprio ? Icons.inventory_2_rounded : Icons.business_center_rounded, 
+                          color: isProprio ? AppTheme.electricBlue : Colors.orange, 
+                          size: 20
+                        )
+                      ),
                       title: Text(entry.key, style: GoogleFonts.inter(fontWeight: FontWeight.w900, fontSize: 13)),
-                      subtitle: Text("${entry.value.length} itens encontrados", style: const TextStyle(fontSize: 10, color: Colors.grey)),
-                      children: entry.value.map((i) => ListTile(dense: true, title: Text("Pat: ${i.patrimonio}", style: const TextStyle(fontWeight: FontWeight.bold)), subtitle: Text("${i.tipo} | ${i.setor}"))).toList(),
+                      subtitle: Text("${entry.value.length} itens", style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                      children: porTipo.entries.map((tipoEntry) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                          child: ExpansionTile(
+                            title: Text(tipoEntry.key.toUpperCase(), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                            subtitle: Text("${tipoEntry.value.length} unidades", style: const TextStyle(fontSize: 9)),
+                            leading: const Icon(Icons.category_outlined, size: 18),
+                            children: tipoEntry.value.map((i) => ListTile(
+                              dense: true, 
+                              title: Text("Pat: ${i.patrimonio}", style: const TextStyle(fontWeight: FontWeight.bold)), 
+                              subtitle: Text(i.setor.toUpperCase(), style: const TextStyle(fontSize: 10)),
+                              trailing: i.statusOperacional == 'Em manutenção' ? const Icon(Icons.build, size: 14, color: Colors.orange) : null,
+                            )).toList(),
+                          ),
+                        );
+                      }).toList(),
                     ),
                   );
                 }).toList(),
