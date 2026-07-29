@@ -192,7 +192,7 @@ class _HomePageState extends State<HomePage> {
           persistentFooterButtons: [
             Center(
               child: Text(
-                "Smart Ronda TI - v3.3.0",
+                "Smart Ronda TI - v3.3.2",
                 style: AppTheme.monoStyle(fontSize: 9, color: Colors.grey),
               ),
             ),
