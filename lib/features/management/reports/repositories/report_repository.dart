@@ -187,7 +187,7 @@ class ReportRepository {
             pw.TableHelper.fromTextArray(
               headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 8),
               headerDecoration: const pw.BoxDecoration(color: PdfColors.indigo900),
-              headers: const ['TIPO', 'PATRIMÔNIO', 'MARCA', 'MODELO', 'SETOR ATUAL', 'INFORMAÇÃO', 'AÇÃO SUGERIDA'],
+              headers: const ['TIPO', 'PATRIMÔNIO', 'MARCA', 'MODELO', 'SETOR ORIGEM', 'LOCAL ATUAL', 'SITUAÇÃO / MOTIVO', 'AÇÃO SUGERIDA'],
               data: itens.map((i) {
                 final asset = AssetModel.fromMap(i, i['patrimonio'] ?? '');
                 
@@ -197,12 +197,16 @@ class ReportRepository {
                   if (ano != null) info = "${DateTime.now().year - ano} ANOS";
                 }
 
+                final bool emManutencao = i['status_operacional'] == 'Em manutenção';
+                final String localAtual = emManutencao ? "TI (LABORATÓRIO)" : (i['setor'] ?? '---');
+
                 return [
                   i['tipo'] ?? '',
                   i['patrimonio'] ?? (i['serie'] ?? 'S/P'),
                   i['marca'] ?? '---',
                   i['modelo'] ?? '---',
                   i['setor'] ?? '---',
+                  localAtual.toUpperCase(),
                   info.toUpperCase(),
                   pw.Text(
                     asset.actionRecommendation.toUpperCase(),

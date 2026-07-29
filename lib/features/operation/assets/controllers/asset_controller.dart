@@ -17,11 +17,13 @@ class AssetController {
     String? processor,
     String? macAddress,
     int? year,
+    bool? homeOfficeAuthorized,
   }) {
     return _repository.updateAsset(patrimony, {
       if (processor != null) 'processador': processor,
       if (macAddress != null) 'mac_address': macAddress,
       if (year != null) 'ano_fabricacao': year,
+      if (homeOfficeAuthorized != null) 'home_office_autorizado': homeOfficeAuthorized,
     });
   }
 

@@ -11,6 +11,9 @@ class ReportController {
     String? setor,
     String? locadora,
     String? tipo,
+    String? marca,
+    String? modelo,
+    String? processador,
     bool apenasDefeitos = false,
     bool apenasObsoletos = false,
     bool emManutencao = false,
@@ -34,13 +37,6 @@ class ReportController {
 
       if (setor != null) query = query.where('setor', isEqualTo: setor);
       
-      if (periodo != null) {
-        final DateTime endOfDay = DateTime(periodo.end.year, periodo.end.month, periodo.end.day, 23, 59, 59);
-        query = query
-            .where('ultima_atualizacao', isGreaterThanOrEqualTo: Timestamp.fromDate(periodo.start))
-            .where('ultima_atualizacao', isLessThanOrEqualTo: Timestamp.fromDate(endOfDay));
-      }
-      
       final snapshot = await query.get();
       var itens = snapshot.docs.map((d) {
         final data = d.data() as Map<String, dynamic>;
@@ -60,6 +56,18 @@ class ReportController {
 
       if (tipo != null) {
         itens = itens.where((i) => i['tipo'] == tipo).toList();
+      }
+
+      if (marca != null && marca.isNotEmpty) {
+        itens = itens.where((i) => i['marca']?.toString().toLowerCase().contains(marca.toLowerCase()) ?? false).toList();
+      }
+
+      if (modelo != null && modelo.isNotEmpty) {
+        itens = itens.where((i) => i['modelo']?.toString().toLowerCase().contains(modelo.toLowerCase()) ?? false).toList();
+      }
+
+      if (processador != null && processador.isNotEmpty) {
+        itens = itens.where((i) => i['processador']?.toString().toLowerCase().contains(processador.toLowerCase()) ?? false).toList();
       }
 
       final bool temFiltroCondicao = apenasDefeitos || apenasObsoletos || emManutencao || emDivergencia || reservados || apenasHomeOffice || apenasBaixas;

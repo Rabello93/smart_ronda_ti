@@ -601,6 +601,8 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
+  String _filtroAtivoTipo = "";
+
   Widget _buildAtivosTab(Color textColor) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return StreamBuilder<List<AssetModel>>(
@@ -608,26 +610,54 @@ class _DashboardPageState extends State<DashboardPage> {
       builder: (context, snapshot) {
         final itens = snapshot.data ?? [];
         if (itens.isEmpty) return const Center(child: Text("Castelo Vazio."));
+        
+        // Filtro local por tipo
+        final filteredItens = _filtroAtivoTipo.isEmpty 
+          ? itens 
+          : itens.where((i) => i.tipo.toLowerCase().contains(_filtroAtivoTipo.toLowerCase())).toList();
+
         Map<String, List<AssetModel>> porOrigem = {};
-        for (var i in itens) {
+        for (var i in filteredItens) {
           String origem = (i.isLocado && i.locadora != null) ? i.locadora!.toUpperCase() : "PATRIMÔNIO PRÓPRIO";
           porOrigem.putIfAbsent(origem, () => []).add(i);
         }
+        
         final listaOrdenada = porOrigem.entries.toList()..sort((a, b) => a.key == "PATRIMÔNIO PRÓPRIO" ? -1 : a.key.compareTo(b.key));
-        return ListView(
-          padding: const EdgeInsets.all(24),
-          children: listaOrdenada.map((entry) {
-            final isProprio = entry.key == "PATRIMÔNIO PRÓPRIO";
-            return Container(
-              margin: const EdgeInsets.only(bottom: 16),
-              decoration: BoxDecoration(color: isDark ? AppTheme.charcoal : Colors.white, borderRadius: BorderRadius.circular(24), border: Border.all(color: Colors.white.withValues(alpha: 0.05))),
-              child: ExpansionTile(
-                leading: Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: (isProprio ? AppTheme.electricBlue : Colors.orange).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)), child: Icon(isProprio ? Icons.inventory_2_rounded : Icons.business_center_rounded, color: isProprio ? AppTheme.electricBlue : Colors.orange, size: 20)),
-                title: Text(entry.key, style: GoogleFonts.inter(fontWeight: FontWeight.w900, fontSize: 13)),
-                children: entry.value.map((i) => ListTile(dense: true, title: Text("Pat: ${i.patrimonio}", style: const TextStyle(fontWeight: FontWeight.bold)), subtitle: Text("${i.tipo} | ${i.setor}"))).toList(),
+        
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              child: TextField(
+                onChanged: (v) => setState(() => _filtroAtivoTipo = v),
+                decoration: InputDecoration(
+                  hintText: "Filtrar por Tipo (Ex: Notebook, Impressora...)",
+                  prefixIcon: const Icon(Icons.filter_list_rounded),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                  filled: true,
+                  fillColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.shade50,
+                ),
               ),
-            );
-          }).toList(),
+            ),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                children: listaOrdenada.map((entry) {
+                  final isProprio = entry.key == "PATRIMÔNIO PRÓPRIO";
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(color: isDark ? AppTheme.charcoal : Colors.white, borderRadius: BorderRadius.circular(24), border: Border.all(color: Colors.white.withValues(alpha: 0.05))),
+                    child: ExpansionTile(
+                      leading: Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: (isProprio ? AppTheme.electricBlue : Colors.orange).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)), child: Icon(isProprio ? Icons.inventory_2_rounded : Icons.business_center_rounded, color: isProprio ? AppTheme.electricBlue : Colors.orange, size: 20)),
+                      title: Text(entry.key, style: GoogleFonts.inter(fontWeight: FontWeight.w900, fontSize: 13)),
+                      subtitle: Text("${entry.value.length} itens encontrados", style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                      children: entry.value.map((i) => ListTile(dense: true, title: Text("Pat: ${i.patrimonio}", style: const TextStyle(fontWeight: FontWeight.bold)), subtitle: Text("${i.tipo} | ${i.setor}"))).toList(),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
         );
       },
     );
@@ -678,23 +708,82 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget _buildStatusTab(Color textColor) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        children: [
-          const SectionTitle(title: "Análise de Disponibilidade"),
-          const SizedBox(height: 24),
-          _buildStatusStreamCard(stream: _assetController.getMaintenanceStream(), title: "FORA DE OPERAÇÃO (REPARO)", icon: Icons.build_circle_rounded, color: Colors.orange),
-          const SizedBox(height: 12),
-          _buildStatusStreamCard(stream: _assetController.getAllAssetsStream().map((list) => list.where((a) => a.homeOfficeAutorizado).toList()), title: "EXTERNOS (HOME OFFICE)", icon: Icons.home_work_rounded, color: AppTheme.electricBlue),
-          const SizedBox(height: 12),
-          _buildStatusStreamCard(stream: _assetController.getDivergenceStream(), title: "DIVERGÊNCIAS DE LOCAL", icon: Icons.wrong_location_rounded, color: Colors.purpleAccent),
-          const SizedBox(height: 12),
-          _buildStatusStreamCard(stream: _assetController.getObsoleteStream(), title: "OBSOLETOS (+5 ANOS)", icon: Icons.timer_rounded, color: AppTheme.amberNeon),
-          const SizedBox(height: 48),
-          Text("INFO: SISTEMA DE GOVERNANÇA HÍBRIDA v3.3.0", style: AppTheme.monoStyle(fontSize: 9, color: Colors.grey, fontWeight: FontWeight.bold)),
-        ],
-      ),
+    return StreamBuilder<List<AssetModel>>(
+      stream: _assetController.getMaintenanceStream(),
+      builder: (context, snapshot) {
+        final itensEmManutencao = snapshot.data ?? [];
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SectionTitle(title: "Operação de Reparo e Manutenção"),
+              const SizedBox(height: 24),
+              if (itensEmManutencao.isEmpty)
+                Center(
+                  child: Column(
+                    children: [
+                      Icon(Icons.check_circle_outline_rounded, size: 60, color: Colors.green.withValues(alpha: 0.2)),
+                      const SizedBox(height: 16),
+                      const Text("NENHUM ITEM EM MANUTENÇÃO ATUALMENTE", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold, fontSize: 11)),
+                    ],
+                  ),
+                )
+              else
+                ...itensEmManutencao.map((i) {
+                  final dias = i.dataEntradaManutencao != null ? DateTime.now().difference(i.dataEntradaManutencao!).inDays : 0;
+                  final Color color = dias > 15 ? AppTheme.ruby : (dias > 7 ? AppTheme.amberNeon : AppTheme.emerald);
+
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color: isDark ? AppTheme.charcoal : Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: color.withValues(alpha: 0.2)),
+                    ),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                      leading: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(14)),
+                        child: Icon(Icons.build_circle_rounded, color: color),
+                      ),
+                      title: Text("${i.tipo.toUpperCase()} - ${i.patrimonio}", style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 4),
+                          Text("ORIGEM: ${i.setor.toUpperCase()} ➔ LOCAL: TI (LAB)", style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 4),
+                          Text("MOTIVO: ${i.descricaoDefeito ?? 'NÃO INFORMADO'}", style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                        ],
+                      ),
+                      trailing: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text("$dias dias", style: AppTheme.monoStyle(fontSize: 14, fontWeight: FontWeight.bold, color: color)),
+                          const Text("EM REPARO", style: TextStyle(fontSize: 7, fontWeight: FontWeight.bold, color: Colors.grey)),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+              const SizedBox(height: 48),
+              const SectionTitle(title: "Disponibilidade Global"),
+              const SizedBox(height: 24),
+              _buildStatusStreamCard(stream: _assetController.getAllAssetsStream().map((list) => list.where((a) => a.homeOfficeAutorizado).toList()), title: "EXTERNOS (HOME OFFICE)", icon: Icons.home_work_rounded, color: AppTheme.electricBlue),
+              const SizedBox(height: 12),
+              _buildStatusStreamCard(stream: _assetController.getDivergenceStream(), title: "DIVERGÊNCIAS DE LOCAL", icon: Icons.wrong_location_rounded, color: Colors.purpleAccent),
+              const SizedBox(height: 12),
+              _buildStatusStreamCard(stream: _assetController.getObsoleteStream(), title: "OBSOLETOS (+5 ANOS)", icon: Icons.timer_rounded, color: AppTheme.amberNeon),
+              const SizedBox(height: 48),
+              Text("INFO: SISTEMA DE GOVERNANÇA HÍBRIDA v3.3.2", style: AppTheme.monoStyle(fontSize: 9, color: Colors.grey, fontWeight: FontWeight.bold)),
+            ],
+          ),
+        );
+      }
     );
   }
 
@@ -1013,46 +1102,73 @@ class _DashboardPageState extends State<DashboardPage> {
 
   void _showSimuladorContrato(String locadora, Map<String, int> contratados, List<AssetModel> assets) {
     final TextEditingController extraCtrl = TextEditingController(text: "0");
+    String? setorAlvo = 'Geral';
     
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setModalState) {
           final int extra = int.tryParse(extraCtrl.text) ?? 0;
-          final simulation = _dashboardController.simulateCapacity(assets, contratados, extra);
-          final deficits = simulation['deficit'] as Map<String, int>;
+          
+          return StreamBuilder<List<Map<String, dynamic>>>(
+            stream: _adminController.sectorsStream,
+            builder: (context, sectorSnap) {
+              final setores = sectorSnap.data ?? [];
+              final simulation = _dashboardController.simulateCapacity(
+                assets, 
+                contratados, 
+                extra, 
+                targetSector: setorAlvo
+              );
+              final deficits = simulation['deficit'] as Map<String, int>;
 
-          return AlertDialog(
-            backgroundColor: Theme.of(context).brightness == Brightness.dark ? AppTheme.deepNavy : Colors.white,
-            title: Text("Simulador: $locadora"),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text("Quantos novos usuários deseja simular?", style: TextStyle(fontSize: 12)),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: extraCtrl,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: "Usuários Extras"),
-                  onChanged: (v) => setModalState(() {}),
+              return AlertDialog(
+                backgroundColor: Theme.of(context).brightness == Brightness.dark ? AppTheme.deepNavy : Colors.white,
+                title: Text("Simulador: $locadora"),
+                content: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text("Selecione o departamento alvo da expansão:", style: TextStyle(fontSize: 12)),
+                      const SizedBox(height: 10),
+                      DropdownButtonFormField<String>(
+                        initialValue: setorAlvo,
+                        items: [
+                          const DropdownMenuItem(value: 'Geral', child: Text("Padrão (1 Notebook/Pessoa)")),
+                          ...setores.map((s) => DropdownMenuItem(value: s['nome'], child: Text(s['nome']))),
+                        ],
+                        onChanged: (v) => setModalState(() => setorAlvo = v),
+                        decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true),
+                      ),
+                      const SizedBox(height: 20),
+                      const Text("Quantos novos usuários deseja simular?", style: TextStyle(fontSize: 12)),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: extraCtrl,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(labelText: "Usuários Extras", border: OutlineInputBorder()),
+                        onChanged: (v) => setModalState(() {}),
+                      ),
+                      const SizedBox(height: 20),
+                      if (extra > 0) ...[
+                        const Divider(),
+                        const SizedBox(height: 10),
+                        const Text("DÉFICIT PROJETADO:", style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.ruby, fontSize: 14)),
+                        const SizedBox(height: 10),
+                        if (deficits.isEmpty)
+                          const Text("✅ Contrato suporta a expansão!", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold))
+                        else
+                          ...deficits.entries.map((e) => Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Text("• ${e.key}: ${e.value} unidades em falta", style: const TextStyle(color: AppTheme.ruby, fontSize: 13)),
+                          )),
+                      ],
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 20),
-                if (extra > 0) ...[
-                  const Divider(),
-                  const SizedBox(height: 10),
-                  const Text("DÉFICIT PROJETADO:", style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.ruby, fontSize: 14)),
-                  const SizedBox(height: 10),
-                  if (deficits.isEmpty)
-                    const Text("✅ Contrato suporta a expansão!", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold))
-                  else
-                    ...deficits.entries.map((e) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: Text("• ${e.key}: ${e.value} unidades em falta", style: const TextStyle(color: AppTheme.ruby, fontSize: 13)),
-                    )),
-                ],
-              ],
-            ),
-            actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text("FECHAR"))],
+                actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text("FECHAR"))],
+              );
+            }
           );
         }
       ),

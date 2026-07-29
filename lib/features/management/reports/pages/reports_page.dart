@@ -32,6 +32,10 @@ class _ReportsPageState extends State<ReportsPage> {
   String? _locadoraSelecionada;
   String? _tipoEquipamentoSelecionado;
   String? _formatoSelecionado = 'PDF';
+  final TextEditingController _marcaController = TextEditingController();
+  final TextEditingController _modeloController = TextEditingController();
+  final TextEditingController _processadorController = TextEditingController();
+
   bool _apenasDefeitos = false;
   bool _apenasObsoletos = false;
   bool _emManutencao = false;
@@ -52,6 +56,8 @@ class _ReportsPageState extends State<ReportsPage> {
     setState(() => _gerandoInventario = true);
     
     final UserModel? profile = await _authController.profileStream.first;
+    if (!mounted) return;
+    
     final String currentUserName = profile?.nome ?? 
                                    _authController.currentUser?.displayName ?? 
                                    _authController.currentUser?.email?.split('@')[0] ?? "Admin";
@@ -61,6 +67,9 @@ class _ReportsPageState extends State<ReportsPage> {
       setor: _setorSelecionado,
       locadora: _locadoraSelecionada,
       tipo: _tipoEquipamentoSelecionado,
+      marca: _marcaController.text.trim(),
+      modelo: _modeloController.text.trim(),
+      processador: _processadorController.text.trim(),
       apenasDefeitos: _apenasDefeitos,
       apenasObsoletos: _apenasObsoletos,
       emManutencao: _emManutencao,
@@ -226,6 +235,16 @@ class _ReportsPageState extends State<ReportsPage> {
             ],
             onChanged: (v) => setState(() => _tipoEquipamentoSelecionado = v),
           ),
+          const SizedBox(height: 15),
+          Row(
+            children: [
+              Expanded(child: TextField(controller: _marcaController, decoration: const InputDecoration(labelText: "Marca", border: OutlineInputBorder(), isDense: true))),
+              const SizedBox(width: 10),
+              Expanded(child: TextField(controller: _modeloController, decoration: const InputDecoration(labelText: "Modelo", border: OutlineInputBorder(), isDense: true))),
+            ],
+          ),
+          const SizedBox(height: 15),
+          TextField(controller: _processadorController, decoration: const InputDecoration(labelText: "Processador / CPU", border: OutlineInputBorder(), isDense: true)),
 
           const SizedBox(height: 25),
           const Text("Formato de Saída:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.grey)),
@@ -262,6 +281,7 @@ class _ReportsPageState extends State<ReportsPage> {
                 child: _actionButton(
                   onPressed: _periodoPrincipal == null ? null : () async {
                     final UserModel? profile = await _authController.profileStream.first;
+                    if (!mounted) return;
                     final String currentUserName = profile?.nome ?? 
                                                    _authController.currentUser?.displayName ?? 
                                                    _authController.currentUser?.email?.split('@')[0] ?? "Admin";
@@ -303,6 +323,7 @@ class _ReportsPageState extends State<ReportsPage> {
                 child: _actionButton(
                   onPressed: _periodoPrincipal == null ? null : () async {
                     final UserModel? profile = await _authController.profileStream.first;
+                    if (!mounted) return;
                     final String currentUserName = profile?.nome ?? 
                                                    _authController.currentUser?.displayName ?? 
                                                    _authController.currentUser?.email?.split('@')[0] ?? "Admin";
@@ -343,6 +364,7 @@ class _ReportsPageState extends State<ReportsPage> {
           _actionButton(
             onPressed: () async {
               final UserModel? profile = await _authController.profileStream.first;
+              if (!mounted) return;
               final String currentUserName = profile?.nome ?? 
                                              _authController.currentUser?.displayName ?? 
                                              _authController.currentUser?.email?.split('@')[0] ?? "Admin";

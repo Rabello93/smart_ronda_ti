@@ -616,56 +616,66 @@ class _CasteloTabState extends State<_CasteloTab> {
     final patrimonioController = TextEditingController(text: item.patrimonio.startsWith("SP_") ? "" : item.patrimonio);
     final processadorController = TextEditingController(text: item.processador);
     final macController = TextEditingController(text: item.macAddress);
+    bool hoAutorizado = item.homeOfficeAutorizado;
 
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text("Editar Ativo: ${item.patrimonio.startsWith("SP_") ? 'SEM PLACA' : item.patrimonio}"),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: patrimonioController, 
-                decoration: const InputDecoration(
-                  labelText: "Nº Patrimônio (Plaqueta)", 
-                  hintText: "Digite o novo número para atualizar",
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.qr_code)
-                )
-              ),
-              const SizedBox(height: 15),
-              TextField(controller: processadorController, decoration: const InputDecoration(labelText: "Processador", border: OutlineInputBorder())),
-              const SizedBox(height: 15),
-              TextField(controller: macController, decoration: const InputDecoration(labelText: "Endereço MAC", border: OutlineInputBorder())),
-            ],
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModalState) => AlertDialog(
+          title: Text("Editar Ativo: ${item.patrimonio.startsWith("SP_") ? 'SEM PLACA' : item.patrimonio}"),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: patrimonioController, 
+                  decoration: const InputDecoration(
+                    labelText: "Nº Patrimônio (Plaqueta)", 
+                    hintText: "Digite o novo número para atualizar",
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.qr_code)
+                  )
+                ),
+                const SizedBox(height: 15),
+                TextField(controller: processadorController, decoration: const InputDecoration(labelText: "Processador", border: OutlineInputBorder())),
+                const SizedBox(height: 15),
+                TextField(controller: macController, decoration: const InputDecoration(labelText: "Endereço MAC", border: OutlineInputBorder())),
+                const SizedBox(height: 15),
+                SwitchListTile(
+                  title: const Text("Autorizado para Home Office?", style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                  subtitle: const Text("Permite rastreabilidade externa permanente", style: TextStyle(fontSize: 11)),
+                  value: hoAutorizado,
+                  onChanged: (v) => setModalState(() => hoAutorizado = v),
+                ),
+              ],
+            ),
           ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("CANCELAR")),
-          ElevatedButton(
-            onPressed: () async {
-              final newPat = patrimonioController.text.trim();
-              
-              if (newPat.isNotEmpty && newPat != item.patrimonio) {
-                // Lógica de renomear (ID do documento muda)
-                await _controller.changeAssetPatrimony(item.patrimonio, newPat);
-              }
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("CANCELAR")),
+            ElevatedButton(
+              onPressed: () async {
+                final newPat = patrimonioController.text.trim();
+                
+                if (newPat.isNotEmpty && newPat != item.patrimonio) {
+                  await _controller.changeAssetPatrimony(item.patrimonio, newPat);
+                }
 
-              await _controller.updateAssetTechnicalData(
-                patrimony: newPat.isNotEmpty ? newPat : item.patrimonio,
-                processor: processadorController.text.trim(),
-                macAddress: macController.text.trim(),
-              );
-              
-              if (context.mounted) {
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Ativo atualizado com sucesso!")));
-              }
-            },
-            child: const Text("SALVAR"),
-          ),
-        ],
+                await _controller.updateAssetTechnicalData(
+                  patrimony: newPat.isNotEmpty ? newPat : item.patrimonio,
+                  processor: processadorController.text.trim(),
+                  macAddress: macController.text.trim(),
+                  homeOfficeAuthorized: hoAutorizado,
+                );
+                
+                if (context.mounted) {
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Ativo atualizado com sucesso!")));
+                }
+              },
+              child: const Text("SALVAR"),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -874,15 +884,24 @@ class _LocadorasTab extends StatelessWidget {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setModalState) => AlertDialog(
-          title: Text("Contrato: ${loc['nome'].toUpperCase()}"),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 12),
-                TextField(controller: versaoController, decoration: const InputDecoration(labelText: "Nº / Versão do Contrato", border: OutlineInputBorder())),
-                const SizedBox(height: 12),
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("Contrato: ${loc['nome'].toUpperCase()}"),
+              if (loc['atualizado_por'] != null)
+                Text("Última alteração: ${loc['atualizado_por']}", style: const TextStyle(fontSize: 9, fontStyle: FontStyle.italic, color: Colors.blueGrey)),
+            ],
+          ),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 12),
+                  TextField(controller: versaoController, decoration: const InputDecoration(labelText: "Nº / Versão do Contrato", border: OutlineInputBorder())),
+                  const SizedBox(height: 12),
                 Row(
                   children: [
                     Expanded(
@@ -961,7 +980,8 @@ class _LocadorasTab extends StatelessWidget {
               ],
             ),
           ),
-          actions: [
+        ),
+        actions: [
             TextButton(onPressed: () => Navigator.pop(context), child: const Text("CANCELAR")),
             ElevatedButton(
               onPressed: () async {

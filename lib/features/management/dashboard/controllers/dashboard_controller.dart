@@ -199,16 +199,20 @@ class DashboardController {
       } else {
         final lastRound = rondasDoDep.first.dataInicio;
         final diff = now.difference(lastRound).inDays;
-        if (diff <= 15) heatMap['verde']!.add(nome);
-        else if (diff <= 30) heatMap['amarelo']!.add(nome);
-        else heatMap['vermelho']!.add(nome);
+        if (diff <= 15) {
+          heatMap['verde']!.add(nome);
+        } else if (diff <= 30) {
+          heatMap['amarelo']!.add(nome);
+        } else {
+          heatMap['vermelho']!.add(nome);
+        }
       }
     }
     return heatMap;
   }
 
-  /// Simula a capacidade contratada baseada em novos usuários
-  Map<String, dynamic> simulateCapacity(List<AssetModel> allAssets, Map<String, int> contractedMap, int extraUsers) {
+  /// Simula a capacidade contratada baseada em novos usuários e departamentos
+  Map<String, dynamic> simulateCapacity(List<AssetModel> allAssets, Map<String, int> contractedMap, int extraUsers, {String? targetSector}) {
     Map<String, int> currentUsage = {};
     for (var a in allAssets.where((a) => a.isLocado)) {
       currentUsage[a.tipo] = (currentUsage[a.tipo] ?? 0) + 1;
@@ -217,9 +221,32 @@ class DashboardController {
     Map<String, int> needed = {};
     Map<String, int> deficit = {};
 
-    // Assume 1 Notebook, 1 Monitor por usuário extra como padrão
-    needed['Notebook'] = extraUsers;
-    needed['Monitor'] = extraUsers;
+    // Se houver um departamento alvo, tenta identificar o padrão dele
+    if (targetSector != null && targetSector != 'Geral') {
+      final assetsInSector = allAssets.where((a) => a.setor == targetSector).toList();
+      if (assetsInSector.isNotEmpty) {
+        // Calcula a proporção média de equipamentos por pessoa no setor (Simplificado)
+        // Se houverem 10 pessoas e 10 notebooks, média é 1.
+        // Como não temos o número de pessoas atual por setor, assumimos 1 notebook como base se houver algum no setor.
+        bool hasNotebook = assetsInSector.any((a) => a.tipo == 'Notebook');
+        bool hasDesktop = assetsInSector.any((a) => a.tipo == 'Desktop');
+        bool hasMonitor = assetsInSector.any((a) => a.tipo == 'Monitor');
+
+        if (hasNotebook) {
+          needed['Notebook'] = extraUsers;
+        } else if (hasDesktop) {
+          needed['Desktop'] = extraUsers;
+        }
+        
+        if (hasMonitor) needed['Monitor'] = extraUsers;
+      } else {
+        needed['Notebook'] = extraUsers;
+        needed['Monitor'] = extraUsers;
+      }
+    } else {
+      needed['Notebook'] = extraUsers;
+      needed['Monitor'] = extraUsers;
+    }
 
     for (var entry in needed.entries) {
       final tipo = entry.key;
