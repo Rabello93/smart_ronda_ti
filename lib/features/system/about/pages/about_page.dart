@@ -46,8 +46,16 @@ class AboutPage extends StatelessWidget {
             const SizedBox(height: 20),
             _sectionTitle("🚀 Log de Atualizações"),
             _buildUpdate(
-              "3.3.0 (Atual)",
-              "• INTELIGÊNCIA PREDITIVA: Implementação do Equipment Health Score (0-100%) baseado em idade e histórico.\n• PLANO DE AÇÃO: Sugestões automáticas de gestão (Capex/Manutenção) nos relatórios PDF.\n• MÓDULO DE LOCAÇÃO: Cockpit de auditoria contratual que cruza inventário real vs capacidade contratada e simulador de expansão.",
+              "3.3.2 (Atual)",
+              "• DASHBOARD EVOLUÍDO: Rastreabilidade total de manutenção com setor de origem, local atual (TI) e dias em aberto.\n• SIMULADOR POR DEPTO: Projeção de aditivos baseada no perfil real de cada departamento.\n• FILTROS AVANÇADOS: Auditoria agora permite filtrar por Marca, Modelo e Processador.\n• GESTÃO ADMIN: Autorização permanente de Home Office diretamente no Castelo.",
+            ),
+            _buildUpdate(
+              "3.3.1",
+              "• EFICIÊNCIA EXECUTIVA: Assinatura profissional em preto/negrito nos relatórios e nome real do emissor.\n• DADOS DE CONTATO: Locadoras com campos de CNPJ, E-mail, Telefone e Endereço.\n• MAPA DE CALOR: Reordenação lógica de risco (Verde -> Amarelo -> Vermelho).",
+            ),
+            _buildUpdate(
+              "3.3.0",
+              "• INTELIGÊNCIA PREDITIVA: Implementação do Equipment Health Score (0-100%) baseado em idade e histórico.\n• PLANO DE AÇÃO: Sugestões automáticas de gestão (Capex/Manutenção) nos relatórios PDF.\n• MÓDULO DE LOCAÇÃO: Cockpit de auditoria contratual e simulador de expansão.",
             ),
             _buildUpdate(
               "3.2.11",

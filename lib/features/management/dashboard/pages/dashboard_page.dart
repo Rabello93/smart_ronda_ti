@@ -626,22 +626,9 @@ class _DashboardPageState extends State<DashboardPage> {
         
         return Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              child: TextField(
-                onChanged: (v) => setState(() => _filtroAtivoTipo = v),
-                decoration: InputDecoration(
-                  hintText: "Filtrar por Tipo (Ex: Notebook, Impressora...)",
-                  prefixIcon: const Icon(Icons.filter_list_rounded),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
-                  filled: true,
-                  fillColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.shade50,
-                ),
-              ),
-            ),
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                 children: listaOrdenada.map((entry) {
                   final isProprio = entry.key == "PATRIMÔNIO PRÓPRIO";
                   
