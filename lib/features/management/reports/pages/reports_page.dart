@@ -19,13 +19,11 @@ class _ReportsPageState extends State<ReportsPage> {
   final AdminController _adminController = AdminController();
   final ReportController _reportController = ReportController();
   final AuthController _authController = AuthController();
-  
 
   @override
   void initState() {
     super.initState();
   }
-
 
   // Filtros Inventário
   String? _setorSelecionado;
@@ -55,36 +53,43 @@ class _ReportsPageState extends State<ReportsPage> {
   Future<void> _handleGerarInventario() async {
     setState(() => _gerandoInventario = true);
     
-    final UserModel? profile = await _authController.profileStream.first;
-    if (!mounted) return;
-    
-    final String currentUserName = profile?.nome ?? 
-                                   _authController.currentUser?.displayName ?? 
-                                   _authController.currentUser?.email?.split('@')[0] ?? "Admin";
+    try {
+      final UserModel? profile = await _authController.profileStream.first;
+      if (!mounted) return;
+      
+      final String currentUserName = profile?.nome ?? 
+                                     _authController.currentUser?.displayName ?? 
+                                     _authController.currentUser?.email?.split('@')[0] ?? "Admin";
 
-    await _reportController.gerarRelatorioInventario(
-      context: context,
-      setor: _setorSelecionado,
-      locadora: _locadoraSelecionada,
-      tipo: _tipoEquipamentoSelecionado,
-      marca: _marcaController.text.trim(),
-      modelo: _modeloController.text.trim(),
-      processador: _processadorController.text.trim(),
-      apenasDefeitos: _apenasDefeitos,
-      apenasObsoletos: _apenasObsoletos,
-      emManutencao: _emManutencao,
-      emDivergencia: _emDivergencia,
-      reservados: _reservados,
-      apenasHomeOffice: _apenasHomeOffice,
-      apenasLocados: _apenasLocados,
-      apenasSemPatrimonio: _apenasSemPatrimonio,
-      apenasSubstituicoes: _apenasSubstituicoes,
-      apenasBaixas: _apenasBaixas,
-      periodo: _periodoPrincipal,
-      userName: currentUserName,
-      formato: _formatoSelecionado!,
-    );
-    if (mounted) setState(() => _gerandoInventario = false);
+      await _reportController.gerarRelatorioInventario(
+        context: context,
+        setor: _setorSelecionado,
+        locadora: _locadoraSelecionada,
+        tipo: _tipoEquipamentoSelecionado,
+        marca: _marcaController.text.trim(),
+        modelo: _modeloController.text.trim(),
+        processador: _processadorController.text.trim(),
+        apenasDefeitos: _apenasDefeitos,
+        apenasObsoletos: _apenasObsoletos,
+        emManutencao: _emManutencao,
+        emDivergencia: _emDivergencia,
+        reservados: _reservados,
+        apenasHomeOffice: _apenasHomeOffice,
+        apenasLocados: _apenasLocados,
+        apenasSemPatrimonio: _apenasSemPatrimonio,
+        apenasSubstituicoes: _apenasSubstituicoes,
+        apenasBaixas: _apenasBaixas,
+        periodo: _periodoPrincipal,
+        userName: currentUserName,
+        formato: _formatoSelecionado!,
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Erro: $e")));
+      }
+    } finally {
+      if (mounted) setState(() => _gerandoInventario = false);
+    }
   }
 
   @override
@@ -280,18 +285,23 @@ class _ReportsPageState extends State<ReportsPage> {
               Expanded(
                 child: _actionButton(
                   onPressed: _periodoPrincipal == null ? null : () async {
-                    final UserModel? profile = await _authController.profileStream.first;
-                    if (!mounted) return;
-                    final String currentUserName = profile?.nome ?? 
-                                                   _authController.currentUser?.displayName ?? 
-                                                   _authController.currentUser?.email?.split('@')[0] ?? "Admin";
-                    _reportController.gerarRelatorioMetas(
-                      context, 
-                      periodo: _periodoPrincipal, 
-                      periodoComparativo: _periodoComparativo, 
-                      userName: currentUserName,
-                      formato: 'PDF'
-                    );
+                    final messenger = ScaffoldMessenger.of(context);
+                    try {
+                      final profile = await _authController.profileStream.first;
+                      if (!mounted) return;
+                      final String currentUserName = profile?.nome ?? 
+                                                     _authController.currentUser?.displayName ?? 
+                                                     _authController.currentUser?.email?.split('@')[0] ?? "Admin";
+                      _reportController.gerarRelatorioMetas(
+                        this.context, 
+                        periodo: _periodoPrincipal, 
+                        periodoComparativo: _periodoComparativo, 
+                        userName: currentUserName,
+                        formato: 'PDF'
+                      );
+                    } catch (e) {
+                      messenger.showSnackBar(SnackBar(content: Text("Erro: $e")));
+                    }
                   },
                   label: "PDF METAS",
                   icon: Icons.picture_as_pdf,
@@ -322,19 +332,24 @@ class _ReportsPageState extends State<ReportsPage> {
               Expanded(
                 child: _actionButton(
                   onPressed: _periodoPrincipal == null ? null : () async {
-                    final UserModel? profile = await _authController.profileStream.first;
-                    if (!mounted) return;
-                    final String currentUserName = profile?.nome ?? 
-                                                   _authController.currentUser?.displayName ?? 
-                                                   _authController.currentUser?.email?.split('@')[0] ?? "Admin";
-                    _reportController.gerarRelatorioIncidencias(
-                      context, 
-                      periodo: _periodoPrincipal!, 
-                      setor: _setorSelecionado,
-                      locadora: _locadoraSelecionada,
-                      userName: currentUserName,
-                      formato: 'PDF',
-                    );
+                    final messenger = ScaffoldMessenger.of(context);
+                    try {
+                      final profile = await _authController.profileStream.first;
+                      if (!mounted) return;
+                      final String currentUserName = profile?.nome ?? 
+                                                     _authController.currentUser?.displayName ?? 
+                                                     _authController.currentUser?.email?.split('@')[0] ?? "Admin";
+                      _reportController.gerarRelatorioIncidencias(
+                        this.context, 
+                        periodo: _periodoPrincipal!, 
+                        setor: _setorSelecionado,
+                        locadora: _locadoraSelecionada,
+                        userName: currentUserName,
+                        formato: 'PDF',
+                      );
+                    } catch (e) {
+                      messenger.showSnackBar(SnackBar(content: Text("Erro: $e")));
+                    }
                   },
                   label: "PDF INCIDÊNCIAS",
                   icon: Icons.picture_as_pdf,
@@ -363,12 +378,17 @@ class _ReportsPageState extends State<ReportsPage> {
           const SizedBox(height: 20),
           _actionButton(
             onPressed: () async {
-              final UserModel? profile = await _authController.profileStream.first;
-              if (!mounted) return;
-              final String currentUserName = profile?.nome ?? 
-                                             _authController.currentUser?.displayName ?? 
-                                             _authController.currentUser?.email?.split('@')[0] ?? "Admin";
-              _reportController.gerarRelatorioContratos(context, userName: currentUserName);
+              final messenger = ScaffoldMessenger.of(context);
+              try {
+                final profile = await _authController.profileStream.first;
+                if (!mounted) return;
+                final String currentUserName = profile?.nome ?? 
+                                               _authController.currentUser?.displayName ?? 
+                                               _authController.currentUser?.email?.split('@')[0] ?? "Admin";
+                _reportController.gerarRelatorioContratos(this.context, userName: currentUserName);
+              } catch (e) {
+                messenger.showSnackBar(SnackBar(content: Text("Erro: $e")));
+              }
             },
             label: "PDF ANÁLISE DE CONTRATOS (OPEX)",
             icon: Icons.picture_as_pdf,

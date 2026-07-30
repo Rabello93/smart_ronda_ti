@@ -160,7 +160,7 @@ class ReportRepository {
       final output = await getTemporaryDirectory();
       final file = File("${output.path}/analise_contratual_${DateTime.now().millisecondsSinceEpoch}.pdf");
       await file.writeAsBytes(await pdf.save());
-      await Share.shareXFiles([XFile(file.path)], text: 'Análise Contratual Smart Ronda');
+      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: 'Análise Contratual Smart Ronda'));
     } catch (e) {
       messenger?.showSnackBar(SnackBar(content: Text("Erro PDF Contratos: $e"), backgroundColor: Colors.red));
     }
@@ -234,7 +234,7 @@ class ReportRepository {
       final output = await getTemporaryDirectory();
       final file = File("${output.path}/relatorio_${DateTime.now().millisecondsSinceEpoch}.pdf");
       await file.writeAsBytes(await pdf.save());
-      await Share.shareXFiles([XFile(file.path)], text: titulo);
+      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: titulo));
     } catch (e) {
       messenger?.showSnackBar(SnackBar(content: Text("Erro PDF: $e"), backgroundColor: Colors.red));
     }
@@ -348,7 +348,7 @@ class ReportRepository {
       final output = await getTemporaryDirectory();
       final file = File("${output.path}/relatorio_${DateTime.now().millisecondsSinceEpoch}.pdf");
       await file.writeAsBytes(await pdf.save());
-      await Share.shareXFiles([XFile(file.path)], text: 'Relatório PDF');
+      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: 'Relatório PDF'));
     } catch (e) {
       messenger?.showSnackBar(SnackBar(content: Text("Erro PDF: $e"), backgroundColor: Colors.red));
     }
@@ -383,7 +383,7 @@ class ReportRepository {
       final file = File("${directory.path}/relatorio_${DateTime.now().millisecondsSinceEpoch}.csv");
       await file.writeAsBytes([0xEF, 0xBB, 0xBF]); 
       await file.writeAsString(csvData);
-      await Share.shareXFiles([XFile(file.path)], text: titulo);
+      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: titulo));
     } catch (e) {
       debugPrint("Erro CSV: $e");
     }
@@ -435,7 +435,7 @@ class ReportRepository {
         ..createSync(recursive: true)
         ..writeAsBytesSync(fileBytes!);
 
-      await Share.shareXFiles([XFile(file.path)], text: titulo);
+      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: titulo));
     } catch (e) {
       debugPrint("Erro XLSX: $e");
     }
@@ -503,7 +503,7 @@ class ReportRepository {
       final output = await getTemporaryDirectory();
       final file = File("${output.path}/relatorio_${DateTime.now().millisecondsSinceEpoch}.pdf");
       await file.writeAsBytes(await pdf.save());
-      await Share.shareXFiles([XFile(file.path)], text: 'Mapa de Ativos');
+      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: 'Mapa de Ativos'));
     } catch (e) { messenger?.showSnackBar(SnackBar(content: Text("Erro: $e"), backgroundColor: Colors.red)); }
   }
 
@@ -599,7 +599,7 @@ class ReportRepository {
       final output = await getTemporaryDirectory();
       final file = File("${output.path}/relatorio_incidencias_${DateTime.now().millisecondsSinceEpoch}.pdf");
       await file.writeAsBytes(await pdf.save());
-      await Share.shareXFiles([XFile(file.path)], text: 'Relatório de Incidências');
+      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: 'Relatório de Incidências'));
     } catch (e) { messenger?.showSnackBar(SnackBar(content: Text("Erro: $e"), backgroundColor: Colors.red)); }
   }
 
@@ -673,7 +673,7 @@ class ReportRepository {
         ..createSync(recursive: true)
         ..writeAsBytesSync(fileBytes!);
 
-      await Share.shareXFiles([XFile(file.path)], text: 'Mapa de Incidências Excel');
+      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: 'Mapa de Incidências Excel'));
     } catch (e) {
       debugPrint("Erro Incidencias XLSX: $e");
     }
@@ -724,7 +724,7 @@ class ReportRepository {
       final output = await getTemporaryDirectory();
       final file = File("${output.path}/relatorio_${DateTime.now().millisecondsSinceEpoch}.xml");
       await file.writeAsString(xml.toString());
-      await Share.shareXFiles([XFile(file.path)], text: 'Relatório XML');
+      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: 'Relatório XML'));
     } catch (e) {
       messenger?.showSnackBar(SnackBar(content: Text("Erro XML: $e"), backgroundColor: Colors.red));
     }
@@ -749,7 +749,7 @@ class ReportRepository {
       final output = await getTemporaryDirectory();
       final file = File("${output.path}/relatorio_${DateTime.now().millisecondsSinceEpoch}.xml");
       await file.writeAsString(xml.toString());
-      await Share.shareXFiles([XFile(file.path)], text: 'Mapa de Ativos XML');
+      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: 'Mapa de Ativos XML'));
     } catch (e) { messenger?.showSnackBar(SnackBar(content: Text("Erro: $e"), backgroundColor: Colors.red)); }
   }
 
@@ -790,7 +790,7 @@ class ReportRepository {
       final output = await getTemporaryDirectory();
       final file = File("${output.path}/relatorio_${DateTime.now().millisecondsSinceEpoch}.pdf");
       await file.writeAsBytes(await pdf.save());
-      await Share.shareXFiles([XFile(file.path)], text: 'Logs de Auditoria');
+      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: 'Logs de Auditoria'));
     } catch (e) { messenger?.showSnackBar(SnackBar(content: Text("Erro: $e"), backgroundColor: Colors.red)); }
   }
 
@@ -847,7 +847,7 @@ class ReportRepository {
       final output = await getTemporaryDirectory();
       final file = File("${output.path}/substituicoes_${DateTime.now().millisecondsSinceEpoch}.pdf");
       await file.writeAsBytes(await pdf.save());
-      await Share.shareXFiles([XFile(file.path)], text: titulo);
+      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: titulo));
     } catch (e) { messenger?.showSnackBar(SnackBar(content: Text("Erro PDF: $e"), backgroundColor: Colors.red)); }
   }
 
@@ -895,7 +895,7 @@ class ReportRepository {
         ..createSync(recursive: true)
         ..writeAsBytesSync(fileBytes!);
 
-      await Share.shareXFiles([XFile(file.path)], text: titulo);
+      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: titulo));
     } catch (e) {
       debugPrint("Erro XLSX: $e");
     }
@@ -995,7 +995,7 @@ class ReportRepository {
       final output = await getTemporaryDirectory();
       final file = File("${output.path}/relatorio_${DateTime.now().millisecondsSinceEpoch}.pdf");
       await file.writeAsBytes(await pdf.save());
-      await Share.shareXFiles([XFile(file.path)], text: 'Relatório de Metas');
+      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: 'Relatório de Metas'));
     } catch (e) { messenger?.showSnackBar(SnackBar(content: Text("Erro: $e"), backgroundColor: Colors.red)); }
   }
 
@@ -1051,7 +1051,7 @@ class ReportRepository {
         ..createSync(recursive: true)
         ..writeAsBytesSync(fileBytes!);
 
-      await Share.shareXFiles([XFile(file.path)], text: 'Relatório de Metas Excel');
+      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: 'Relatório de Metas Excel'));
     } catch (e) {
       debugPrint("Erro Metas XLSX: $e");
     }
@@ -1111,7 +1111,7 @@ class ReportRepository {
       final output = await getTemporaryDirectory();
       final file = File("${output.path}/relatorio_${DateTime.now().millisecondsSinceEpoch}.xml");
       await file.writeAsString(xml.toString());
-      await Share.shareXFiles([XFile(file.path)], text: 'Dados de Metas para Excel');
+      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: 'Dados de Metas para Excel'));
     } catch (e) { messenger?.showSnackBar(SnackBar(content: Text("Erro: $e"), backgroundColor: Colors.red)); }
   }
 
@@ -1243,7 +1243,7 @@ class ReportRepository {
       final output = await getTemporaryDirectory();
       final file = File("${output.path}/proposta_comercial_smart_ronda.pdf");
       await file.writeAsBytes(await pdf.save());
-      await Share.shareXFiles([XFile(file.path)], text: 'Proposta Comercial Smart Ronda TI');
+      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: 'Proposta Comercial Smart Ronda TI'));
     } catch (e) {
       debugPrint("Erro ao gerar proposta: $e");
     }

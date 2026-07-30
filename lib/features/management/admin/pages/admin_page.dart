@@ -874,10 +874,10 @@ class _LocadorasTab extends StatelessWidget {
     final telLocController = TextEditingController(text: loc['telefone']);
     final endLocController = TextEditingController(text: loc['endereco']);
     final servicosController = TextEditingController(text: loc['servicos_prestados']);
-    
+
     DateTime? vigenciaInicio = loc['vigencia_inicio'] != null ? (loc['vigencia_inicio'] as Timestamp).toDate() : null;
     DateTime? vigenciaFim = loc['vigencia_fim'] != null ? (loc['vigencia_fim'] as Timestamp).toDate() : null;
-    
+
     Map<String, int> itensContratados = Map<String, int>.from(loc['itens_contratados'] ?? {});
 
     showDialog(
@@ -889,7 +889,10 @@ class _LocadorasTab extends StatelessWidget {
             children: [
               Text("Contrato: ${loc['nome'].toUpperCase()}"),
               if (loc['atualizado_por'] != null)
-                Text("Última alteração: ${loc['atualizado_por']}", style: const TextStyle(fontSize: 9, fontStyle: FontStyle.italic, color: Colors.blueGrey)),
+                Text(
+                  "Última alteração: ${loc['atualizado_por']}",
+                  style: const TextStyle(fontSize: 9, fontStyle: FontStyle.italic, color: Colors.blueGrey),
+                ),
             ],
           ),
           content: SizedBox(
@@ -900,88 +903,121 @@ class _LocadorasTab extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 12),
-                  TextField(controller: versaoController, decoration: const InputDecoration(labelText: "Nº / Versão do Contrato", border: OutlineInputBorder())),
+                  TextField(
+                    controller: versaoController,
+                    decoration: const InputDecoration(labelText: "Nº / Versão do Contrato", border: OutlineInputBorder()),
+                  ),
                   const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextButton.icon(
-                        onPressed: () async {
-                          final p = await showDatePicker(context: context, firstDate: DateTime(2020), lastDate: DateTime(2035), initialDate: vigenciaInicio ?? DateTime.now());
-                          if (p != null) setModalState(() => vigenciaInicio = p);
-                        },
-                        icon: const Icon(Icons.calendar_today, size: 16),
-                        label: Text(vigenciaInicio == null ? "Início" : DateFormat('dd/MM/yy').format(vigenciaInicio!), style: const TextStyle(fontSize: 10)),
-                      ),
-                    ),
-                    Expanded(
-                      child: TextButton.icon(
-                        onPressed: () async {
-                          final p = await showDatePicker(context: context, firstDate: DateTime(2020), lastDate: DateTime(2035), initialDate: vigenciaFim ?? DateTime.now());
-                          if (p != null) setModalState(() => vigenciaFim = p);
-                        },
-                        icon: const Icon(Icons.event, size: 16),
-                        label: Text(vigenciaFim == null ? "Término" : DateFormat('dd/MM/yy').format(vigenciaFim!), style: const TextStyle(fontSize: 10)),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: valorController, 
-                  keyboardType: TextInputType.number, 
-                  decoration: const InputDecoration(labelText: "Valor Mensal", border: OutlineInputBorder()),
-                ),
-                const SizedBox(height: 12),
-                TextField(controller: cnpjLocController, decoration: const InputDecoration(labelText: "CNPJ da Empresa", border: OutlineInputBorder())),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(child: TextField(controller: emailLocController, decoration: const InputDecoration(labelText: "E-mail de Contato", border: OutlineInputBorder()))),
-                    const SizedBox(width: 10),
-                    Expanded(child: TextField(controller: telLocController, decoration: const InputDecoration(labelText: "Telefone/WhatsApp", border: OutlineInputBorder()))),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                TextField(controller: endLocController, decoration: const InputDecoration(labelText: "Endereço Físico", border: OutlineInputBorder())),
-                const SizedBox(height: 12),
-                TextField(controller: slaController, decoration: const InputDecoration(labelText: "SLA Contratado (ex: 4h, NBD)", border: OutlineInputBorder())),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: servicosController, 
-                  maxLines: 2, 
-                  decoration: const InputDecoration(labelText: "Escopo de Serviços", border: OutlineInputBorder()),
-                ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  child: Divider(),
-                ),
-                const Text("Quantidades Contratadas:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                const SizedBox(height: 8),
-                ..._tiposSuportados.map((tipo) {
-                  final ctrl = TextEditingController(text: (itensContratados[tipo] ?? 0).toString());
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Row(
-                      children: [
-                        Expanded(flex: 2, child: Text(tipo, style: const TextStyle(fontSize: 12))),
-                        Expanded(
-                          child: TextField(
-                            controller: ctrl,
-                            keyboardType: TextInputType.number,
-                            decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.all(8), border: OutlineInputBorder()),
-                            onChanged: (v) => itensContratados[tipo] = int.tryParse(v) ?? 0,
-                          ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextButton.icon(
+                          onPressed: () async {
+                            final p = await showDatePicker(
+                                context: context,
+                                firstDate: DateTime(2020),
+                                lastDate: DateTime(2035),
+                                initialDate: vigenciaInicio ?? DateTime.now());
+                            if (p != null) setModalState(() => vigenciaInicio = p);
+                          },
+                          icon: const Icon(Icons.calendar_today, size: 16),
+                          label: Text(vigenciaInicio == null ? "Início" : DateFormat('dd/MM/yy').format(vigenciaInicio!),
+                              style: const TextStyle(fontSize: 10)),
                         ),
-                      ],
-                    ),
-                  );
-                }),
-              ],
+                      ),
+                      Expanded(
+                        child: TextButton.icon(
+                          onPressed: () async {
+                            final p = await showDatePicker(
+                                context: context,
+                                firstDate: DateTime(2020),
+                                lastDate: DateTime(2035),
+                                initialDate: vigenciaFim ?? DateTime.now());
+                            if (p != null) setModalState(() => vigenciaFim = p);
+                          },
+                          icon: const Icon(Icons.event, size: 16),
+                          label: Text(vigenciaFim == null ? "Término" : DateFormat('dd/MM/yy').format(vigenciaFim!),
+                              style: const TextStyle(fontSize: 10)),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: valorController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(labelText: "Valor Mensal", border: OutlineInputBorder()),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: cnpjLocController,
+                    decoration: const InputDecoration(labelText: "CNPJ da Empresa", border: OutlineInputBorder()),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: emailLocController,
+                          decoration: const InputDecoration(labelText: "E-mail de Contato", border: OutlineInputBorder()),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: TextField(
+                          controller: telLocController,
+                          decoration: const InputDecoration(labelText: "Telefone/WhatsApp", border: OutlineInputBorder()),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: endLocController,
+                    decoration: const InputDecoration(labelText: "Endereço Físico", border: OutlineInputBorder()),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: slaController,
+                    decoration: const InputDecoration(labelText: "SLA Contratado (ex: 4h, NBD)", border: OutlineInputBorder()),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: servicosController,
+                    maxLines: 2,
+                    decoration: const InputDecoration(labelText: "Escopo de Serviços", border: OutlineInputBorder()),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    child: Divider(),
+                  ),
+                  const Text("Quantidades Contratadas:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                  const SizedBox(height: 8),
+                  ..._tiposSuportados.map((tipo) {
+                    final ctrl = TextEditingController(text: (itensContratados[tipo] ?? 0).toString());
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Row(
+                        children: [
+                          Expanded(flex: 2, child: Text(tipo, style: const TextStyle(fontSize: 12))),
+                          Expanded(
+                            child: TextField(
+                              controller: ctrl,
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(
+                                  isDense: true, contentPadding: EdgeInsets.all(8), border: OutlineInputBorder()),
+                              onChanged: (v) => itensContratados[tipo] = int.tryParse(v) ?? 0,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+                ],
+              ),
             ),
           ),
-        ),
-        actions: [
+          actions: [
             TextButton(onPressed: () => Navigator.pop(context), child: const Text("CANCELAR")),
             ElevatedButton(
               onPressed: () async {
@@ -1000,7 +1036,9 @@ class _LocadorasTab extends StatelessWidget {
                 });
                 if (context.mounted) {
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Contrato atualizado!"), backgroundColor: Colors.green));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Contrato atualizado!"), backgroundColor: Colors.green),
+                  );
                 }
               },
               child: const Text("SALVAR CONTRATO"),
@@ -1010,6 +1048,7 @@ class _LocadorasTab extends StatelessWidget {
       ),
     );
   }
+
 
   @override
   Widget build(BuildContext context) {

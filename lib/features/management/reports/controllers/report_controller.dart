@@ -33,13 +33,13 @@ class ReportController {
         return _gerarRelatorioSubstituicoes(context, formato, setor, periodo, userName);
       }
 
-      Query query = _firestore.collection('inventario_mestre');
+      Query<Map<String, dynamic>> query = _firestore.collection('inventario_mestre');
 
       if (setor != null) query = query.where('setor', isEqualTo: setor);
       
-      final snapshot = await query.get();
+      final QuerySnapshot<Map<String, dynamic>> snapshot = await query.get();
       var itens = snapshot.docs.map((d) {
-        final data = d.data() as Map<String, dynamic>;
+        final data = d.data();
         return {...data, 'patrimonio': d.id};
       }).toList();
 
@@ -153,7 +153,7 @@ class ReportController {
 
   Future<void> _gerarRelatorioSubstituicoes(BuildContext context, String formato, String? setorFiltro, DateTimeRange? periodo, String? userName) async {
     try {
-      Query queryRondas = _firestore.collection('rondas').orderBy('data_inicio', descending: true);
+      Query<Map<String, dynamic>> queryRondas = _firestore.collection('rondas').orderBy('data_inicio', descending: true);
       if (setorFiltro != null) queryRondas = queryRondas.where('setor', isEqualTo: setorFiltro);
       
       if (periodo != null) {
@@ -163,26 +163,26 @@ class ReportController {
             .where('timestamp', isLessThanOrEqualTo: Timestamp.fromDate(endOfDay));
       }
 
-      final snapshots = await queryRondas.get();
+      final QuerySnapshot<Map<String, dynamic>> snapshots = await queryRondas.get();
       List<Map<String, dynamic>> substituicoes = [];
 
       for (var doc in snapshots.docs) {
-        final rondaData = doc.data() as Map<String, dynamic>;
+        final rondaData = doc.data();
         final String setorRonda = rondaData['setor'] ?? '---';
         final DateTime dataRonda = (rondaData['timestamp'] as Timestamp).toDate();
 
-        final equipsSnap = await doc.reference.collection('equipamentos').where('is_troca', isEqualTo: true).get();
+        final QuerySnapshot<Map<String, dynamic>> equipsSnap = await doc.reference.collection('equipamentos').where('is_troca', isEqualTo: true).get();
         
         for (var eDoc in equipsSnap.docs) {
-          final troca = eDoc.data() as Map<String, dynamic>;
+          final troca = eDoc.data();
           final String patAntigo = troca['patrimonio_antigo'] ?? '---';
           
-          DocumentSnapshot? assetDoc;
+          DocumentSnapshot<Map<String, dynamic>>? assetDoc;
           if (patAntigo != '---' && patAntigo != 'SEM PATRIMÔNIO') {
             assetDoc = await _firestore.collection('inventario_mestre').doc(patAntigo).get();
           }
 
-          final Map<String, dynamic>? assetData = assetDoc?.data() as Map<String, dynamic>?;
+          final assetData = assetDoc?.data();
 
           substituicoes.add({
             'tipo': assetData?['tipo'] ?? '---',
@@ -238,23 +238,23 @@ class ReportController {
   }) async {
     try {
       final DateTime endOfDay = DateTime(periodo.end.year, periodo.end.month, periodo.end.day, 23, 59, 59);
-      Query queryRondas = _firestore.collection('rondas')
+      Query<Map<String, dynamic>> queryRondas = _firestore.collection('rondas')
           .where('data_inicio', isGreaterThanOrEqualTo: periodo.start.toIso8601String())
           .where('data_inicio', isLessThanOrEqualTo: endOfDay.toIso8601String());
       
       if (setor != null) queryRondas = queryRondas.where('setor', isEqualTo: setor);
 
-      final QuerySnapshot rondasSnap = await queryRondas.orderBy('data_inicio', descending: false).get();
+      final QuerySnapshot<Map<String, dynamic>> rondasSnap = await queryRondas.orderBy('data_inicio', descending: false).get();
 
       Map<String, Map<String, dynamic>> agregador = {};
 
       for (var doc in rondasSnap.docs) {
-        final rondaData = doc.data() as Map<String, dynamic>;
+        final rondaData = doc.data();
         final DateTime roundTimestamp = (rondaData['timestamp'] as Timestamp).toDate();
-        final QuerySnapshot equipsSnap = await doc.reference.collection('equipamentos').get();
+        final QuerySnapshot<Map<String, dynamic>> equipsSnap = await doc.reference.collection('equipamentos').get();
         
         for (var eDoc in equipsSnap.docs) {
-          final data = eDoc.data() as Map<String, dynamic>;
+          final data = eDoc.data();
           
           if (locadora != null && data['locadora'] != locadora) continue;
 
@@ -342,8 +342,8 @@ class ReportController {
         }
       }
 
-      Query queryMestreCriticos = _firestore.collection('inventario_mestre').where('tem_defeito', isEqualTo: true);
-      Query queryMestreManutencao = _firestore.collection('inventario_mestre').where('status_operacional', isEqualTo: 'Em manutenção');
+      Query<Map<String, dynamic>> queryMestreCriticos = _firestore.collection('inventario_mestre').where('tem_defeito', isEqualTo: true);
+      Query<Map<String, dynamic>> queryMestreManutencao = _firestore.collection('inventario_mestre').where('status_operacional', isEqualTo: 'Em manutenção');
 
       if (setor != null) {
         queryMestreCriticos = queryMestreCriticos.where('setor', isEqualTo: setor);
@@ -359,7 +359,7 @@ class ReportController {
 
       for (var snap in [mestreCriticos, mestreManutencao]) {
         for (var doc in snap.docs) {
-          final data = doc.data() as Map<String, dynamic>;
+          final data = doc.data();
           final String key = doc.id.toUpperCase();
           
           if (!agregador.containsKey(key)) {

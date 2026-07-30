@@ -601,7 +601,7 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  String _filtroAtivoTipo = "";
+  final String _filtroAtivoTipo = "";
 
   Widget _buildAtivosTab(Color textColor) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
