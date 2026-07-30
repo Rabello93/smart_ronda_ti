@@ -9,129 +9,47 @@ Este projeto evoluiu do "Checklist TI HMAR" para se tornar um produto comercial 
 O app foi desenvolvido para otimizar as rondas técnicas em ambiente corporativo, garantindo que todos os equipamentos estejam operacionais e devidamente inventariados. O sistema substitui formulários de papel por uma solução digital robusta com sincronização em tempo real e auditoria.
 
 ## ✨ Principais Funcionalidades
-- **Rondas Digitais**: Registro rápido de equipamentos por setor.
-- **Inventário Mestre Inteligente**: O "Castelo" como fonte única da verdade.
-- **BI Patrimonial**: Gestão de obsolescência (+5 anos) e divergências.
-- **Governança Técnica**: Registro de MAC Address e Processador.
-- **Auditoria**: Logs detalhados de todas as ações administrativas.
+- **Inteligência Preditiva**: Score de Saúde de Ativos (0-100%) e planos de ação automáticos.
+- **Cockpit OPEX**: Gestão de contratos de locação com simulador de expansão e análise de gap.
+- **Rastreabilidade 360**: Histórico automático de movimentações e cronômetro de manutenção.
+- **BI Patrimonial**: Gestão de obsolescência (+5 anos), divergências e mapa de calor de auditoria.
+- **Governança Técnica**: Registro de MAC Address, Processador e autorizações permanentes de Home Office.
+- **Auditoria**: Logs detalhados e relatórios executivos em PDF, XLSX, CSV e XML.
 
-## 🚀 Série Histórica (Evolução)
+## 🚀 Série Histórica (Evolução Recente)
 
-### [3.2.10 Stable] - 2024-07-26
-- **BI & Inteligência**: Mapa de Calor de Auditoria (Semáforo de Risco) e Health Score real.
-- **Operação**: Múltiplas substituições por ronda e fluxo de Baixa Patrimonial com motivo.
-- **Gestão**: Detalhes contratuais de locadoras e Perfil do Usuário customizável.
-- **Compliance**: Assinatura de emissor em todos os rodapés de relatórios PDF.
+### [3.3.2 Stable] - 2026-07-29
+- **Governança de Manutenção**: Rastreabilidade total com setor de origem, local atual (TI), dias em aberto e motivo atualizado no Dashboard.
+- **Simulador por Departamento**: Projeção inteligente de aditivos contratuais baseada no perfil real de cada setor.
+- **Auditoria Granular**: Novos filtros por Marca, Modelo e Processador na Central de Relatórios.
+- **UX Admin**: Autorização permanente de Home Office diretamente na edição do ativo no Castelo.
+- **Refinamento Visual**: Limpeza de tags de build e restauração da hierarquia interativa de ativos (Locadora ➔ Tipo ➔ Item).
 
-### [3.2.9 Stable] - 2024-07-20
-- **Redesign Premium Tech**: Repaginação completa da interface com tipografia Inter e JetBrains Mono.
-- **Mission Control Dashboard**: Novo visual para indicadores com gradientes, efeitos de vidro e HUD.
-- **Governança Híbrida**: Equipamentos em manutenção mantêm vínculo com o setor de origem.
+### [3.3.1 Stable] - 2026-07-27
+- **Eficiência Executiva**: Assinatura profissional em preto/negrito nos relatórios e nome real do emissor (sincronizado com perfil Firestore).
+- **Módulo Suprimentos**: Cadastro de locadoras expandido para incluir CNPJ, E-mail, Telefone e Endereço.
+- **BI Visual**: Reordenação lógica do Mapa de Calor (Seguro ➔ Atenção ➔ Crítico).
 
-### [3.2.8 Stable] - 2024-07-20
+### [3.3.0 Stable] - 2026-07-27
+- **Cérebro Preditivo**: Implementação do Equipment Health Score (0-100%) baseado em idade, defeitos e histórico.
+- **Consultoria Automática**: Relatórios agora sugerem ações de gestão (Prioridade Capex / Manutenção) baseadas na saúde do item.
+- **Cockpit Financeiro**: Nova aba de Contratos com análise de uso real vs. capacidade contratada.
 
-### [3.2.7 Stable] - 2024-07-16
-- **Automação de Substituição**: Itens substituídos em ronda são transferidos automaticamente para a TI com status 'Reservado'.
-- **Relatório de Trocas**: Novo filtro e relatório exclusivo de 'Substituições' com detalhamento de setor anterior e motivo.
-- **Sincronização Global**: Alinhamento de versão 3.2.7 em todo o ecossistema (UI, Logs e Documentos).
-
-### [3.2.6 Stable] - 2024-07-15
-
-### [3.2.5 Stable] - 2024-07-15
-- **DASHBOARD**: Agrupamento de alertas críticos em 'Central de Alertas' colapsável.
-- **RELATÓRIOS**: Ajuste no Mapa de Incidências Críticas com indicadores de SIM/NÃO.
-- **GOVERNANÇA**: Transição completa de 'Setores' para 'Departamentos'.
-- **SLA**: Cronômetro de tempo em manutenção integrado ao Dashboard.
-
-### [3.2.4 Stable] - 2024-06-25
-
-3.2.3
-
-RELATÓRIOS: Implementação de exportação nativa para Excel (XLSX) e CSV.
-
-UI/UX: Menu de formatos deslizante na Central de Relatórios.
-
-OPERAÇÃO: Melhoria na inclusão de itens sem patrimônio via busca contextual.
-
-### [3.2.2 Stable] - 2024-06-25
-- **BI Preditivo**: Implementado o "Mapa de Incidências Críticas" para rastreio de recorrência de manutenções e divergências por ativo.
-- **Inteligência de Auditoria**: Lógica de união de filtros (OU) implementada para relatórios complexos.
-- **Limpeza do Castelo**: Reativação segura da ferramenta de reset total do banco de dados para o nível Master.
-- **Gestão Unificada**: Expansão da aba de Locação no Dashboard para uma visão geral de todos os **Ativos**, agrupando por Propriedade Própria ou Locadora.
-- **Conversão de Ativos**: Fluxo automático de transformação de itens "Sem Placa" em ativos patrimoniados via busca contextual.
-- **Relatórios**: Inclusão de filtro exclusivo para itens sem patrimônio e correção de exibição de status real.
-
-### [3.2.1 Stable] - 2024-06-25
-- **Correção Crítica**: Garantida a exibição do número de patrimônio no Relatório Técnico de Rondas.
-- **Inteligência de BI**: Subtítulos dos relatórios agora são dinâmicos e descrevem exatamente os filtros aplicados.
-- **UI/UX**: Refinamento visual dos botões de filtro na Central de Relatórios para garantir 100% de visibilidade no Modo Escuro.
-- **Persistência**: Ajuste no mapeamento de dados para garantir que o patrimônio seja salvo como campo interno em todas as subcoleções.
-
-### [3.2.0 Stable] - 2024-06-25
-- **Segurança**: Autenticação biométrica e alertas em tempo real de novos cadastros para Master/Gerente.
-- **Relatórios**: Nova Central de Relatórios integrada à aba Admin e padronização de arquivos para `relatorio_[timestamp]`.
-- **Home Office**: Status dedicado para rastreio de notebooks externos com indicação de responsável legal.
-- **Inteligência**: Lupa de busca contextual que lista primeiro ativos do setor atual na ronda técnica.
-- **Performance**: Otimização global de widgets com `const` e correção dewarnings do analisador.
-
-### [3.1.2 Stable] - 2024-06-25
-- **Geração de Valor**: Implementação de rodapé corporativo automático em todos os PDFs (Nome, CNPJ, Contato e Data/Hora).
-- **Padronização Visual**: Unificação de cabeçalhos com logo dinâmico em todos os relatórios, incluindo o Mapa de Ativos por Setor.
-- **Responsividade Mobile**: Ajuste dinâmico do cabeçalho do Dashboard para evitar transbordamento de texto em telas pequenas.
-- **Sidebar Inteligente**: Transição para barra lateral com controle manual (puxador), eliminando travamentos de interface.
-- **Branding Premium**: Logo da empresa de **100px** no Dashboard com container de alto contraste.
-- **Correção de Legibilidade**: Ajuste global de contraste no modo claro para títulos e cards.
-
-### [3.2.6 Stable] - 2024-07-15
-- **Revisão Home Office**: Substituição de FilterChip por Switch e preservação de autorização permanente entre rondas.
-- **Otimização de Impressão**: Exportação de QR Code em formato JPG com fundo branco sólido para economia de fita em impressoras portáteis.
-- **Sincronização Global**: Alinhamento de versão 3.2.6 em todos os módulos e rodapés de relatórios.
-
-### [3.1.1 Stable] - 2024-06-25
-- **Inteligência de Metas**: Aba de Metas com KPIs, gráficos de tendência e comparativos.
-- **BI & Analytics**: Filtros de data customizados e análise de evolução entre períodos.
-- **Relatórios Corporativos**: Exportação de Metas em PDF com branding e XML para Excel.
-- **Gestão Admin**: Centralização da estratégia de metas no módulo administrativo.
-- **Padronização**: Versão 3.1.1 consolidada em todos os rodapés e metadados.
-
-### [3.1.0 Stable] - 2024-06-25
-- **Estrutura Futurista**: Reestruturação completa do sistema de pastas para suportar módulos de Capex, Inteligência Preditiva e Auditoria Avançada.
-- **Análise Dinâmica**: Aba Status do Dashboard agora detalha o mix de equipamentos em manutenção e indicadores de saúde.
-- **Correção de Fluxo**: Campo de descrição de defeito agora visível tanto em status de Manutenção quanto em alerta de Defeito.
-
-### [3.0.2 Stable] - 2024-06-25
-- **Inteligência por Categoria**: Formulário de ronda dinâmico que adapta acessórios conforme o tipo de equipamento.
-- **Central de Relatórios**: Nova página administrativa para geração de relatórios com filtros avançados.
-
-## 🚀 Roadmap & Future Releases
-- **Módulo Intelligence**: Implementação de tendências de falha e previsão de troca de ativos.
-- **Módulo Capex**: Gestão financeira de ativos e planejamento de investimentos.
-- **Auditoria 360**: Expansão dos logs de sistema para um módulo completo de rastreabilidade.
-- **Dashboards Especializados**: Visões customizadas para os níveis Operacional, Auditor e Executivo.
-
-### [3.0.1 Stable] - 2024-06-24
-- **Deploy Automatizado**: Configuração de CI/CD via GitHub Actions com versionamento dinâmico.
-- **Reset de Infraestrutura**: Migração completa para um novo projeto Firebase limpo e otimizado.
-- **Segurança**: Fluxo de aprovação de novos usuários via tela de "Acesso Pendente" funcional.
-- **Melhorias no Dashboard**: Remoção de textos redundantes na AppBar e foco total na marca.
-- **Auditoria de Locados**: Correção na exibição de patrimônios na aba de locação.
-- **Rankings Inteligentes**: Filtros de período agora aplicados estritamente aos rankings de setores.
-- **Novo Ranking**: Implementação do ranking de rondas por usuário (Técnicos).
-- **Controle de Acesso**: Reforço na regra de bloqueio para novos usuários pendentes de ativação.
-- **Ciclo de Vida (Castelo)**: Refatoração dos campos de ano, restritos agora a administradores, e remoção de campos obsoletos.
-- **Padronização**: Alinhamento do nome do aplicativo para **Smart Ronda TI** em toda a interface.
-
-### [3.0.0 Alpha] - 2026-06-03
-- **Rebranding Oficial**: Transição para o nome **Smart Ronda TI**.
-- **Identidade Visual**: Implementação do novo ícone de smartphone e logotipo oficial via assets.
-- **Neutralidade**: Remoção de vínculos nominais específicos para permitir uso em qualquer empresa.
-
-### [2.1.11] - 2026-06-03
-- **Relatório de Obsoletos Master**: Inteligência de busca profunda no "Castelo".
-- **UX Refinada**: Retorno do botão "INICIAR RONDA".
+### [3.2.11 Stable] - 2026-07-27
+- **Memória de Ativos**: Registro automático de movimentações entre departamentos com log de origem/destino.
+- **BI de Conformidade**: Novo ranking de divergências que aponta setores com maior índice de ativos fora do lugar.
 
 ---
-> "Tecnologia cuidando da tecnologia." 🏛️📊🛡️💎☕🔥🚀
+👉 Para o histórico completo, acesse o [CHANGELOG.md](./CHANGELOG.md).
+
+## 🚀 Roadmap & Future Releases
+- **Módulo Financeiro Avançado**: Gestão completa de depreciação e valor residual.
+- **Integração Mobile Scanner**: Otimização da leitura de etiquetas em ambientes de baixa luminosidade.
+- **AI Analytics**: Previsão de falhas baseada em machine learning sobre o histórico de manutenções.
+
+---
+> "Tecnologia cuidando da tecnologia." 🏛️📊🛡️💎⚡🚀
 
 ---
 Desenvolvido por Fábio Rabelo.
+Especialista em Governança de TI.
