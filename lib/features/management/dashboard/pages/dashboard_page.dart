@@ -111,35 +111,42 @@ class _DashboardPageState extends State<DashboardPage> {
         builder: (context, userSnapshot) {
           final user = userSnapshot.data;
           
-          return StreamBuilder<List<RoundModel>>(
-            stream: _roundController.getHistoryStream(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
+          return StreamBuilder<DocumentSnapshot>(
+            stream: _adminController.brandingStream,
+            builder: (context, configSnapshot) {
+              final config = (configSnapshot.data?.data() as Map<String, dynamic>?) ?? {};
               
-              final allRondas = snapshot.data ?? [];
-              final rondas = _dashboardController.filterRoundsByDateRange(allRondas, dataFiltro);
+              return StreamBuilder<List<RoundModel>>(
+                stream: _roundController.getHistoryStream(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  
+                  final allRondas = snapshot.data ?? [];
+                  final rondas = _dashboardController.filterRoundsByDateRange(allRondas, dataFiltro);
 
-              return Row(
-                children: [
-                  if (!isMobile) ...[
-                    _buildSideNavigation(isDark),
-                    const VerticalDivider(thickness: 1, width: 1),
-                  ],
-                  Expanded(
-                    child: Column(
-                      children: [
-                        Expanded(
-                          child: _buildCurrentTab(rondas, allRondas, textColor, user),
-                        ),
-                        _buildFooter(textColor),
+                  return Row(
+                    children: [
+                      if (!isMobile) ...[
+                        _buildSideNavigation(isDark),
+                        const VerticalDivider(thickness: 1, width: 1),
                       ],
-                    ),
-                  ),
-                ],
+                      Expanded(
+                        child: Column(
+                          children: [
+                            Expanded(
+                              child: _buildCurrentTab(rondas, allRondas, textColor, user, config),
+                            ),
+                            _buildFooter(textColor),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                },
               );
-            },
+            }
           );
         }
       ),
@@ -225,9 +232,9 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _buildCurrentTab(List<RoundModel> rondas, List<RoundModel> allRondas, Color textColor, UserModel? user) {
+  Widget _buildCurrentTab(List<RoundModel> rondas, List<RoundModel> allRondas, Color textColor, UserModel? user, Map<String, dynamic> config) {
     switch (_selectedIndex) {
-      case 0: return _buildGeralTab(rondas, allRondas, textColor);
+      case 0: return _buildGeralTab(rondas, allRondas, textColor, config);
       case 1: return _buildMetasTab(allRondas, textColor, user);
       case 2: return _buildTecnicosTab(rondas, textColor);
       case 3: return _buildDefeitosTab(textColor);
@@ -235,7 +242,7 @@ class _DashboardPageState extends State<DashboardPage> {
       case 5: return _buildDepartamentosTab(textColor);
       case 6: return _buildStatusTab(textColor);
       case 7: return _buildContratosTab(textColor);
-      default: return _buildGeralTab(rondas, allRondas, textColor);
+      default: return _buildGeralTab(rondas, allRondas, textColor, config);
     }
   }
 
@@ -328,7 +335,7 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _buildGeralTab(List<RoundModel> filteredRondas, List<RoundModel> allRondas, Color textColor) {
+  Widget _buildGeralTab(List<RoundModel> filteredRondas, List<RoundModel> allRondas, Color textColor, Map<String, dynamic> config) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final today = DateTime.now();
     final hojeRondas = allRondas.where((r) => 
@@ -346,8 +353,8 @@ class _DashboardPageState extends State<DashboardPage> {
           stream: _assetController.getAllAssetsStream(),
           builder: (context, assetSnapshot) {
             final allAssets = assetSnapshot.data ?? [];
-            final criticalAlerts = _dashboardController.getCriticalAlerts(allRondas, allAssets);
-            final deptAlerts = _dashboardController.getInactiveDepartmentAlerts(allRondas, departamentos);
+            final criticalAlerts = _dashboardController.getCriticalAlerts(allRondas, allAssets, config);
+            final deptAlerts = _dashboardController.getInactiveDepartmentAlerts(allRondas, departamentos, config);
             final heatMapData = _dashboardController.getAuditHeatMap(allRondas, departamentos);
             final coverage = _dashboardController.getInventoryCoverage(allAssets, allRondas);
 
@@ -733,9 +740,15 @@ class _DashboardPageState extends State<DashboardPage> {
 
   Widget _buildStatusTab(Color textColor) {
     return StreamBuilder<List<AssetModel>>(
-      stream: _assetController.getMaintenanceStream(),
+      stream: _assetController.getAllAssetsStream(),
       builder: (context, snapshot) {
-        final itensEmManutencao = snapshot.data ?? [];
+        final allAssets = snapshot.data ?? [];
+        final itensEmManutencao = allAssets.where((a) => a.statusOperacional == 'Em manutenção').toList();
+        final itensHomeOffice = allAssets.where((a) => a.homeOfficeAutorizado).toList();
+        final itensEmprestimo = allAssets.where((a) => a.isEmprestimo).toList();
+        final itensDivergentes = allAssets.where((a) => a.setorDivergente).toList();
+        final itensObsoletos = allAssets.where((a) => a.isObsoleto).toList();
+
         final isDark = Theme.of(context).brightness == Brightness.dark;
 
         return SingleChildScrollView(
@@ -795,15 +808,49 @@ class _DashboardPageState extends State<DashboardPage> {
                   );
                 }),
               const SizedBox(height: 48),
-              const SectionTitle(title: "Disponibilidade Global"),
+              const SectionTitle(title: "Rastreabilidade de Ativos Externos"),
               const SizedBox(height: 24),
-              _buildStatusStreamCard(stream: _assetController.getAllAssetsStream().map((list) => list.where((a) => a.homeOfficeAutorizado).toList()), title: "EXTERNOS (HOME OFFICE)", icon: Icons.home_work_rounded, color: AppTheme.electricBlue),
+              
+              StatusIndicatorCard(
+                title: "EXTERNOS (HOME OFFICE)", 
+                count: itensHomeOffice.length.toString(), 
+                icon: Icons.home_work_rounded, 
+                color: AppTheme.electricBlue, 
+                onTap: () => _showItensList(context, "HOME OFFICE AUTORIZADO", itensHomeOffice, showResponsible: true)
+              ),
               const SizedBox(height: 12),
-              _buildStatusStreamCard(stream: _assetController.getDivergenceStream(), title: "DIVERGÊNCIAS DE LOCAL", icon: Icons.wrong_location_rounded, color: Colors.purpleAccent),
-              const SizedBox(height: 12),
-              _buildStatusStreamCard(stream: _assetController.getObsoleteStream(), title: "OBSOLETOS (+5 ANOS)", icon: Icons.timer_rounded, color: AppTheme.amberNeon),
+              
+              StatusIndicatorCard(
+                title: "EMPRÉSTIMOS (FORA DA UNIDADE)", 
+                count: itensEmprestimo.length.toString(), 
+                icon: Icons.person_pin_circle_rounded, 
+                color: Colors.deepOrange, 
+                onTap: () => _showItensList(context, "ATUALMENTE EMPRESTADOS", itensEmprestimo, showLoanInfo: true)
+              ),
+
               const SizedBox(height: 48),
-              Text("INFO: SISTEMA DE GOVERNANÇA HÍBRIDA v3.3.2", style: AppTheme.monoStyle(fontSize: 9, color: Colors.grey, fontWeight: FontWeight.bold)),
+              const SectionTitle(title: "BI de Conformidade"),
+              const SizedBox(height: 24),
+              
+              StatusIndicatorCard(
+                title: "DIVERGÊNCIAS DE LOCAL", 
+                count: itensDivergentes.length.toString(), 
+                icon: Icons.wrong_location_rounded, 
+                color: Colors.purpleAccent, 
+                onTap: () => _showItensList(context, "ITENS FORA DO SETOR", itensDivergentes, showDivergence: true)
+              ),
+              const SizedBox(height: 12),
+              
+              StatusIndicatorCard(
+                title: "OBSOLETOS (+5 ANOS)", 
+                count: itensObsoletos.length.toString(), 
+                icon: Icons.timer_rounded, 
+                color: AppTheme.amberNeon, 
+                onTap: () => _showItensList(context, "ATIVOS OBSOLETOS", itensObsoletos, showAge: true)
+              ),
+
+              const SizedBox(height: 48),
+              Text("INFO: SISTEMA DE GOVERNANÇA HÍBRIDA v3.3.3", style: AppTheme.monoStyle(fontSize: 9, color: Colors.grey, fontWeight: FontWeight.bold)),
             ],
           ),
         );
@@ -892,14 +939,19 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  void _showItensList(BuildContext context, String title, List<AssetModel> itens) {
+  void _showItensList(BuildContext context, String title, List<AssetModel> itens, {
+    bool showResponsible = false,
+    bool showLoanInfo = false,
+    bool showDivergence = false,
+    bool showAge = false,
+  }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: isDark ? AppTheme.deepNavy : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Text(title),
+        title: Text(title, style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w900)),
         content: SizedBox(
           width: 500, 
           child: itens.isEmpty ? const Text("Vazio.") : ListView.builder(
@@ -909,7 +961,26 @@ class _DashboardPageState extends State<DashboardPage> {
               final i = itens[index];
               final score = i.healthScore;
               final Color scoreColor = score >= 80 ? AppTheme.emerald : (score >= 50 ? AppTheme.amberNeon : AppTheme.ruby);
+              
+              String subtitle = "${i.tipo} | ${i.marca} ${i.modelo}";
+              if (showResponsible && i.responsavelExterno != null) {
+                subtitle += "\nRESP: ${i.responsavelExterno!.toUpperCase()}";
+              }
+              if (showLoanInfo && i.isEmprestimo) {
+                subtitle += "\nPARA: ${i.destinoEmprestimo?.toUpperCase() ?? '---'}";
+                if (i.dataEmprestimo != null) {
+                  subtitle += " em ${DateFormat('dd/MM/yy').format(i.dataEmprestimo!)}";
+                }
+              }
+              if (showDivergence && i.setorDivergente) {
+                subtitle += "\nMOTIVO: ${i.motivoDivergencia ?? '---'}";
+              }
+              if (showAge && i.anoFabricacao != null) {
+                subtitle += "\nIDADE: ${DateTime.now().year - i.anoFabricacao!} ANOS";
+              }
+
               return Card(
+                margin: const EdgeInsets.symmetric(vertical: 4),
                 child: ListTile(
                   dense: true,
                   leading: Container(
@@ -917,14 +988,15 @@ class _DashboardPageState extends State<DashboardPage> {
                     decoration: BoxDecoration(color: scoreColor.withValues(alpha: 0.1), shape: BoxShape.circle),
                     child: Text("${score.toInt()}", style: AppTheme.monoStyle(fontSize: 10, fontWeight: FontWeight.bold, color: scoreColor)),
                   ),
-                  title: Text(i.patrimonio), 
-                  subtitle: Text("${i.tipo}\nSaúde: $score%"),
+                  title: Text("PAT: ${i.patrimonio}", style: const TextStyle(fontWeight: FontWeight.bold)), 
+                  subtitle: Text(subtitle, style: const TextStyle(fontSize: 10)),
+                  isThreeLine: true,
                 ),
               );
             },
           ),
         ),
-        actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text("Fechar"))],
+        actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text("FECHAR"))],
       ),
     );
   }

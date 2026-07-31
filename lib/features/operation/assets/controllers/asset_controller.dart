@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/asset_model.dart';
 import '../repositories/asset_repository.dart';
 
@@ -18,12 +19,22 @@ class AssetController {
     String? macAddress,
     int? year,
     bool? homeOfficeAuthorized,
+    bool? isLoan,
+    DateTime? loanDate,
+    String? loanReason,
+    String? loanDestination,
+    String? externalResponsible,
   }) {
     return _repository.updateAsset(patrimony, {
       if (processor != null) 'processador': processor,
       if (macAddress != null) 'mac_address': macAddress,
       if (year != null) 'ano_fabricacao': year,
       if (homeOfficeAuthorized != null) 'home_office_autorizado': homeOfficeAuthorized,
+      if (isLoan != null) 'is_emprestimo': isLoan,
+      if (loanDate != null) 'data_emprestimo': Timestamp.fromDate(loanDate),
+      if (loanReason != null) 'motivo_emprestimo': loanReason,
+      if (loanDestination != null) 'destino_emprestimo': loanDestination,
+      if (externalResponsible != null) 'responsavel_externo': externalResponsible,
     });
   }
 

@@ -28,6 +28,10 @@ class AssetModel {
   final bool homeOfficeAutorizado; // Novo: Autorização permanente
   final DateTime? dataEntradaManutencao; // Novo: Para cálculo de tempo em reparo
   final String? responsavelExterno;
+  final bool isEmprestimo; // Novo: Item emprestado (Fora da unidade)
+  final DateTime? dataEmprestimo; // Novo: Data do empréstimo
+  final String? motivoEmprestimo; // Novo: Motivo do empréstimo
+  final String? destinoEmprestimo; // Novo: Para onde/Quem (Fora da unidade)
   final String? idAnterior; // Novo campo para rastrear conversões (Sem Placa -> Com Placa)
   final Map<String, bool> acessorios;
 
@@ -59,6 +63,10 @@ class AssetModel {
     this.homeOfficeAutorizado = false,
     this.dataEntradaManutencao,
     this.responsavelExterno,
+    this.isEmprestimo = false,
+    this.dataEmprestimo,
+    this.motivoEmprestimo,
+    this.destinoEmprestimo,
     this.idAnterior,
     this.acessorios = const {},
   });
@@ -96,6 +104,12 @@ class AssetModel {
           ? (map['data_entrada_manutencao'] as Timestamp).toDate() 
           : null,
       responsavelExterno: map['responsavel_externo'],
+      isEmprestimo: map['is_emprestimo'] ?? false,
+      dataEmprestimo: map['data_emprestimo'] != null 
+          ? (map['data_emprestimo'] as Timestamp).toDate() 
+          : null,
+      motivoEmprestimo: map['motivo_emprestimo'],
+      destinoEmprestimo: map['destino_emprestimo'],
       idAnterior: map['id_anterior'],
       acessorios: Map<String, bool>.from(map['acessorios'] ?? {}),
     );
@@ -134,6 +148,12 @@ class AssetModel {
           ? Timestamp.fromDate(dataEntradaManutencao!) 
           : null,
       'responsavel_externo': responsavelExterno,
+      'is_emprestimo': isEmprestimo,
+      'data_emprestimo': dataEmprestimo != null 
+          ? Timestamp.fromDate(dataEmprestimo!) 
+          : null,
+      'motivo_emprestimo': motivoEmprestimo,
+      'destino_emprestimo': destinoEmprestimo,
       'id_anterior': idAnterior,
       'acessorios': acessorios,
     };
@@ -156,8 +176,8 @@ class AssetModel {
     // Fator 3: Manutenção
     if (statusOperacional == 'Em manutenção') score -= 20.0;
 
-    // Fator 4: Divergência de Setor
-    if (setorDivergente) score -= 10.0;
+    // Fator 4: Divergência de Setor / Empréstimo
+    if (setorDivergente || isEmprestimo) score -= 10.0;
 
     // Fator 5: Baixa Patrimonial (Estado crítico/final)
     if (statusOperacional == 'Baixa Patrimonial') score = 0.0;
@@ -171,6 +191,7 @@ class AssetModel {
     if (score < 50) return "Prioridade de Substituição (CAPEX)";
     if (isObsoleto) return "Fim de Vida Útil - Planejar Troca";
     if (temDefeito || statusOperacional == 'Em manutenção') return "Monitorar SLA de Reparo";
+    if (isEmprestimo) return "Rastrear Retorno de Empréstimo";
     if (score < 80) return "Avaliar Manutenção Preventiva";
     return "Operação Nominal - Saudável";
   }

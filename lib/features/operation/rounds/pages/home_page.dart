@@ -10,6 +10,7 @@ import 'package:smart_ronda_ti/features/system/about/pages/about_page.dart';
 import 'package:smart_ronda_ti/features/system/notifications/pages/notifications_page.dart';
 import 'package:smart_ronda_ti/features/management/admin/pages/admin_page.dart';
 import 'package:smart_ronda_ti/features/management/admin/controllers/admin_controller.dart';
+import 'package:smart_ronda_ti/features/operation/assets/controllers/asset_controller.dart';
 import 'package:smart_ronda_ti/features/operation/rounds/controllers/round_controller.dart';
 import 'package:smart_ronda_ti/features/management/dashboard/controllers/dashboard_controller.dart';
 import 'package:smart_ronda_ti/shared/widgets/dashboard_widgets.dart';
@@ -31,10 +32,11 @@ class _HomePageState extends State<HomePage> {
   final AdminController _adminController = AdminController();
   final RoundController _roundController = RoundController();
   final DashboardController _dashboardController = DashboardController();
+  final AssetController _assetController = AssetController();
   int _selectedIndex = 0;
   StreamSubscription? _userSubscription;
-  StreamSubscription? _inactiveDepSubscription;
-  List<String> _departmentAlerts = [];
+  StreamSubscription? _configSubscription;
+  List<String> _globalAlerts = [];
 
   bool _hasShownInactiveAlert = false;
 
@@ -42,31 +44,58 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _setupNotificationListener();
-    _setupInactiveDepartmentListener();
+    _setupGlobalAlertsListener();
   }
 
   @override
   void dispose() {
     _userSubscription?.cancel();
-    _inactiveDepSubscription?.cancel();
+    _configSubscription?.cancel();
     super.dispose();
   }
 
-  void _setupInactiveDepartmentListener() {
-    _inactiveDepSubscription = _adminController.sectorsStream.listen((setores) {
-      _roundController.getHistoryStream().first.then((rondas) {
-        final alerts = _dashboardController.getInactiveDepartmentAlerts(rondas, setores);
-        if (mounted) {
-          setState(() => _departmentAlerts = alerts);
-          
-          if (alerts.isNotEmpty && !_hasShownInactiveAlert) {
-            NotificationService.showLocalNotification(
-              title: "⚠️ Auditoria Pendente",
-              body: "Existem ${alerts.length} departamentos precisando de ronda (há mais de 15 dias).",
-            );
-            _hasShownInactiveAlert = true; // Mostra apenas uma vez por sessão
-          }
-        }
+  void _setupGlobalAlertsListener() {
+    _configSubscription = _adminController.brandingStream.listen((configDoc) {
+      final config = (configDoc.data() as Map<String, dynamic>?) ?? {};
+      
+      _adminController.sectorsStream.first.then((setores) {
+        _roundController.getHistoryStream().first.then((rondas) {
+          _assetController.getAllAssetsStream().first.then((assets) {
+            
+            if (mounted) {
+              List<String> alerts = [];
+              
+              // 1. Alerta de Departamentos (Se ativado)
+              if (config['alerta_deptos_sem_visita'] ?? true) {
+                alerts.addAll(_dashboardController.getInactiveDepartmentAlerts(rondas, setores, config));
+              }
+              
+              // 2. Alerta de Equipamentos sem Auditoria (Se ativado)
+              if (config['alerta_equips_sem_auditoria'] ?? true) {
+                final now = DateTime.now();
+                final semAuditoria = assets.where((a) {
+                  if (a.statusOperacional == 'Baixa Patrimonial') return false;
+                  if (a.ultimaAtualizacao == null) return true;
+                  return now.difference(a.ultimaAtualizacao!).inDays > 30;
+                }).toList();
+                
+                if (semAuditoria.isNotEmpty) {
+                  alerts.add("⚠️ ${semAuditoria.length} equipamentos sem auditoria há +30 dias!");
+                }
+              }
+
+              setState(() => _globalAlerts = alerts);
+              
+              if (alerts.isNotEmpty && !_hasShownInactiveAlert) {
+                NotificationService.showLocalNotification(
+                  title: "📋 Governança Pendente",
+                  body: "Existem alertas críticos de auditoria aguardando sua atenção.",
+                );
+                _hasShownInactiveAlert = true; 
+              }
+            }
+          });
+        });
       });
     });
   }
@@ -209,10 +238,10 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              if (_departmentAlerts.isNotEmpty)
+              if (_globalAlerts.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.all(16.0),
-                  child: CriticalAlertBanner(alerts: _departmentAlerts),
+                  child: CriticalAlertBanner(alerts: _globalAlerts),
                 ),
               const SizedBox(height: 40),
               Container(

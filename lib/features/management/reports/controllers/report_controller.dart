@@ -24,6 +24,7 @@ class ReportController {
     bool apenasSemPatrimonio = false,
     bool apenasSubstituicoes = false,
     bool apenasBaixas = false,
+    bool apenasEmprestimos = false,
     DateTimeRange? periodo,
     String? userName,
     required String formato,
@@ -70,7 +71,7 @@ class ReportController {
         itens = itens.where((i) => i['processador']?.toString().toLowerCase().contains(processador.toLowerCase()) ?? false).toList();
       }
 
-      final bool temFiltroCondicao = apenasDefeitos || apenasObsoletos || emManutencao || emDivergencia || reservados || apenasHomeOffice || apenasBaixas;
+      final bool temFiltroCondicao = apenasDefeitos || apenasObsoletos || emManutencao || emDivergencia || reservados || apenasHomeOffice || apenasBaixas || apenasEmprestimos;
 
       if (temFiltroCondicao) {
         itens = itens.where((i) {
@@ -89,6 +90,7 @@ class ReportController {
           if (apenasBaixas && status == 'Baixa Patrimonial') condicaoMatch = true;
           if (emDivergencia && i['setor_divergente'] == true) condicaoMatch = true;
           if (apenasHomeOffice && i['home_office_autorizado'] == true) condicaoMatch = true;
+          if (apenasEmprestimos && i['is_emprestimo'] == true) condicaoMatch = true;
           
           return condicaoMatch;
         }).toList();
@@ -115,6 +117,7 @@ class ReportController {
       if (apenasBaixas) tags.add("BAIXA PATRIMONIAL");
       if (apenasHomeOffice) tags.add("HOME OFFICE");
       if (apenasSemPatrimonio) tags.add("SEM PATRIMÔNIO");
+      if (apenasEmprestimos) tags.add("EMPRÉSTIMOS");
 
       if (tags.isEmpty) {
         titulo += " Geral";

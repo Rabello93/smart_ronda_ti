@@ -187,35 +187,39 @@ class ReportRepository {
             pw.TableHelper.fromTextArray(
               headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 8),
               headerDecoration: const pw.BoxDecoration(color: PdfColors.indigo900),
-              headers: const ['TIPO', 'PATRIMÔNIO', 'MARCA', 'MODELO', 'SETOR ORIGEM', 'LOCAL ATUAL', 'SITUAÇÃO / MOTIVO', 'AÇÃO SUGERIDA'],
+              headers: const ['TIPO', 'PATRIMÔNIO', 'SÉRIE', 'MARCA', 'MODELO', 'PROCESSADOR', 'SETOR ORIGEM', 'LOCAL ATUAL', 'SITUAÇÃO / MOTIVO'],
               data: itens.map((i) {
-                final asset = AssetModel.fromMap(i, i['patrimonio'] ?? '');
+                final bool emManutencao = i['status_operacional'] == 'Em manutenção';
+                final bool emEmprestimo = i['is_emprestimo'] == true;
+                String localAtual = i['setor'] ?? '---';
                 
-                String info = i['descricao_defeito'] ?? (i['status_operacional'] ?? 'OK');
-                if (titulo.contains("OBSOLETOS")) {
-                  int? ano = i['ano_fabricacao'];
-                  if (ano != null) info = "${DateTime.now().year - ano} ANOS";
+                if (emManutencao) localAtual = "TI (LABORATÓRIO)";
+                if (emEmprestimo) localAtual = "EXTERNO (EMPRÉSTIMO)";
+
+                String sitMotivo = i['descricao_defeito'] ?? (i['status_operacional'] ?? 'OK');
+                if (emEmprestimo) {
+                  sitMotivo = "EMPRÉSTIMO: ${i['destino_emprestimo'] ?? '---'}";
+                  if (i['data_emprestimo'] != null) {
+                    final dt = (i['data_emprestimo'] is Timestamp) ? (i['data_emprestimo'] as Timestamp).toDate() : i['data_emprestimo'];
+                    sitMotivo += " (${DateFormat('dd/MM/yy').format(dt)})";
+                  }
                 }
 
-                final bool emManutencao = i['status_operacional'] == 'Em manutenção';
-                final String localAtual = emManutencao ? "TI (LABORATÓRIO)" : (i['setor'] ?? '---');
+                if (titulo.contains("OBSOLETOS")) {
+                  int? ano = i['ano_fabricacao'];
+                  if (ano != null) sitMotivo = "${DateTime.now().year - ano} ANOS";
+                }
 
                 return [
                   i['tipo'] ?? '',
                   i['patrimonio'] ?? (i['serie'] ?? 'S/P'),
+                  i['serie'] ?? '---',
                   i['marca'] ?? '---',
                   i['modelo'] ?? '---',
+                  i['processador'] ?? '---',
                   i['setor'] ?? '---',
                   localAtual.toUpperCase(),
-                  info.toUpperCase(),
-                  pw.Text(
-                    asset.actionRecommendation.toUpperCase(),
-                    style: pw.TextStyle(
-                      fontSize: 7, 
-                      fontWeight: pw.FontWeight.bold,
-                      color: asset.healthScore < 50 ? PdfColors.red : (asset.healthScore < 80 ? PdfColors.orange : PdfColors.green)
-                    ),
-                  ),
+                  sitMotivo.toUpperCase(),
                 ];
               }).toList(),
             ),
@@ -289,25 +293,17 @@ class ReportRepository {
           bool isObsoleto = anoFab != null && (idade >= 5);
           if (apenasObsoletos == true && !isObsoleto) continue;
 
-          final asset = AssetModel.fromMap(equip, '');
-
           tableData.add([
             ronda['data_inicio']?.toString().substring(0, 10) ?? '',
             ronda['setor']?.toString().toUpperCase() ?? '',
             equip['tipo'] ?? '',
             equip['patrimonio'] ?? (equipDoc.id.length > 15 ? 'S/P' : equipDoc.id),
+            equip['serie'] ?? '---',
             equip['marca'] ?? '---',
             equip['modelo'] ?? '---',
-            equip['serie'] ?? '---',
+            equip['processador'] ?? '---',
             isObsoleto ? "SIM ($idade anos)" : 'NÃO',
             (equip['tem_defeito'] == true || equip['status_operacional'] == 'Em manutenção' || equip['status_operacional'] == 'Baixa Patrimonial') ? 'SIM' : 'NÃO',
-            pw.Text(
-              asset.actionRecommendation.toUpperCase(),
-              style: pw.TextStyle(
-                color: asset.healthScore < 50 ? PdfColors.red : (asset.healthScore < 80 ? PdfColors.orange : PdfColors.green),
-                fontWeight: pw.FontWeight.bold,
-              ),
-            ),
           ]);
         }
       }
@@ -330,7 +326,7 @@ class ReportRepository {
               headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 8),
               cellStyle: const pw.TextStyle(fontSize: 7),
               headerDecoration: const pw.BoxDecoration(color: PdfColors.blueGrey900),
-              headers: const ['DATA', 'SETOR', 'TIPO', 'PATRIMÔNIO', 'MARCA', 'MODELO', 'SÉRIE', 'OBSOLETO', 'DEFEITO', 'AÇÃO SUGERIDA'],
+              headers: const ['DATA', 'SETOR', 'TIPO', 'PATRIMÔNIO', 'SÉRIE', 'MARCA', 'MODELO', 'PROCESSADOR', 'OBSOLETO', 'DEFEITO'],
               data: tableData,
             ),
             pw.SizedBox(height: 20),
@@ -357,7 +353,7 @@ class ReportRepository {
   static Future<void> exportarInventarioParaCSV(List<Map<String, dynamic>> itens, String titulo) async {
     try {
       List<List<dynamic>> rows = [];
-      rows.add(["TIPO", "PATRIMONIO", "MARCA", "MODELO", "SERIE", "MAC ADDRESS", "LOCADORA", "SETOR ATUAL", "INFORMACAO"]);
+      rows.add(["TIPO", "PATRIMONIO", "SÉRIE", "MARCA", "MODELO", "PROCESSADOR", "MAC ADDRESS", "LOCADORA", "SETOR ATUAL", "INFORMACAO"]);
 
       for (var i in itens) {
         String info = i['descricao_defeito'] ?? (i['status_operacional'] ?? 'OK');
@@ -368,9 +364,10 @@ class ReportRepository {
         rows.add([
           i['tipo'] ?? '',
           i['patrimonio'] ?? '',
+          i['serie'] ?? '',
           i['marca'] ?? '',
           i['modelo'] ?? '',
-          i['serie'] ?? '',
+          i['processador'] ?? '',
           i['mac_address'] ?? '---',
           i['locadora'] ?? 'PROPRIO',
           i['setor'] ?? '',
@@ -402,7 +399,7 @@ class ReportRepository {
         horizontalAlign: ex.HorizontalAlign.Center,
       );
 
-      List<String> headers = ["TIPO", "PATRIMÔNIO", "MARCA", "MODELO", "SÉRIE", "MAC ADDRESS", "LOCADORA", "SETOR ATUAL", "INFORMAÇÃO"];
+      List<String> headers = ["TIPO", "PATRIMÔNIO", "SÉRIE", "MARCA", "MODELO", "PROCESSADOR", "MAC ADDRESS", "LOCADORA", "SETOR ATUAL", "INFORMAÇÃO"];
       
       for (int i = 0; i < headers.length; i++) {
         var cell = sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0));
@@ -420,13 +417,14 @@ class ReportRepository {
 
         sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: r + 1)).value = ex.TextCellValue(item['tipo']?.toString() ?? '');
         sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: r + 1)).value = ex.TextCellValue(item['patrimonio']?.toString() ?? '');
-        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: r + 1)).value = ex.TextCellValue(item['marca']?.toString() ?? '');
-        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: r + 1)).value = ex.TextCellValue(item['modelo']?.toString() ?? '');
-        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: r + 1)).value = ex.TextCellValue(item['serie']?.toString() ?? '');
-        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: r + 1)).value = ex.TextCellValue(item['mac_address']?.toString() ?? '---');
-        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: r + 1)).value = ex.TextCellValue(item['locadora']?.toString() ?? 'PRÓPRIO');
-        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 7, rowIndex: r + 1)).value = ex.TextCellValue(item['setor']?.toString() ?? '');
-        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 8, rowIndex: r + 1)).value = ex.TextCellValue(info.toUpperCase());
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: r + 1)).value = ex.TextCellValue(item['serie']?.toString() ?? '');
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: r + 1)).value = ex.TextCellValue(item['marca']?.toString() ?? '');
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: r + 1)).value = ex.TextCellValue(item['modelo']?.toString() ?? '');
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: r + 1)).value = ex.TextCellValue(item['processador']?.toString() ?? '---');
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: r + 1)).value = ex.TextCellValue(item['mac_address']?.toString() ?? '---');
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 7, rowIndex: r + 1)).value = ex.TextCellValue(item['locadora']?.toString() ?? 'PRÓPRIO');
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 8, rowIndex: r + 1)).value = ex.TextCellValue(item['setor']?.toString() ?? '');
+        sheet.cell(ex.CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: r + 1)).value = ex.TextCellValue(info.toUpperCase());
       }
 
       final directory = await getTemporaryDirectory();
@@ -461,32 +459,20 @@ class ReportRepository {
           pw.TableHelper.fromTextArray(
             headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 8),
             headerDecoration: const pw.BoxDecoration(color: PdfColors.indigo900),
-            headers: const ['TIPO', 'PATRIMÔNIO', 'MARCA', 'MODELO', 'SÉRIE / MAC', 'STATUS OP.', 'INFORMAÇÃO', 'AÇÃO SUGERIDA'],
+            headers: const ['TIPO', 'PATRIMÔNIO', 'SÉRIE', 'MARCA', 'MODELO', 'PROCESSADOR', 'STATUS OP.', 'INFORMAÇÃO'],
             data: itens.map((i) {
-              String serieMac = i['serie'] ?? '---';
-              if (i['mac_address'] != null && i['mac_address'].toString().isNotEmpty && i['mac_address'] != '---') {
-                serieMac += "\nMAC: ${i['mac_address']}";
-              }
               String info = i['status_operacional'] ?? 'Em uso';
               if (i['tem_defeito'] == true) info = "DEFEITO: ${i['descricao_defeito'] ?? 'Não inf.'}";
-
-              final asset = AssetModel.fromMap(i, i['patrimonio'] ?? '');
 
               return [
                 i['tipo'] ?? '', 
                 i['patrimonio'] ?? 'S/P', 
+                i['serie'] ?? '---',
                 i['marca'] ?? '---',
                 i['modelo'] ?? '---',
-                serieMac,
+                i['processador'] ?? '---',
                 i['status_operacional'] ?? 'Em uso',
                 info.toUpperCase(),
-                pw.Text(
-                  asset.actionRecommendation.toUpperCase(),
-                  style: pw.TextStyle(
-                    color: asset.healthScore < 50 ? PdfColors.red : (asset.healthScore < 80 ? PdfColors.orange : PdfColors.green),
-                    fontWeight: pw.FontWeight.bold,
-                  ),
-                ),
               ];
             }).toList(),
           ),
@@ -534,7 +520,7 @@ class ReportRepository {
             headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 7),
             cellStyle: const pw.TextStyle(fontSize: 6),
             headerDecoration: const pw.BoxDecoration(color: PdfColors.red900),
-            headers: const ['TIPO', 'PATRIMÔNIO', 'MARCA', 'MODELO', 'SÉRIE / MAC', 'LOCADORA', 'SITUAÇÃO / DEFEITO', 'SAÍDA MAN.', 'TEMPO MAN.', 'RETORNO MAN.', 'DIV', 'HO', 'SETOR ATUAL'],
+            headers: const ['TIPO', 'PATRIMÔNIO', 'SÉRIE', 'MARCA', 'MODELO', 'PROCESSADOR', 'SITUAÇÃO / DEFEITO', 'SAÍDA MAN.', 'TEMPO MAN.', 'RETORNO MAN.', 'DIV', 'HO', 'SETOR ATUAL'],
             data: dados.map((d) {
               String tempoMan = '---';
               String dataSaida = '---';
@@ -563,18 +549,13 @@ class ReportRepository {
                   ? "DEFEITO: ${d['descricao_defeito']}" 
                   : (d['ultimo_status'] == 'Descartado' ? "DESCARTADO" : (d['em_manutencao'] == true ? "EM MANUTENÇÃO" : "OK"));
 
-              String serieMac = d['serie'] ?? '---';
-              if (d['mac_address'] != null && d['mac_address'].toString().isNotEmpty && d['mac_address'] != '---') {
-                serieMac += "\nMAC: ${d['mac_address']}";
-              }
-
               return [
                 d['tipo']?.toString() ?? '---',
                 d['patrimonio']?.toString() ?? '---',
+                d['serie']?.toString() ?? '---',
                 d['marca']?.toString() ?? '---',
                 d['modelo']?.toString() ?? '---',
-                serieMac,
-                d['locadora']?.toString() ?? 'PRÓPRIO',
+                d['processador']?.toString() ?? '---',
                 defeitoInfo,
                 dataSaida,
                 tempoMan,

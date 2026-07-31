@@ -20,6 +20,7 @@ import 'package:smart_ronda_ti/features/operation/assets/controllers/asset_contr
 import 'package:smart_ronda_ti/features/management/admin/controllers/admin_controller.dart';
 import 'package:smart_ronda_ti/features/operation/rounds/models/round_model.dart';
 import 'package:smart_ronda_ti/features/operation/assets/models/asset_model.dart';
+import 'package:intl/intl.dart';
 import 'package:smart_ronda_ti/features/system/auth/models/user_model.dart';
 
 class RondaPage extends StatefulWidget {
@@ -73,10 +74,14 @@ class _RondaPageState extends State<RondaPage> {
   bool isLocado = false;
   bool setorDivergente = false;
   bool isHomeOffice = false;
+  bool isEmprestimo = false;
   String? locadoraSelecionada;
   String? setorDivergenteSelecionado;
   String? _patrimonioOriginal; 
   DateTime? _dataEntradaManutencaoOriginal;
+  DateTime? dataEmprestimo;
+  final TextEditingController destinoEmprestimoController = TextEditingController();
+  final TextEditingController motivoEmprestimoController = TextEditingController();
   bool houveTroca = false;
   List<Map<String, dynamic>> listaTrocas = [];
   String? _labelEquipamentoAntigo;
@@ -662,6 +667,13 @@ class _RondaPageState extends State<RondaPage> {
       return;
     }
 
+    if (isEmprestimo && (destinoEmprestimoController.text.trim().isEmpty || motivoEmprestimoController.text.trim().isEmpty || dataEmprestimo == null)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Erro: Informe os dados completos do empréstimo'), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
+      );
+      return;
+    }
+
     String setorDestino = widget.setor;
     if (setorDivergente && setorDivergenteSelecionado != null) {
       setorDestino = setorDivergenteSelecionado!;
@@ -703,6 +715,10 @@ class _RondaPageState extends State<RondaPage> {
         homeOfficeAutorizado: isHomeOffice,
         dataEntradaManutencao: finalDataManutencao,
         responsavelExterno: isHomeOffice ? responsavelHomeOfficeController.text.trim() : null,
+        isEmprestimo: isEmprestimo,
+        dataEmprestimo: dataEmprestimo,
+        motivoEmprestimo: isEmprestimo ? motivoEmprestimoController.text.trim() : null,
+        destinoEmprestimo: isEmprestimo ? destinoEmprestimoController.text.trim() : null,
         motivoBaixa: statusOperacional == 'Baixa Patrimonial' ? motivoBaixaController.text.trim() : null,
         idAnterior: _patrimonioOriginal,
         acessorios: Map<String, bool>.from(acessoriosSelecionados),
@@ -721,12 +737,16 @@ class _RondaPageState extends State<RondaPage> {
       anoFabricacaoController.clear();
       responsavelHomeOfficeController.clear();
       motivoBaixaController.clear();
+      destinoEmprestimoController.clear();
+      motivoEmprestimoController.clear();
+      dataEmprestimo = null;
       acessoriosSelecionados.clear();
       defeito = false;
       isLocado = false;
       possuiPatrimonio = true;
       setorDivergente = false;
       isHomeOffice = false;
+      isEmprestimo = false;
       setorDivergenteSelecionado = null;
       locadoraSelecionada = null;
       statusOperacional = 'Em uso';
@@ -1014,9 +1034,31 @@ class _RondaPageState extends State<RondaPage> {
                 ...acessoriosAtuais.map((acc) => _filterChip(acc, acessoriosSelecionados[acc] ?? false, (v) => setState(() => acessoriosSelecionados[acc] = v))),
                 _filterChip('DEFEITO', defeito, (v) => setState(() => defeito = v), color: AppTheme.ruby),
                 _filterChip('LOCADO', isLocado, (v) => setState(() => isLocado = v), color: Colors.orange),
+                _filterChip('EMPRÉSTIMO', isEmprestimo, (v) => setState(() => isEmprestimo = v), color: Colors.deepOrange),
                 _filterChip('OUTRO SETOR', setorDivergente, (v) => setState(() => setorDivergente = v), color: Colors.purple),
               ],
             ),
+            if (isEmprestimo) ...[
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () async {
+                        final p = await showDatePicker(context: context, firstDate: DateTime(2023), lastDate: DateTime.now().add(const Duration(days: 365)), initialDate: dataEmprestimo ?? DateTime.now());
+                        if (p != null) setState(() => dataEmprestimo = p);
+                      },
+                      icon: const Icon(Icons.calendar_today, size: 16),
+                      label: Text(dataEmprestimo == null ? "Data do Empréstimo" : DateFormat('dd/MM/yy').format(dataEmprestimo!), style: const TextStyle(fontSize: 11)),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              TextField(controller: destinoEmprestimoController, decoration: const InputDecoration(labelText: 'Para onde / Com quem? *', border: OutlineInputBorder(), prefixIcon: Icon(Icons.person_pin_circle_outlined))),
+              const SizedBox(height: 10),
+              TextField(controller: motivoEmprestimoController, decoration: const InputDecoration(labelText: 'Motivo do Empréstimo *', border: OutlineInputBorder())),
+            ],
             if (isHomeOffice) ...[
               const SizedBox(height: 10),
               TextField(controller: responsavelHomeOfficeController, decoration: const InputDecoration(labelText: 'Responsável pelo Item (Nome Completo) *', border: OutlineInputBorder(), prefixIcon: Icon(Icons.person_pin_outlined))),
@@ -1136,9 +1178,9 @@ class _RondaPageState extends State<RondaPage> {
                     const SizedBox(height: 10),
                     Row(
                       children: [
-                        Expanded(child: OutlinedButton.icon(onPressed: () => _selecionarHora(context, true), icon: const Icon(Icons.calendar_today), label: Text('Retirada: ${horaRetirada.toString().substring(11, 16)}'))),
+                        Expanded(child: OutlinedButton.icon(onPressed: () => _selecionarHora(context, true), icon: const Icon(Icons.calendar_today), label: Text('Retirada: ${DateFormat('dd/MM HH:mm').format(horaRetirada)}'))),
                         const SizedBox(width: 8),
-                        Expanded(child: OutlinedButton.icon(onPressed: () => _selecionarHora(context, false), icon: const Icon(Icons.calendar_today), label: Text('Instal.: ${horaInstalacao.toString().substring(11, 16)}'))),
+                        Expanded(child: OutlinedButton.icon(onPressed: () => _selecionarHora(context, false), icon: const Icon(Icons.calendar_today), label: Text('Instal.: ${DateFormat('dd/MM HH:mm').format(horaInstalacao)}'))),
                       ],
                     ),
                     const SizedBox(height: 10),

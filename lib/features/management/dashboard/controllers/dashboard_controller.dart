@@ -109,11 +109,13 @@ class DashboardController {
     return data;
   }
 
-  /// Identifica alertas críticos (Ex: Muitos defeitos hoje)
-  List<String> getCriticalAlerts(List<RoundModel> allRounds, [List<AssetModel>? allAssets]) {
+  /// Identifica alertas críticos baseados nas configurações de BI
+  List<String> getCriticalAlerts(List<RoundModel> allRondas, List<AssetModel> allAssets, Map<String, dynamic> config) {
     List<String> alerts = [];
     final today = DateTime.now();
-    final todayRounds = allRounds.where((r) => 
+    
+    // 1. Novos defeitos hoje
+    final todayRounds = allRondas.where((r) => 
       r.dataInicio.day == today.day && 
       r.dataInicio.month == today.month && 
       r.dataInicio.year == today.year
@@ -124,10 +126,21 @@ class DashboardController {
       alerts.add("$defectsToday novos defeitos relatados hoje!");
     }
 
-    if (allAssets != null) {
-      final emManutencao = allAssets.where((a) => a.statusOperacional == 'Em manutenção').toList();
-      if (emManutencao.length > 5) {
-        alerts.add("Atenção: ${emManutencao.length} itens aguardando manutenção!");
+    // 2. Itens aguardando manutenção
+    final emManutencao = allAssets.where((a) => a.statusOperacional == 'Em manutenção').toList();
+    if (emManutencao.length > 5) {
+      alerts.add("Atenção: ${emManutencao.length} itens aguardando manutenção!");
+    }
+
+    // 3. Equipamentos sem auditoria (individual) - Se ativado nas diretrizes
+    if (config['alerta_equips_sem_auditoria'] ?? true) {
+      final semAuditoria = allAssets.where((a) {
+        if (a.ultimaAtualizacao == null) return true;
+        return today.difference(a.ultimaAtualizacao!).inDays > 30; // Alerta se > 30 dias
+      }).toList();
+
+      if (semAuditoria.isNotEmpty) {
+        alerts.add("Crítico: ${semAuditoria.length} equipamentos sem auditoria há +30 dias!");
       }
     }
 
@@ -135,13 +148,17 @@ class DashboardController {
   }
 
   /// Identifica departamentos sem rondas há mais de 15 dias.
-  List<String> getInactiveDepartmentAlerts(List<RoundModel> allRounds, List<Map<String, dynamic>> departamentos) {
+  List<String> getInactiveDepartmentAlerts(List<RoundModel> allRondas, List<Map<String, dynamic>> departamentos, Map<String, dynamic> config) {
     List<String> alerts = [];
+    
+    // Se o alerta de departamentos estiver desativado, retorna lista vazia
+    if (!(config['alerta_deptos_sem_visita'] ?? true)) return [];
+
     final now = DateTime.now();
     
     for (var dep in departamentos) {
       final nome = dep['nome'] as String;
-      final rondasDoDep = allRounds.where((r) => r.setor == nome).toList()
+      final rondasDoDep = allRondas.where((r) => r.setor == nome).toList()
         ..sort((a, b) => b.dataInicio.compareTo(a.dataInicio));
       
       if (rondasDoDep.isEmpty) {

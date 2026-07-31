@@ -616,7 +616,13 @@ class _CasteloTabState extends State<_CasteloTab> {
     final patrimonioController = TextEditingController(text: item.patrimonio.startsWith("SP_") ? "" : item.patrimonio);
     final processadorController = TextEditingController(text: item.processador);
     final macController = TextEditingController(text: item.macAddress);
+    final responsavelController = TextEditingController(text: item.responsavelExterno);
+    final destinoController = TextEditingController(text: item.destinoEmprestimo);
+    final motivoEmprestimoController = TextEditingController(text: item.motivoEmprestimo);
+    
     bool hoAutorizado = item.homeOfficeAutorizado;
+    bool isEmprestimo = item.isEmprestimo;
+    DateTime? dataEmprestimo = item.dataEmprestimo;
 
     showDialog(
       context: context,
@@ -640,13 +646,49 @@ class _CasteloTabState extends State<_CasteloTab> {
                 TextField(controller: processadorController, decoration: const InputDecoration(labelText: "Processador", border: OutlineInputBorder())),
                 const SizedBox(height: 15),
                 TextField(controller: macController, decoration: const InputDecoration(labelText: "Endereço MAC", border: OutlineInputBorder())),
-                const SizedBox(height: 15),
+                const Divider(height: 30),
+                
+                // SEÇÃO: HOME OFFICE
                 SwitchListTile(
                   title: const Text("Autorizado para Home Office?", style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                   subtitle: const Text("Permite rastreabilidade externa permanente", style: TextStyle(fontSize: 11)),
                   value: hoAutorizado,
                   onChanged: (v) => setModalState(() => hoAutorizado = v),
                 ),
+                if (hoAutorizado)
+                  TextField(controller: responsavelController, decoration: const InputDecoration(labelText: "Responsável (Nome Completo)", border: OutlineInputBorder(), isDense: true)),
+                
+                const Divider(height: 30),
+
+                // SEÇÃO: EMPRÉSTIMO
+                SwitchListTile(
+                  title: const Text("Item em Empréstimo?", style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.orange)),
+                  subtitle: const Text("Indica que o item está fora da unidade", style: TextStyle(fontSize: 11)),
+                  value: isEmprestimo,
+                  activeColor: Colors.orange,
+                  onChanged: (v) => setModalState(() => isEmprestimo = v),
+                ),
+                if (isEmprestimo) ...[
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextButton.icon(
+                          onPressed: () async {
+                            final p = await showDatePicker(context: context, firstDate: DateTime(2023), lastDate: DateTime.now().add(const Duration(days: 365)), initialDate: dataEmprestimo ?? DateTime.now());
+                            if (p != null) setModalState(() => dataEmprestimo = p);
+                          },
+                          icon: const Icon(Icons.calendar_today, size: 16),
+                          label: Text(dataEmprestimo == null ? "Data do Empréstimo" : DateFormat('dd/MM/yy').format(dataEmprestimo!), style: const TextStyle(fontSize: 11)),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(controller: destinoController, decoration: const InputDecoration(labelText: "Para onde / Com quem?", border: OutlineInputBorder(), isDense: true)),
+                  const SizedBox(height: 10),
+                  TextField(controller: motivoEmprestimoController, decoration: const InputDecoration(labelText: "Motivo do Empréstimo", border: OutlineInputBorder(), isDense: true)),
+                ],
               ],
             ),
           ),
@@ -665,6 +707,11 @@ class _CasteloTabState extends State<_CasteloTab> {
                   processor: processadorController.text.trim(),
                   macAddress: macController.text.trim(),
                   homeOfficeAuthorized: hoAutorizado,
+                  externalResponsible: responsavelController.text.trim(),
+                  isLoan: isEmprestimo,
+                  loanDate: dataEmprestimo,
+                  loanReason: motivoEmprestimoController.text.trim(),
+                  loanDestination: destinoController.text.trim(),
                 );
                 
                 if (context.mounted) {
@@ -783,15 +830,27 @@ class _EmpresaTab extends StatefulWidget {
 
 class _EmpresaTabState extends State<_EmpresaTab> {
   final AdminController _controller = AdminController();
+  final AuthController _authController = AuthController();
   final TextEditingController nomeController = TextEditingController();
   final TextEditingController cnpjController = TextEditingController();
   final TextEditingController logoController = TextEditingController();
   final TextEditingController contatoController = TextEditingController();
+  
+  bool alertDeptos = true;
+  bool alertEquips = true;
+  UserModel? _usuarioLogado;
 
   @override
   void initState() {
     super.initState();
     _carregarConfig();
+    _carregarUsuario();
+  }
+
+  void _carregarUsuario() {
+    _authController.profileStream.listen((user) {
+      if (mounted) setState(() => _usuarioLogado = user);
+    });
   }
 
   void _carregarConfig() {
@@ -803,6 +862,8 @@ class _EmpresaTabState extends State<_EmpresaTab> {
           cnpjController.text = data['cnpj'] ?? '';
           logoController.text = data['logo_url'] ?? '';
           contatoController.text = data['contato'] ?? '';
+          alertDeptos = data['alerta_deptos_sem_visita'] ?? true;
+          alertEquips = data['alerta_equips_sem_auditoria'] ?? true;
         });
       }
     });
@@ -811,6 +872,7 @@ class _EmpresaTabState extends State<_EmpresaTab> {
   @override
   Widget build(BuildContext context) {
     String logoVisual = UrlHelper.convertDriveUrl(logoController.text) ?? "";
+    final bool canEditSettings = _usuarioLogado?.nivelAcesso == 'master' || _usuarioLogado?.nivelAcesso == 'gerente';
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
@@ -826,6 +888,24 @@ class _EmpresaTabState extends State<_EmpresaTab> {
           const SizedBox(height: 15),
           TextField(controller: contatoController, decoration: const InputDecoration(labelText: "Contato/Endereço", border: OutlineInputBorder())),
           const SizedBox(height: 30),
+          
+          if (canEditSettings) ...[
+            const Divider(height: 40),
+            const Text("Diretrizes de Notificação (BI)", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue)),
+            const SizedBox(height: 15),
+            SwitchListTile(
+              title: const Text("Alerta: Deptos. sem Visita (+15 dias)", style: TextStyle(fontSize: 13)),
+              value: alertDeptos,
+              onChanged: (v) => setState(() => alertDeptos = v),
+            ),
+            SwitchListTile(
+              title: const Text("Alerta: Equipamentos sem Auditoria", style: TextStyle(fontSize: 13)),
+              value: alertEquips,
+              onChanged: (v) => setState(() => alertEquips = v),
+            ),
+            const SizedBox(height: 20),
+          ],
+
           SizedBox(
             width: double.infinity,
             height: 50,
@@ -836,12 +916,14 @@ class _EmpresaTabState extends State<_EmpresaTab> {
                   'cnpj': cnpjController.text,
                   'logo_url': logoController.text,
                   'contato': contatoController.text,
+                  'alerta_deptos_sem_visita': alertDeptos,
+                  'alerta_equips_sem_auditoria': alertEquips,
                 });
-                await _controller.registerLog(action: "CONFIG EMPRESA", details: "Alterou dados da empresa");
+                await _controller.registerLog(action: "CONFIG EMPRESA", details: "Alterou dados e diretrizes de notificação");
                 if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Salvo com sucesso!")));
               },
-              child: const Text("SALVAR BRANDING"),
+              child: const Text("SALVAR CONFIGURAÇÕES"),
             ),
           ),
           const SizedBox(height: 40),

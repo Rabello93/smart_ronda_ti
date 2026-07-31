@@ -44,6 +44,7 @@ class _ReportsPageState extends State<ReportsPage> {
   bool _apenasSemPatrimonio = false;
   bool _apenasSubstituicoes = false;
   bool _apenasBaixas = false;
+  bool _apenasEmprestimos = false;
   bool _gerandoInventario = false;
 
   // Filtros Performance
@@ -79,6 +80,7 @@ class _ReportsPageState extends State<ReportsPage> {
         apenasSemPatrimonio: _apenasSemPatrimonio,
         apenasSubstituicoes: _apenasSubstituicoes,
         apenasBaixas: _apenasBaixas,
+        apenasEmprestimos: _apenasEmprestimos,
         periodo: _periodoPrincipal,
         userName: currentUserName,
         formato: _formatoSelecionado!,
@@ -189,6 +191,7 @@ class _ReportsPageState extends State<ReportsPage> {
               _filterChip("🤝 LOCADOS", _apenasLocados, (v) => setState(() => _apenasLocados = v), color: Colors.orange.shade800),
               _filterChip("🚫 SEM PATRIMÔNIO", _apenasSemPatrimonio, (v) => setState(() => _apenasSemPatrimonio = v), color: Colors.red.shade800),
               _filterChip("📉 BAIXAS", _apenasBaixas, (v) => setState(() => _apenasBaixas = v), color: Colors.blueGrey.shade800),
+              _filterChip("🤝 EMPRÉSTIMOS", _apenasEmprestimos, (v) => setState(() => _apenasEmprestimos = v), color: Colors.deepOrange.shade800),
               _filterChip("🔄 SUBSTITUIÇÕES", _apenasSubstituicoes, (v) => setState(() {
                 _apenasSubstituicoes = v;
                 if (v) {
