@@ -11,9 +11,9 @@ class ReportController {
     String? setor,
     String? locadora,
     String? tipo,
-    String? marca,
-    String? modelo,
-    String? processador,
+    List<String>? marcas,
+    List<String>? modelos,
+    List<String>? processadores,
     bool apenasDefeitos = false,
     bool apenasObsoletos = false,
     bool emManutencao = false,
@@ -59,16 +59,16 @@ class ReportController {
         itens = itens.where((i) => i['tipo'] == tipo).toList();
       }
 
-      if (marca != null && marca.isNotEmpty) {
-        itens = itens.where((i) => i['marca']?.toString().toLowerCase().contains(marca.toLowerCase()) ?? false).toList();
+      if (marcas != null && marcas.isNotEmpty) {
+        itens = itens.where((i) => marcas.contains(i['marca']?.toString().toUpperCase() ?? '')).toList();
       }
 
-      if (modelo != null && modelo.isNotEmpty) {
-        itens = itens.where((i) => i['modelo']?.toString().toLowerCase().contains(modelo.toLowerCase()) ?? false).toList();
+      if (modelos != null && modelos.isNotEmpty) {
+        itens = itens.where((i) => modelos.contains(i['modelo']?.toString().toUpperCase() ?? '')).toList();
       }
 
-      if (processador != null && processador.isNotEmpty) {
-        itens = itens.where((i) => i['processador']?.toString().toLowerCase().contains(processador.toLowerCase()) ?? false).toList();
+      if (processadores != null && processadores.isNotEmpty) {
+        itens = itens.where((i) => processadores.contains(i['processador']?.toString().toUpperCase() ?? '')).toList();
       }
 
       final bool temFiltroCondicao = apenasDefeitos || apenasObsoletos || emManutencao || emDivergencia || reservados || apenasHomeOffice || apenasBaixas || apenasEmprestimos;
@@ -156,16 +156,8 @@ class ReportController {
 
   Future<void> _gerarRelatorioSubstituicoes(BuildContext context, String formato, String? setorFiltro, DateTimeRange? periodo, String? userName) async {
     try {
-      Query<Map<String, dynamic>> queryRondas = _firestore.collection('rondas').orderBy('data_inicio', descending: true);
-      if (setorFiltro != null) queryRondas = queryRondas.where('setor', isEqualTo: setorFiltro);
+      Query<Map<String, dynamic>> queryRondas = _firestore.collection('rondas');
       
-      if (periodo != null) {
-        final DateTime endOfDay = DateTime(periodo.end.year, periodo.end.month, periodo.end.day, 23, 59, 59);
-        queryRondas = queryRondas
-            .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(periodo.start))
-            .where('timestamp', isLessThanOrEqualTo: Timestamp.fromDate(endOfDay));
-      }
-
       final QuerySnapshot<Map<String, dynamic>> snapshots = await queryRondas.get();
       List<Map<String, dynamic>> substituicoes = [];
 
@@ -174,7 +166,17 @@ class ReportController {
         final String setorRonda = rondaData['setor'] ?? '---';
         final DateTime dataRonda = (rondaData['timestamp'] as Timestamp).toDate();
 
+        // Filtro de Setor Local
+        if (setorFiltro != null && setorRonda != setorFiltro) continue;
+
+        // Filtro de Período Local
+        if (periodo != null) {
+          final DateTime endOfDay = DateTime(periodo.end.year, periodo.end.month, periodo.end.day, 23, 59, 59);
+          if (dataRonda.isBefore(periodo.start) || dataRonda.isAfter(endOfDay)) continue;
+        }
+
         final QuerySnapshot<Map<String, dynamic>> equipsSnap = await doc.reference.collection('equipamentos').where('is_troca', isEqualTo: true).get();
+        // ... rest of loop remains same ...
         
         for (var eDoc in equipsSnap.docs) {
           final troca = eDoc.data();
@@ -186,6 +188,12 @@ class ReportController {
           }
 
           final assetData = assetDoc?.data();
+          
+          DateTime dataExibicao = dataRonda;
+          if (troca['hora_retirada'] != null) {
+            final dtRetroativa = DateTime.tryParse(troca['hora_retirada'].toString());
+            if (dtRetroativa != null) dataExibicao = dtRetroativa;
+          }
 
           substituicoes.add({
             'tipo': assetData?['tipo'] ?? '---',
@@ -195,7 +203,7 @@ class ReportController {
             'serie': assetData?['serie'] ?? '---',
             'locadora': assetData?['locadora'] ?? 'PRÓPRIO',
             'departamento_anterior': setorRonda,
-            'data': dataRonda,
+            'data': dataExibicao,
             'departamento_atual': 'TI',
             'status': 'RESERVADO',
             'motivo': troca['motivo'] ?? '---',
@@ -240,20 +248,23 @@ class ReportController {
     String formato = 'PDF',
   }) async {
     try {
-      final DateTime endOfDay = DateTime(periodo.end.year, periodo.end.month, periodo.end.day, 23, 59, 59);
-      Query<Map<String, dynamic>> queryRondas = _firestore.collection('rondas')
-          .where('data_inicio', isGreaterThanOrEqualTo: periodo.start.toIso8601String())
-          .where('data_inicio', isLessThanOrEqualTo: endOfDay.toIso8601String());
-      
-      if (setor != null) queryRondas = queryRondas.where('setor', isEqualTo: setor);
-
-      final QuerySnapshot<Map<String, dynamic>> rondasSnap = await queryRondas.orderBy('data_inicio', descending: false).get();
+      // Busca simplificada para evitar erro de índice composto no Firebase
+      Query<Map<String, dynamic>> queryRondas = _firestore.collection('rondas');
+      final QuerySnapshot<Map<String, dynamic>> rondasSnap = await queryRondas.get();
 
       Map<String, Map<String, dynamic>> agregador = {};
+      final DateTime endOfDay = DateTime(periodo.end.year, periodo.end.month, periodo.end.day, 23, 59, 59);
 
       for (var doc in rondasSnap.docs) {
         final rondaData = doc.data();
         final DateTime roundTimestamp = (rondaData['timestamp'] as Timestamp).toDate();
+
+        // Filtro de Período Local (App-side)
+        if (roundTimestamp.isBefore(periodo.start) || roundTimestamp.isAfter(endOfDay)) continue;
+
+        // Filtro de Setor Local (App-side)
+        if (setor != null && rondaData['setor'] != setor) continue;
+
         final QuerySnapshot<Map<String, dynamic>> equipsSnap = await doc.reference.collection('equipamentos').get();
         
         for (var eDoc in equipsSnap.docs) {
@@ -444,6 +455,28 @@ class ReportController {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Erro ao gerar relatório de contratos: $e"), backgroundColor: Colors.red));
       }
+    }
+  }
+
+  /// Busca valores únicos de um campo no inventário para popular os filtros
+  Future<List<String>> getUniqueInventoryValues(String field) async {
+    try {
+      final snapshot = await _firestore.collection('inventario_mestre').get();
+      final Set<String> values = {};
+      
+      for (var doc in snapshot.docs) {
+        final val = doc.data()[field]?.toString().trim().toUpperCase();
+        if (val != null && val.isNotEmpty && val != '---') {
+          values.add(val);
+        }
+      }
+      
+      final list = values.toList();
+      list.sort();
+      return list;
+    } catch (e) {
+      debugPrint("Erro ao buscar valores únicos ($field): $e");
+      return [];
     }
   }
 }

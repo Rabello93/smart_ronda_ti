@@ -33,7 +33,7 @@ class AboutPage extends StatelessWidget {
                       Icon(Icons.checklist_rtl, size: 80, color: Colors.blue),
                       SizedBox(height: 10),
                       Text("Smart Ronda TI", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                      Text("Versão 3.3.2", style: TextStyle(color: Colors.grey)),
+                      Text("Versão 3.3.5", style: TextStyle(color: Colors.grey)),
                 ],
               ),
             ),
@@ -46,7 +46,19 @@ class AboutPage extends StatelessWidget {
             const SizedBox(height: 20),
             _sectionTitle("🚀 Log de Atualizações"),
             _buildUpdate(
-              "3.3.2 (Atual)",
+              "3.3.5 (Atual)",
+              "• SEGURANÇA OPERACIONAL: Botões de Empréstimo e Limpar Tudo restritos aos níveis de gestão e dev.\n• DASHBOARD MENSAL: Aba Geral focada automaticamente no mês vigente para maior clareza imediata.\n• INTELIGÊNCIA TI: Card de Backup agora engloba automaticamente ativos transferidos para a TI sem manutenção.\n• CONTABILIDADE REAL: Relatórios de substituição agora respeitam a data retroativa informada na ronda.",
+            ),
+            _buildUpdate(
+              "3.3.4",
+              "• ESTABILIDADE: Correção definitiva de permissões em transferências da TI e salvamento de rondas por técnicos.\n• DASHBOARD: Novo card de 'Backup (TI)' e correção no rastreio de cronômetro de manutenção após substituições.\n• RELATÓRIOS: Normalização total dos filtros de incidências sem necessidade de índices manuais.",
+            ),
+            _buildUpdate(
+              "3.3.3",
+              "• GESTÃO DE EMPRÉSTIMOS: Novo status para rastreabilidade de ativos fora da unidade com registro de data, motivo e destino.\n• HOME OFFICE PRO: Restauração da exibição detalhada de Responsável, Marca e Modelo nas listagens externas.\n• ALERTAS INDIVIDUAIS: Sistema de monitoramento por ativo que avisa sobre equipamentos sem auditoria há mais de 30 dias.\n• DIRETRIZES DE BI: Painel administrativo para configuração personalizada de alertas críticos (Deptos vs Equips).\n• RELATÓRIOS ENRIQUECIDOS: Inclusão das colunas Número de Série e Processador em todas as exportações PDF/XLSX.",
+            ),
+            _buildUpdate(
+              "3.3.2",
               "• DASHBOARD EVOLUÍDO: Rastreabilidade total de manutenção com setor de origem, local atual (TI) e dias em aberto.\n• SIMULADOR POR DEPTO: Projeção de aditivos baseada no perfil real de cada departamento.\n• FILTROS AVANÇADOS: Auditoria agora permite filtrar por Marca, Modelo e Processador.\n• GESTÃO ADMIN: Autorização permanente de Home Office diretamente no Castelo.",
             ),
             _buildUpdate(

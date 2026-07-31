@@ -30,9 +30,10 @@ class _ReportsPageState extends State<ReportsPage> {
   String? _locadoraSelecionada;
   String? _tipoEquipamentoSelecionado;
   String? _formatoSelecionado = 'PDF';
-  final TextEditingController _marcaController = TextEditingController();
-  final TextEditingController _modeloController = TextEditingController();
-  final TextEditingController _processadorController = TextEditingController();
+  
+  List<String> _marcasSelecionadas = [];
+  List<String> _modelosSelecionados = [];
+  List<String> _processadoresSelecionados = [];
 
   bool _apenasDefeitos = false;
   bool _apenasObsoletos = false;
@@ -67,9 +68,9 @@ class _ReportsPageState extends State<ReportsPage> {
         setor: _setorSelecionado,
         locadora: _locadoraSelecionada,
         tipo: _tipoEquipamentoSelecionado,
-        marca: _marcaController.text.trim(),
-        modelo: _modeloController.text.trim(),
-        processador: _processadorController.text.trim(),
+        marcas: _marcasSelecionadas,
+        modelos: _modelosSelecionados,
+        processadores: _processadoresSelecionados,
         apenasDefeitos: _apenasDefeitos,
         apenasObsoletos: _apenasObsoletos,
         emManutencao: _emManutencao,
@@ -244,15 +245,27 @@ class _ReportsPageState extends State<ReportsPage> {
             onChanged: (v) => setState(() => _tipoEquipamentoSelecionado = v),
           ),
           const SizedBox(height: 15),
-          Row(
-            children: [
-              Expanded(child: TextField(controller: _marcaController, decoration: const InputDecoration(labelText: "Marca", border: OutlineInputBorder(), isDense: true))),
-              const SizedBox(width: 10),
-              Expanded(child: TextField(controller: _modeloController, decoration: const InputDecoration(labelText: "Modelo", border: OutlineInputBorder(), isDense: true))),
-            ],
+          
+          _multiSelectFilterTile(
+            label: "Marcas",
+            selectedValues: _marcasSelecionadas,
+            field: 'marca',
+            onChanged: (list) => setState(() => _marcasSelecionadas = list),
           ),
-          const SizedBox(height: 15),
-          TextField(controller: _processadorController, decoration: const InputDecoration(labelText: "Processador / CPU", border: OutlineInputBorder(), isDense: true)),
+          const SizedBox(height: 10),
+          _multiSelectFilterTile(
+            label: "Modelos",
+            selectedValues: _modelosSelecionados,
+            field: 'modelo',
+            onChanged: (list) => setState(() => _modelosSelecionados = list),
+          ),
+          const SizedBox(height: 10),
+          _multiSelectFilterTile(
+            label: "Processadores / CPU",
+            selectedValues: _processadoresSelecionados,
+            field: 'processador',
+            onChanged: (list) => setState(() => _processadoresSelecionados = list),
+          ),
 
           const SizedBox(height: 25),
           const Text("Formato de Saída:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.grey)),
@@ -481,6 +494,133 @@ class _ReportsPageState extends State<ReportsPage> {
         fontSize: 12,
       ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    );
+  }
+
+  Widget _multiSelectFilterTile({
+    required String label,
+    required List<String> selectedValues,
+    required String field,
+    required Function(List<String>) onChanged,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.charcoal : Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
+      ),
+      child: ListTile(
+        dense: true,
+        title: Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+        subtitle: Text(
+          selectedValues.isEmpty ? "Todas as $label" : selectedValues.join(", "),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(fontSize: 11, color: selectedValues.isEmpty ? Colors.grey : AppTheme.electricBlue),
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (selectedValues.isNotEmpty)
+              IconButton(
+                icon: const Icon(Icons.clear_rounded, size: 18),
+                onPressed: () => onChanged([]),
+              ),
+            const Icon(Icons.checklist_rounded, size: 20),
+          ],
+        ),
+        onTap: () => _showMultiSelectDialog(label, field, selectedValues, onChanged),
+      ),
+    );
+  }
+
+  void _showMultiSelectDialog(String label, String field, List<String> currentSelections, Function(List<String>) onConfirm) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => Center(child: Card(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator()))),
+    );
+
+    final allValues = await _reportController.getUniqueInventoryValues(field);
+    if (!mounted) return;
+    Navigator.pop(context); // Fecha loading
+
+    if (allValues.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Nenhum dado encontrado para este filtro.")));
+      return;
+    }
+
+    List<String> tempSelections = List.from(currentSelections);
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) {
+          final isDark = Theme.of(context).brightness == Brightness.dark;
+          
+          return AlertDialog(
+            backgroundColor: isDark ? AppTheme.deepNavy : Colors.white,
+            title: Text("Filtrar $label", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            content: SizedBox(
+              width: 400,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      TextButton(
+                        onPressed: () => setModalState(() => tempSelections = List.from(allValues)),
+                        child: const Text("Selecionar Tudo", style: TextStyle(fontSize: 12)),
+                      ),
+                      TextButton(
+                        onPressed: () => setModalState(() => tempSelections = []),
+                        child: const Text("Limpar", style: TextStyle(fontSize: 12)),
+                      ),
+                    ],
+                  ),
+                  const Divider(),
+                  Flexible(
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: allValues.length,
+                      itemBuilder: (context, index) {
+                        final val = allValues[index];
+                        final isSelected = tempSelections.contains(val);
+                        return CheckboxListTile(
+                          dense: true,
+                          title: Text(val, style: const TextStyle(fontSize: 13)),
+                          value: isSelected,
+                          onChanged: (v) {
+                            setModalState(() {
+                              if (v == true) {
+                                tempSelections.add(val);
+                              } else {
+                                tempSelections.remove(val);
+                              }
+                            });
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(context), child: const Text("CANCELAR")),
+              ElevatedButton(
+                onPressed: () {
+                  onConfirm(tempSelections);
+                  Navigator.pop(context);
+                },
+                child: const Text("APLICAR"),
+              ),
+            ],
+          );
+        }
+      ),
     );
   }
 

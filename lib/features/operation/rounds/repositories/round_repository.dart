@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/round_model.dart';
@@ -20,12 +19,19 @@ class RoundRepository {
       ? _firestore.collection('rondas').doc(existingRoundId)
       : _firestore.collection('rondas').doc();
     
-    batch.set(roundRef, round.toMap(), SetOptions(merge: true));
+    // Só atualiza o documento da ronda se for nova ou se o usuário for Admin (Conforme Regras do Firebase)
+    final bool isNew = existingRoundId == null;
+    final bool isUserAdmin = await _checkIfAdmin();
+    
+    if (isNew || isUserAdmin) {
+      batch.set(roundRef, round.toMap(), SetOptions(merge: true));
+    }
 
+    // Na edição, marcamos os itens antigos como substituídos em vez de deletar (Evita PERMISSION_DENIED)
     if (existingRoundId != null) {
       QuerySnapshot oldAssets = await roundRef.collection('equipamentos').get();
       for (var doc in oldAssets.docs) {
-        batch.delete(doc.reference);
+        batch.update(doc.reference, {'substituido_por_edicao': true});
       }
     }
 
@@ -34,62 +40,65 @@ class RoundRepository {
       Map<String, dynamic> assetData = asset.toMap();
       assetData['patrimonio'] = inventoryId;
 
+      // Grava o item na ronda atual
       DocumentReference assetRef = roundRef.collection('equipamentos').doc();
       batch.set(assetRef, assetData);
       
-      // Validação/Atualização no Castelo (Única fonte da verdade)
+      // ATUALIZAÇÃO NO CASTELO: Liberdade total para transferir setor e mudar status
       DocumentReference invRef = _firestore.collection('inventario_mestre').doc(inventoryId);
       
-      // INTELIGENCIA 3.2.11: Rastreabilidade de Movimentação
-      try {
-        final currentAssetDoc = await invRef.get();
-        if (currentAssetDoc.exists) {
-          final String setorAnterior = currentAssetDoc.get('setor') ?? 'Desconhecido';
-          if (setorAnterior != round.setor) {
-            // Registra a movimentação automática
-            DocumentReference movRef = invRef.collection('movimentacoes').doc();
-            batch.set(movRef, {
-              'origem': setorAnterior,
-              'destino': round.setor,
-              'data': FieldValue.serverTimestamp(),
-              'tecnico_id': _auth.currentUser?.uid,
-              'ronda_id': roundRef.id,
-              'motivo': assetData['motivo_divergencia'] ?? 'Movimentação detectada em ronda',
-            });
-          }
-        }
-      } catch (e) {
-        debugPrint("Erro ao registrar movimentação: $e");
-      }
-
-      Map<String, dynamic> invData = Map.from(assetData);
-      invData['ultima_ronda_id'] = roundRef.id;
-      invData['ultimo_tecnico'] = _auth.currentUser?.uid;
+      // Criamos um mapa de atualização seletivo para evitar sobrepor dados técnicos com campos vazios
+      Map<String, dynamic> invUpdate = {
+        'setor': round.setor,
+        'tipo': asset.tipo,
+        'marca': asset.marca,
+        'modelo': asset.modelo,
+        'serie': asset.serie,
+        'processador': asset.processador,
+        'mac_address': asset.macAddress,
+        'status_operacional': asset.statusOperacional,
+        'tem_defeito': asset.temDefeito,
+        'descricao_defeito': asset.descricaoDefeito,
+        'ultima_ronda_id': roundRef.id,
+        'ultimo_tecnico': _auth.currentUser?.uid,
+        'ultima_atualizacao': FieldValue.serverTimestamp(),
+        'data_ultima_auditoria': FieldValue.serverTimestamp(),
+        'acessorios': asset.acessorios,
+        'home_office_autorizado': asset.homeOfficeAutorizado,
+        'responsavel_externo': asset.responsavelExterno,
+      };
       
-      batch.set(invRef, invData, SetOptions(merge: true));
+      batch.set(invRef, invUpdate, SetOptions(merge: true));
 
-      // LOGICA DE CONVERSÃO: Se o item tinha um ID provisório (SP_...) e ganhou um real, remove o antigo
+      // Conversão de Sem Placa -> Com Placa
       if (asset.idAnterior != null && asset.idAnterior!.startsWith("SP_") && asset.idAnterior != inventoryId) {
-        batch.delete(_firestore.collection('inventario_mestre').doc(asset.idAnterior));
+        batch.update(_firestore.collection('inventario_mestre').doc(asset.idAnterior!), {
+          'status': 'Inativo',
+          'motivo_baixa': 'Convertido para patrimônio real: $inventoryId',
+        });
       }
     }
 
+    // Lógica de Trocas (Substituições)
     if (exchanges != null && exchanges.isNotEmpty) {
       for (var exchangeData in exchanges) {
         DocumentReference exchangeRef = roundRef.collection('equipamentos').doc();
         exchangeData['is_troca'] = true;
         batch.set(exchangeRef, exchangeData);
 
-        // INTELIGENCIA: Transferência automática do item substituído para a TI
         String? patAntigo = exchangeData['patrimonio_antigo']?.toString().trim();
         if (patAntigo != null && patAntigo.isNotEmpty && patAntigo != "SEM PATRIMÔNIO") {
           DocumentReference oldAssetRef = _firestore.collection('inventario_mestre').doc(patAntigo);
-          batch.set(oldAssetRef, {
+          
+          DateTime? dataTroca = exchangeData['hora_retirada'] != null 
+              ? DateTime.tryParse(exchangeData['hora_retirada'].toString()) 
+              : null;
+
+          batch.update(oldAssetRef, {
             'setor': 'TI',
-            'status_operacional': 'Reservado',
-            'observacao_interna': 'Substituído em ronda no setor ${round.setor}. Motivo: ${exchangeData['motivo'] ?? 'Não informado'}.',
-            'data_ultima_substituicao': FieldValue.serverTimestamp(),
-          }, SetOptions(merge: true));
+            'status_operacional': 'Em manutenção',
+            'data_entrada_manutencao': dataTroca != null ? Timestamp.fromDate(dataTroca) : FieldValue.serverTimestamp(),
+          });
         }
       }
     }
@@ -98,14 +107,9 @@ class RoundRepository {
   }
 
   String _generateInventoryId(AssetModel asset, String sector) {
-    // Se o item já tem um código SP_... vindo do formulário, mantemos ele para evitar duplicatas
-    if (asset.patrimonio.startsWith("SP_")) {
-      return asset.patrimonio;
-    }
-
+    if (asset.patrimonio.startsWith("SP_")) return asset.patrimonio;
     if (asset.semPatrimonio) {
       if (asset.serie.isNotEmpty) return "SP_${asset.serie}";
-      // Gera novo ID apenas se for um item realmente novo (não carregado da lupa)
       return "SP_${asset.tipo}_${sector}_${DateTime.now().millisecondsSinceEpoch}".toUpperCase();
     }
     return asset.patrimonio;
@@ -119,14 +123,12 @@ class RoundRepository {
   }
 
   Future<List<AssetModel>> getAssetsOfRound(String roundId) async {
-    final snapshot = await _firestore
-        .collection('rondas')
-        .doc(roundId)
-        .collection('equipamentos')
-        .get();
-    
+    final snapshot = await _firestore.collection('rondas').doc(roundId).collection('equipamentos').get();
     return snapshot.docs
-        .where((doc) => doc.data()['is_troca'] != true)
+        .where((doc) {
+          final data = doc.data();
+          return data['is_troca'] != true && data['substituido_por_edicao'] != true;
+        })
         .map((doc) => AssetModel.fromMap(doc.data(), doc.id))
         .toList();
   }
@@ -139,5 +141,14 @@ class RoundRepository {
     }
     batch.delete(_firestore.collection('rondas').doc(roundId));
     await batch.commit();
+  }
+
+  Future<bool> _checkIfAdmin() async {
+    try {
+      final uid = _auth.currentUser?.uid;
+      if (uid == null) return false;
+      final doc = await _firestore.collection('tecnicos').doc(uid).get();
+      return doc.data()?['nivel_acesso'] == 'master' || doc.data()?['nivel_acesso'] == 'gerente';
+    } catch (e) { return false; }
   }
 }

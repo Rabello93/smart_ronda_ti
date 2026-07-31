@@ -194,6 +194,7 @@ class _RondaPageState extends State<RondaPage> {
         defeito = dados.temDefeito;
         descricaoDefeitoController.text = dados.descricaoDefeito ?? "";
         _dataEntradaManutencaoOriginal = dados.dataEntradaManutencao;
+        acessoriosSelecionados = Map<String, bool>.from(dados.acessorios); // Carrega os acessórios do banco
         
         if (valor.startsWith("SP_")) {
           patrimonioController.text = "";
@@ -510,7 +511,7 @@ class _RondaPageState extends State<RondaPage> {
                             color: isHome ? Colors.orange : (emManutencao ? Colors.grey : Colors.blue)
                           ),
                           title: Text("Pat: $pat - ${item['tipo']}"),
-                          subtitle: Text("${item['marca'] ?? ''} ${item['modelo'] ?? ''} ${isHome ? '(HOME OFFICE)' : ''}${emManutencao ? ' (EM MANUTENÇÃO)' : ''}"),
+                          subtitle: Text("${item['marca'] ?? ''} ${item['modelo'] ?? ''} ${isHome ? '(HOME OFFICE - ${item['responsavel_externo'] ?? '?'})' : ''}${emManutencao ? ' (EM MANUTENÇÃO)' : ''}"),
                           onTap: () {
                             Navigator.pop(context);
                             if (controller != null) {
@@ -1034,7 +1035,8 @@ class _RondaPageState extends State<RondaPage> {
                 ...acessoriosAtuais.map((acc) => _filterChip(acc, acessoriosSelecionados[acc] ?? false, (v) => setState(() => acessoriosSelecionados[acc] = v))),
                 _filterChip('DEFEITO', defeito, (v) => setState(() => defeito = v), color: AppTheme.ruby),
                 _filterChip('LOCADO', isLocado, (v) => setState(() => isLocado = v), color: Colors.orange),
-                _filterChip('EMPRÉSTIMO', isEmprestimo, (v) => setState(() => isEmprestimo = v), color: Colors.deepOrange),
+                if (_usuarioLogado?.nivelAcesso == 'master' || _usuarioLogado?.nivelAcesso == 'gerente') 
+                  _filterChip('EMPRÉSTIMO', isEmprestimo, (v) => setState(() => isEmprestimo = v), color: Colors.deepOrange),
                 _filterChip('OUTRO SETOR', setorDivergente, (v) => setState(() => setorDivergente = v), color: Colors.purple),
               ],
             ),
@@ -1111,13 +1113,23 @@ class _RondaPageState extends State<RondaPage> {
             ),
             const Divider(height: 40),
             if (equipamentos.isNotEmpty) ...[
-              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('Itens na Ronda (${equipamentos.length}):', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)), TextButton(onPressed: () => setState(() => equipamentos.clear()), child: const Text('Limpar Tudo', style: TextStyle(color: Colors.red)))]),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween, 
+                children: [
+                  Text('Itens na Ronda (${equipamentos.length}):', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)), 
+                  if (_usuarioLogado?.nivelAcesso == 'master')
+                    TextButton(onPressed: () => setState(() => equipamentos.clear()), child: const Text('Limpar Tudo', style: TextStyle(color: Colors.red)))
+                ]
+              ),
               ...equipamentos.asMap().entries.map((e) {
                 String descExtra = "";
                 if (e.value.marca.isNotEmpty == true) descExtra += "Marca: ${e.value.marca} ";
                 if (e.value.modelo.isNotEmpty == true) descExtra += "Mod: ${e.value.modelo} ";
-                if (e.value.serie.isNotEmpty == true) descExtra += "S/N: ${e.value.serie}";
-                return Card(elevation: 2, margin: const EdgeInsets.symmetric(vertical: 4), child: ListTile(leading: CircleAvatar(backgroundColor: e.value.temDefeito ? Colors.red.shade100 : Colors.green.shade100, child: Icon(e.value.temDefeito ? Icons.error_outline : Icons.check_circle_outline, color: e.value.temDefeito ? Colors.red : Colors.green)), title: Text('${e.value.tipo} - ${e.value.patrimonio}', style: const TextStyle(fontWeight: FontWeight.bold)), subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [if (descExtra.isNotEmpty) Text(descExtra, style: const TextStyle(fontSize: 12, color: Colors.blueGrey))]), trailing: Row(mainAxisSize: MainAxisSize.min, children: [IconButton(icon: const Icon(Icons.edit, color: Colors.orange, size: 22), onPressed: () => _editarItem(e.key), tooltip: 'Editar Item'), IconButton(icon: const Icon(Icons.qr_code, color: Colors.blue, size: 22), onPressed: () => _mostrarQRCode(context, e.value.patrimonio), tooltip: 'Gerar QR Code'), IconButton(icon: const Icon(Icons.delete_forever, color: Colors.grey), onPressed: () => setState(() => equipamentos.removeAt(e.key)))])));
+                if (e.value.serie.isNotEmpty == true) descExtra += "S/N: ${e.value.serie} ";
+                if (e.value.isHomeOffice) descExtra += "\nHOME OFFICE: ${e.value.responsavelExterno?.toUpperCase() ?? '---'}";
+                if (e.value.isEmprestimo) descExtra += "\nEMPRÉSTIMO PARA: ${e.value.destinoEmprestimo?.toUpperCase() ?? '---'}";
+                
+                return Card(elevation: 2, margin: const EdgeInsets.symmetric(vertical: 4), child: ListTile(leading: CircleAvatar(backgroundColor: e.value.temDefeito ? Colors.red.shade100 : Colors.green.shade100, child: Icon(e.value.temDefeito ? Icons.error_outline : Icons.check_circle_outline, color: e.value.temDefeito ? Colors.red : Colors.green)), title: Text('${e.value.tipo} - ${e.value.patrimonio}', style: const TextStyle(fontWeight: FontWeight.bold)), subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [if (descExtra.isNotEmpty) Text(descExtra, style: const TextStyle(fontSize: 10, color: Colors.blueGrey, fontWeight: FontWeight.bold))]), trailing: Row(mainAxisSize: MainAxisSize.min, children: [IconButton(icon: const Icon(Icons.edit, color: Colors.orange, size: 22), onPressed: () => _editarItem(e.key), tooltip: 'Editar Item'), IconButton(icon: const Icon(Icons.qr_code, color: Colors.blue, size: 22), onPressed: () => _mostrarQRCode(context, e.value.patrimonio), tooltip: 'Gerar QR Code'), IconButton(icon: const Icon(Icons.delete_forever, color: Colors.grey), onPressed: () => setState(() => equipamentos.removeAt(e.key)))])));
               }),
             ],
             const Divider(height: 40),

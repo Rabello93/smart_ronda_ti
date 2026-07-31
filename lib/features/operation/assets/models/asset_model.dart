@@ -27,6 +27,7 @@ class AssetModel {
   final bool isHomeOffice;
   final bool homeOfficeAutorizado; // Novo: Autorização permanente
   final DateTime? dataEntradaManutencao; // Novo: Para cálculo de tempo em reparo
+  final DateTime? dataUltimaAuditoria; // NOVO: Data da última vez que foi bipado em ronda
   final String? responsavelExterno;
   final bool isEmprestimo; // Novo: Item emprestado (Fora da unidade)
   final DateTime? dataEmprestimo; // Novo: Data do empréstimo
@@ -62,6 +63,7 @@ class AssetModel {
     this.isHomeOffice = false,
     this.homeOfficeAutorizado = false,
     this.dataEntradaManutencao,
+    this.dataUltimaAuditoria,
     this.responsavelExterno,
     this.isEmprestimo = false,
     this.dataEmprestimo,
@@ -102,6 +104,9 @@ class AssetModel {
       homeOfficeAutorizado: map['home_office_autorizado'] ?? false,
       dataEntradaManutencao: map['data_entrada_manutencao'] != null 
           ? (map['data_entrada_manutencao'] as Timestamp).toDate() 
+          : null,
+      dataUltimaAuditoria: map['data_ultima_auditoria'] != null 
+          ? (map['data_ultima_auditoria'] as Timestamp).toDate() 
           : null,
       responsavelExterno: map['responsavel_externo'],
       isEmprestimo: map['is_emprestimo'] ?? false,
@@ -146,6 +151,9 @@ class AssetModel {
       'home_office_autorizado': homeOfficeAutorizado,
       'data_entrada_manutencao': dataEntradaManutencao != null 
           ? Timestamp.fromDate(dataEntradaManutencao!) 
+          : null,
+      'data_ultima_auditoria': dataUltimaAuditoria != null 
+          ? Timestamp.fromDate(dataUltimaAuditoria!) 
           : null,
       'responsavel_externo': responsavelExterno,
       'is_emprestimo': isEmprestimo,

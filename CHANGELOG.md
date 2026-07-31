@@ -1,5 +1,28 @@
 # CHANGELOG - Smart Ronda TI 🚀
 
+## [3.3.5] - 2026-08-02
+### ✨ Segurança e Inteligência de Dashboard
+- **Restrição de Funções**: Botões de 'Empréstimo' e 'Limpar Tudo' agora são exclusivos para os níveis Master/Gerente.
+- **Dashboard Mensal**: A aba 'Geral' agora exibe automaticamente apenas os dados do mês vigente para foco operacional.
+- **Inteligência de Backup**: O card de Reservados agora identifica automaticamente qualquer ativo no setor TI que não esteja em manutenção.
+- **Contabilidade Retroativa**: Correção nos relatórios de substituição para exibir a data real informada em rondas retroativas.
+
+## [3.3.4] - 2026-08-01
+### ✨ Correções de Permissões e Estabilidade Crítica
+- **Fim do Permission Denied**: Refatoração da lógica de salvamento para permitir transferências e edições por técnicos sem erros de banco.
+- **Rastreio de Manutenção**: Itens substituídos agora preservam o cronômetro de reparo e status 'Em manutenção'.
+- **Dashboard Backup**: Novo card dedicado para itens em estoque (Reservados) na TI.
+- **Relatórios Saneados**: Filtros de incidências agora rodam sem depender de índices do Firebase.
+
+## [3.3.3] - 2026-07-31
+### ✨ Gestão de Saídas e Notificações Inteligentes
+- **Módulo de Empréstimo**: Novo status para rastrear ativos fora da unidade (Data, Motivo e Destino).
+- **Home Office Restaurado**: Exibição de Responsável, Marca e Modelo nas listagens de ativos externos.
+- **Alertas de Auditoria Individual**: Notificações para equipamentos específicos sem visita há mais de 30 dias.
+- **Diretrizes de BI (Admin)**: Painel para Gerentes/Master ativarem/desativarem tipos específicos de alertas.
+- **Relatórios Enriquecidos**: Inclusão das colunas Número de Série e Processador em todas as exportações.
+- **Substituições Precisas**: Possibilidade de informar data personalizada em trocas de equipamentos.
+
 ## [3.3.2] - 2026-07-29
 ### ✨ Refinamentos de Governança e OPEX
 - **Rastreabilidade de Manutenção**: Agora exibe Setor de Origem, Local Atual (TI), Dias em Aberto e Motivo no Dashboard.

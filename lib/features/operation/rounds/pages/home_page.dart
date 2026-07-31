@@ -74,9 +74,11 @@ class _HomePageState extends State<HomePage> {
               if (config['alerta_equips_sem_auditoria'] ?? true) {
                 final now = DateTime.now();
                 final semAuditoria = assets.where((a) {
-                  if (a.statusOperacional == 'Baixa Patrimonial') return false;
-                  if (a.ultimaAtualizacao == null) return true;
-                  return now.difference(a.ultimaAtualizacao!).inDays > 30;
+                  if (a.statusOperacional == 'Baixa Patrimonial' || a.statusOperacional == 'Inativo') return false;
+                  // Usa data_ultima_auditoria para precisão total
+                  final lastAudit = a.dataUltimaAuditoria;
+                  if (lastAudit == null) return true; 
+                  return now.difference(lastAudit).inDays > 30;
                 }).toList();
                 
                 if (semAuditoria.isNotEmpty) {
@@ -221,7 +223,7 @@ class _HomePageState extends State<HomePage> {
           persistentFooterButtons: [
             Center(
               child: Text(
-                "Smart Ronda TI - v3.3.2",
+                "Smart Ronda TI - v3.3.5",
                 style: AppTheme.monoStyle(fontSize: 9, color: Colors.grey),
               ),
             ),
@@ -234,68 +236,79 @@ class _HomePageState extends State<HomePage> {
   Widget _buildBody(int index, bool isAdmin, UserModel user) {
     switch (index) {
       case 0: 
-        return SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (_globalAlerts.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: CriticalAlertBanner(alerts: _globalAlerts),
-                ),
-              const SizedBox(height: 40),
-              Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [AppTheme.electricBlue, AppTheme.cyanNeon],
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppTheme.electricBlue.withValues(alpha: 0.3),
-                      blurRadius: 15,
-                      offset: const Offset(0, 5),
-                    )
-                  ],
-                ),
-                child: ElevatedButton.icon(
-                  onPressed: () => _iniciarRonda(user),
-                  icon: const Icon(Icons.rocket_launch_rounded),
-                  label: const Text("INICIAR NOVA RONDA"),
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(280, 70),
-                    backgroundColor: Colors.transparent,
-                    shadowColor: Colors.transparent,
-                    foregroundColor: Colors.white,
-                    textStyle: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1),
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: Center( // CENTRALIZAÇÃO REAL
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min, // Ocupa apenas o necessário para centralizar
+                      children: [
+                        if (_globalAlerts.isNotEmpty) ...[
+                          CriticalAlertBanner(alerts: _globalAlerts),
+                          const SizedBox(height: 48),
+                        ],
+                        
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [AppTheme.electricBlue, AppTheme.cyanNeon],
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppTheme.electricBlue.withValues(alpha: 0.3),
+                                blurRadius: 15,
+                                offset: const Offset(0, 5),
+                              )
+                            ],
+                          ),
+                          child: ElevatedButton.icon(
+                            onPressed: () => _iniciarRonda(user),
+                            icon: const Icon(Icons.rocket_launch_rounded),
+                            label: const Text("INICIAR NOVA RONDA"),
+                            style: ElevatedButton.styleFrom(
+                              minimumSize: const Size(300, 85),
+                              backgroundColor: Colors.transparent,
+                              shadowColor: Colors.transparent,
+                              foregroundColor: Colors.white,
+                              textStyle: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1),
+                            ),
+                          ),
+                        ),
+                        if (isAdmin) ...[
+                          const SizedBox(height: 25),
+                          OutlinedButton.icon(
+                            onPressed: () {
+                              final appState = RondaTIApp.of(context);
+                              Navigator.push(context, MaterialPageRoute(
+                                builder: (_) => DashboardPage(
+                                  themeMode: appState.themeMode, 
+                                  onChangeTheme: appState.changeTheme
+                                ),
+                              ));
+                            },
+                            icon: const Icon(Icons.analytics_rounded),
+                            label: const Text("DASHBOARD ESTRATÉGICO"),
+                            style: OutlinedButton.styleFrom(
+                              minimumSize: const Size(300, 60),
+                              side: BorderSide(color: AppTheme.cyanNeon, width: 2),
+                              foregroundColor: AppTheme.cyanNeon,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
                 ),
               ),
-              if (isAdmin) ...[
-                const SizedBox(height: 25),
-                OutlinedButton.icon(
-                  onPressed: () {
-                    final appState = RondaTIApp.of(context);
-                    Navigator.push(context, MaterialPageRoute(
-                      builder: (_) => DashboardPage(
-                        themeMode: appState.themeMode, 
-                        onChangeTheme: appState.changeTheme
-                      ),
-                    ));
-                  },
-                  icon: const Icon(Icons.analytics_rounded),
-                  label: const Text("DASHBOARD ESTRATÉGICO"),
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size(280, 55),
-                    side: BorderSide(color: AppTheme.cyanNeon, width: 2),
-                    foregroundColor: AppTheme.cyanNeon,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  ),
-                ),
-              ],
-              const SizedBox(height: 40),
-            ],
-          ),
+            );
+          }
         );
       case 1: return const HistoryPage();
       case 2: return const NotificationsPage();

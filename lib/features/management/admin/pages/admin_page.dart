@@ -616,6 +616,7 @@ class _CasteloTabState extends State<_CasteloTab> {
     final patrimonioController = TextEditingController(text: item.patrimonio.startsWith("SP_") ? "" : item.patrimonio);
     final processadorController = TextEditingController(text: item.processador);
     final macController = TextEditingController(text: item.macAddress);
+    final anoFabricacaoController = TextEditingController(text: item.anoFabricacao?.toString() ?? "");
     final responsavelController = TextEditingController(text: item.responsavelExterno);
     final destinoController = TextEditingController(text: item.destinoEmprestimo);
     final motivoEmprestimoController = TextEditingController(text: item.motivoEmprestimo);
@@ -646,6 +647,8 @@ class _CasteloTabState extends State<_CasteloTab> {
                 TextField(controller: processadorController, decoration: const InputDecoration(labelText: "Processador", border: OutlineInputBorder())),
                 const SizedBox(height: 15),
                 TextField(controller: macController, decoration: const InputDecoration(labelText: "Endereço MAC", border: OutlineInputBorder())),
+                const SizedBox(height: 15),
+                TextField(controller: anoFabricacaoController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: "Ano de Fabricação (Ex: 2020)", border: OutlineInputBorder(), prefixIcon: Icon(Icons.calendar_today))),
                 const Divider(height: 30),
                 
                 // SEÇÃO: HOME OFFICE
@@ -665,7 +668,7 @@ class _CasteloTabState extends State<_CasteloTab> {
                   title: const Text("Item em Empréstimo?", style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.orange)),
                   subtitle: const Text("Indica que o item está fora da unidade", style: TextStyle(fontSize: 11)),
                   value: isEmprestimo,
-                  activeColor: Colors.orange,
+                  activeThumbColor: Colors.orange,
                   onChanged: (v) => setModalState(() => isEmprestimo = v),
                 ),
                 if (isEmprestimo) ...[
@@ -706,6 +709,7 @@ class _CasteloTabState extends State<_CasteloTab> {
                   patrimony: newPat.isNotEmpty ? newPat : item.patrimonio,
                   processor: processadorController.text.trim(),
                   macAddress: macController.text.trim(),
+                  year: int.tryParse(anoFabricacaoController.text.trim()),
                   homeOfficeAuthorized: hoAutorizado,
                   externalResponsible: responsavelController.text.trim(),
                   isLoan: isEmprestimo,

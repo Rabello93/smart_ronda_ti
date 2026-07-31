@@ -5,17 +5,14 @@ class AssetRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<AssetModel?> getAssetByPatrimonyOrSerial(String value) async {
-    String search = value.trim(); // Removido .toLowerCase() para suportar IDs SP_...
+    String search = value.trim();
     if (search.isEmpty) return null;
 
-    // Busca direta pelo ID (Patrimônio)
     DocumentSnapshot doc = await _firestore.collection('inventario_mestre').doc(search).get();
     if (doc.exists) {
       return AssetModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
     }
 
-    // Se não achou pelo ID exato, tenta a busca case-insensitive apenas para o ID
-    // (Útil se o técnico digitar um patrimônio comum em minúsculo)
     if (!search.startsWith("SP_")) {
       DocumentSnapshot docLower = await _firestore.collection('inventario_mestre').doc(search.toLowerCase()).get();
       if (docLower.exists) {
@@ -23,7 +20,6 @@ class AssetRepository {
       }
     }
 
-    // Busca pelo campo Série
     QuerySnapshot querySerial = await _firestore
         .collection('inventario_mestre')
         .where('serie', isEqualTo: value.trim())
@@ -80,28 +76,28 @@ class AssetRepository {
     return _firestore.collection('inventario_mestre')
         .where('status_operacional', isEqualTo: 'Em manutenção')
         .snapshots()
-        .map((snap) => snap.docs.map((doc) => AssetModel.fromMap(doc.data(), doc.id)).toList());
+        .map((snap) => snap.docs.map((doc) => AssetModel.fromMap(doc.data() as Map<String, dynamic>, doc.id)).toList());
   }
 
   Stream<List<AssetModel>> getAssetsBySector(String sector) {
     return _firestore.collection('inventario_mestre')
         .where('setor', isEqualTo: sector)
         .snapshots()
-        .map((snap) => snap.docs.map((doc) => AssetModel.fromMap(doc.data(), doc.id)).toList());
+        .map((snap) => snap.docs.map((doc) => AssetModel.fromMap(doc.data() as Map<String, dynamic>, doc.id)).toList());
   }
 
   Stream<List<AssetModel>> getAssetsWithDivergence() {
     return _firestore.collection('inventario_mestre')
         .where('setor_divergente', isEqualTo: true)
         .snapshots()
-        .map((snap) => snap.docs.map((doc) => AssetModel.fromMap(doc.data(), doc.id)).toList());
+        .map((snap) => snap.docs.map((doc) => AssetModel.fromMap(doc.data() as Map<String, dynamic>, doc.id)).toList());
   }
 
   Stream<List<AssetModel>> getAssetsWithDefects() {
     return _firestore.collection('inventario_mestre')
         .where('tem_defeito', isEqualTo: true)
         .snapshots()
-        .map((snap) => snap.docs.map((doc) => AssetModel.fromMap(doc.data(), doc.id)).toList());
+        .map((snap) => snap.docs.map((doc) => AssetModel.fromMap(doc.data() as Map<String, dynamic>, doc.id)).toList());
   }
 
   Stream<List<AssetModel>> getObsoleteAssets() {
@@ -109,19 +105,19 @@ class AssetRepository {
     return _firestore.collection('inventario_mestre')
         .where('ano_fabricacao', isLessThanOrEqualTo: limitYear)
         .snapshots()
-        .map((snap) => snap.docs.map((doc) => AssetModel.fromMap(doc.data(), doc.id)).toList());
+        .map((snap) => snap.docs.map((doc) => AssetModel.fromMap(doc.data() as Map<String, dynamic>, doc.id)).toList());
   }
 
   Stream<List<AssetModel>> getAssetsByHomeOffice() {
     return _firestore.collection('inventario_mestre')
         .where('home_office_autorizado', isEqualTo: true)
         .snapshots()
-        .map((snap) => snap.docs.map((doc) => AssetModel.fromMap(doc.data(), doc.id)).toList());
+        .map((snap) => snap.docs.map((doc) => AssetModel.fromMap(doc.data() as Map<String, dynamic>, doc.id)).toList());
   }
 
   Stream<List<AssetModel>> getAllAssetsStream() {
     return _firestore.collection('inventario_mestre')
         .snapshots()
-        .map((snap) => snap.docs.map((doc) => AssetModel.fromMap(doc.data(), doc.id)).toList());
+        .map((snap) => snap.docs.map((doc) => AssetModel.fromMap(doc.data() as Map<String, dynamic>, doc.id)).toList());
   }
 }

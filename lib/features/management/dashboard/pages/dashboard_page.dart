@@ -124,7 +124,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   }
                   
                   final allRondas = snapshot.data ?? [];
-                  final rondas = _dashboardController.filterRoundsByDateRange(allRondas, dataFiltro);
+                  final rondasFiltradas = _dashboardController.filterRoundsByDateRange(allRondas, dataFiltro);
 
                   return Row(
                     children: [
@@ -136,7 +136,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         child: Column(
                           children: [
                             Expanded(
-                              child: _buildCurrentTab(rondas, allRondas, textColor, user, config),
+                              child: _buildCurrentTab(rondasFiltradas, allRondas, textColor, user, config),
                             ),
                             _buildFooter(textColor),
                           ],
@@ -373,13 +373,11 @@ class _DashboardPageState extends State<DashboardPage> {
                       children: [
                         SummaryCard(title: "Inventário Total", value: allAssets.length.toString(), icon: Icons.storage, color: Colors.teal),
                         const SizedBox(width: 12),
-                        SummaryCard(title: "Saúde do Parque", value: "${coverage['auditado']!.toInt()}%", icon: Icons.health_and_safety_rounded, color: Colors.green),
+                        SummaryCard(title: "Rondas no Mês", value: allRondas.where((r) => r.dataInicio.month == today.month && r.dataInicio.year == today.year).length.toString(), icon: Icons.calendar_month, color: AppTheme.electricBlue),
                         const SizedBox(width: 12),
-                        SummaryCard(title: "Auditados no Período", value: _dashboardController.getTotalItens(filteredRondas).toString(), icon: Icons.inventory_2, color: Colors.orange),
+                        SummaryCard(title: "Auditados no Mês", value: _dashboardController.getTotalItens(allRondas.where((r) => r.dataInicio.month == today.month && r.dataInicio.year == today.year).toList()).toString(), icon: Icons.fact_check_rounded, color: Colors.green),
                         const SizedBox(width: 12),
                         SummaryCard(title: "Defeitos (Total)", value: allAssets.where((a) => a.temDefeito || a.statusOperacional == 'Em manutenção').length.toString(), icon: Icons.error, color: Colors.red),
-                        const SizedBox(width: 12),
-                        SummaryCard(title: "Rondas (Período)", value: filteredRondas.length.toString(), icon: Icons.assignment_turned_in, color: Colors.blue),
                       ],
                     ),
                   ),
@@ -710,7 +708,10 @@ class _DashboardPageState extends State<DashboardPage> {
               itemBuilder: (context, index) {
                 final dep = departamentos[index];
                 final String depNome = dep['nome'].toString();
-                final itensDoDep = allAssets.where((a) => a.setor == depNome || (depNome == 'TI' && a.statusOperacional == 'Em manutenção')).toList();
+                final itensDoDep = allAssets.where((a) => 
+                  a.setor == depNome || 
+                  (depNome == 'TI' && (a.statusOperacional == 'Em manutenção' || a.statusOperacional == 'Reservado'))
+                ).toList();
                 return Card(
                   elevation: 2, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   child: InkWell(
@@ -833,6 +834,15 @@ class _DashboardPageState extends State<DashboardPage> {
               const SizedBox(height: 24),
               
               StatusIndicatorCard(
+                title: "RESERVADOS / BACKUP (TI)", 
+                count: allAssets.where((a) => (a.setor == 'TI' || a.statusOperacional == 'Reservado') && a.statusOperacional != 'Em manutenção').length.toString(), 
+                icon: Icons.inventory_2_rounded, 
+                color: Colors.teal, 
+                onTap: () => _showItensList(context, "ITENS RESERVADOS NA TI", allAssets.where((a) => (a.setor == 'TI' || a.statusOperacional == 'Reservado') && a.statusOperacional != 'Em manutenção').toList())
+              ),
+              const SizedBox(height: 12),
+              
+              StatusIndicatorCard(
                 title: "DIVERGÊNCIAS DE LOCAL", 
                 count: itensDivergentes.length.toString(), 
                 icon: Icons.wrong_location_rounded, 
@@ -850,18 +860,11 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
 
               const SizedBox(height: 48),
-              Text("INFO: SISTEMA DE GOVERNANÇA HÍBRIDA v3.3.3", style: AppTheme.monoStyle(fontSize: 9, color: Colors.grey, fontWeight: FontWeight.bold)),
+              Text("INFO: SISTEMA DE GOVERNANÇA HÍBRIDA v3.3.5", style: AppTheme.monoStyle(fontSize: 9, color: Colors.grey, fontWeight: FontWeight.bold)),
             ],
           ),
         );
       }
-    );
-  }
-
-  Widget _buildStatusStreamCard({required Stream<List<AssetModel>> stream, required String title, required IconData icon, required Color color}) {
-    return StreamBuilder<List<AssetModel>>(
-      stream: stream,
-      builder: (context, snapshot) => StatusIndicatorCard(title: title, count: (snapshot.data?.length ?? 0).toString(), icon: icon, color: color, onTap: () => _showItensList(context, title, snapshot.data ?? [])),
     );
   }
 
@@ -1272,6 +1275,6 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget _buildFooter(Color textColor) {
-    return Container(padding: const EdgeInsets.symmetric(vertical: 8), child: Center(child: Text('Smart Ronda TI - v3.3.2', style: TextStyle(color: textColor.withValues(alpha: 0.5), fontSize: 10))));
+    return Container(padding: const EdgeInsets.symmetric(vertical: 8), child: Center(child: Text('Smart Ronda TI - v3.3.5', style: TextStyle(color: textColor.withValues(alpha: 0.5), fontSize: 10))));
   }
 }
