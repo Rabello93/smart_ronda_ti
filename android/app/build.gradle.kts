@@ -20,8 +20,8 @@ android {
         applicationId = "com.smartronda.ti"
         minSdk = flutter.minSdkVersion
         targetSdk = 35
-        versionCode = 52
-        versionName = "3.3.5"
+        versionCode = 53
+        versionName = "3.3.6"
     }
 
     buildTypes {

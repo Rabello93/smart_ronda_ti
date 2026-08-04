@@ -1,5 +1,11 @@
 # CHANGELOG - Smart Ronda TI 🚀
 
+## [3.3.6] - 2026-08-04
+### ✨ Persistência e Estabilidade
+- **Correção de Locação**: Restaurada a persistência dos campos `is_locado` e `locadora` no inventário mestre.
+- **Ciclo de Vida**: Persistência do campo `ano_fabricacao` normalizada.
+- **Limpeza Técnica**: Remoção de avisos de cast e correção de escopo de variáveis no repositório.
+
 ## [3.3.5] - 2026-08-02
 ### ✨ Segurança e Inteligência de Dashboard
 - **Restrição de Funções**: Botões de 'Empréstimo' e 'Limpar Tudo' agora são exclusivos para os níveis Master/Gerente.

@@ -33,7 +33,7 @@ class AboutPage extends StatelessWidget {
                       Icon(Icons.checklist_rtl, size: 80, color: Colors.blue),
                       SizedBox(height: 10),
                       Text("Smart Ronda TI", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                      Text("Versão 3.3.5", style: TextStyle(color: Colors.grey)),
+                      Text("Versão 3.3.6", style: TextStyle(color: Colors.grey)),
                 ],
               ),
             ),
@@ -46,8 +46,12 @@ class AboutPage extends StatelessWidget {
             const SizedBox(height: 20),
             _sectionTitle("🚀 Log de Atualizações"),
             _buildUpdate(
-              "3.3.5 (Atual)",
-              "• SEGURANÇA OPERACIONAL: Botões de Empréstimo e Limpar Tudo restritos aos níveis de gestão e dev.\n• DASHBOARD MENSAL: Aba Geral focada automaticamente no mês vigente para maior clareza imediata.\n• INTELIGÊNCIA TI: Card de Backup agora engloba automaticamente ativos transferidos para a TI sem manutenção.\n• CONTABILIDADE REAL: Relatórios de substituição agora respeitam a data retroativa informada na ronda.",
+              "3.3.6 (Atual)",
+              "• CORREÇÃO DE PERSISTÊNCIA: Itens locados agora salvam corretamente a empresa locadora e o ano de fabricação.\n• ESTABILIDADE TÉCNICA: Ajuste seletivo de campos para evitar que dados sejam sobrescritos durante a auditoria.\n• INTEGRIDADE DE CÓDIGO: Limpeza de redundâncias no repositório para builds mais rápidos e seguros.",
+            ),
+            _buildUpdate(
+              "3.3.5",
+              "• SEGURANÇA OPERACIONAL: Botões de Empréstimo e Limpar Tudo restritos aos níveis de gestão e dev.\n• DASHBOARD: Cards de produtividade mensal integrados à aba Geral.\n• INTELIGÊNCIA TI: Card de Backup agora engloba automaticamente ativos transferidos para a TI sem manutenção.",
             ),
             _buildUpdate(
               "3.3.4",

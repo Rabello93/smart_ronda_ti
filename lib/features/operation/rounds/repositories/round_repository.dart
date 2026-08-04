@@ -46,16 +46,19 @@ class RoundRepository {
       
       // ATUALIZAÇÃO NO CASTELO: Liberdade total para transferir setor e mudar status
       DocumentReference invRef = _firestore.collection('inventario_mestre').doc(inventoryId);
-      
-      // Criamos um mapa de atualização seletivo para evitar sobrepor dados técnicos com campos vazios
+
+      // Criamos um mapa de atualização seletivo completo para não perder dados de locação ou técnicos
       Map<String, dynamic> invUpdate = {
         'setor': round.setor,
         'tipo': asset.tipo,
         'marca': asset.marca,
         'modelo': asset.modelo,
         'serie': asset.serie,
+        'is_locado': asset.isLocado, // Restaurado
+        'locadora': asset.locadora,   // Restaurado
         'processador': asset.processador,
         'mac_address': asset.macAddress,
+        'ano_fabricacao': asset.anoFabricacao, // Restaurado
         'status_operacional': asset.statusOperacional,
         'tem_defeito': asset.temDefeito,
         'descricao_defeito': asset.descricaoDefeito,
@@ -119,17 +122,17 @@ class RoundRepository {
     return _firestore.collection('rondas')
         .orderBy('timestamp', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) => RoundModel.fromMap(doc.data(), doc.id)).toList());
+        .map((snapshot) => snapshot.docs.map((doc) => RoundModel.fromMap(doc.data() as Map<String, dynamic>, doc.id)).toList());
   }
 
   Future<List<AssetModel>> getAssetsOfRound(String roundId) async {
     final snapshot = await _firestore.collection('rondas').doc(roundId).collection('equipamentos').get();
     return snapshot.docs
         .where((doc) {
-          final data = doc.data();
+          final data = doc.data() as Map<String, dynamic>;
           return data['is_troca'] != true && data['substituido_por_edicao'] != true;
         })
-        .map((doc) => AssetModel.fromMap(doc.data(), doc.id))
+        .map((doc) => AssetModel.fromMap(doc.data() as Map<String, dynamic>, doc.id))
         .toList();
   }
 
